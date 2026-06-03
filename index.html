@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>履修管理（設計版）</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app-title-row">
+  <h1>履修管理アプリ</h1>
+  <div class="top-credit-gauge" title="卒業要件の総単位進捗">
+    <span class="gauge-label">総単位</span>
+    <span class="gauge-value"><span id="top-earned-x">0</span>/124</span>
+    <div class="gauge-bar" role="progressbar" aria-valuemin="0" aria-valuemax="124">
+      <div class="gauge-fill" id="top-earned-fill"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 
+  メインコンテナ: 画面全体を左右に分けるための親要素 
+  style.css の .main-container で flexbox を適用しています
+-->
+<div class="main-container">
+  <!-- 左カラム: 検索機能と授業の選択リスト -->
+  <div class="left-column">
+    <div class="input-area">
+      <input id="search-bar" type="text" placeholder="授業名や教員名で検索...">
+      <select id="year-filter">
+        <option value="すべて表示">学年</option>
+        <option value="1年次">1年次</option>
+        <option value="2年次">2年次</option>
+        <option value="3年次">3年次</option>
+        <option value="4年次">4年次</option>
+      </select>
+      <select id="quarter-filter">
+        <option value="すべて表示">学期</option>
+        <option value="1Q">1Q</option>
+        <option value="2Q">2Q</option>
+        <option value="3Q">3Q</option>
+        <option value="4Q">4Q</option>
+      </select>
+      <select id="category-filter">
+        <option value="すべて表示">カテゴリ</option>
+        <option value="必修">必修</option>
+        <option value="選択">選択</option>
+        <option value="専門">専門</option>
+        <option value="教養">教養</option>
+      </select>
+      <select id="intro-filter">
+        <option value="すべて表示">導入科目</option>
+        <option value="該当">該当</option>
+        <option value="非該当">非該当</option>
+      </select>
+      <button id="analysis-btn">卒業要件分析</button>
+
+
+    </div>
+
+    <h2>授業を探して追加</h2>
+    <div class="predefined-classes-section">
+      <!-- ここに JavaScript (app.js) で生成された授業リストが入ります -->
+      <ul id="predefined-classes-list">
+      </ul>
+    </div>
+  </div>
+
+  <!-- 右カラム: 自分が選択した授業の確認リスト -->
+  <div class="right-column">
+    <h2>マイ履修</h2>
+    <div class="summary-box">
+      <div>取得単位：<span id="earned-credits">0</span></div>
+      <div>履修予定(科目)：<span id="registered-count">0</span></div>
+      <div>履修予定(単位)：<span id="registered-credits">0</span></div>
+    </div>
+
+    <h3 class="scheduled-title">履修予定</h3>
+    <ul id="list"></ul>
+
+    <h3 class="completed-title">履修済み</h3>
+    <ul id="completed-list"></ul>
+  </div>
+</div>
+
+<!-- 必修分析ポップアップ -->
+<div id="analysis-modal" class="modal-overlay">
+  <div class="modal-content">
+    <span id="close-modal" class="close-btn">&times;</span>
+    <h2>卒業要件分析結果</h2>
+
+    <div id="analysis-result">
+      <!-- ここに分析結果のUIを後で実装 -->
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
