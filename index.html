@@ -7,8 +7,8 @@
 </head>
 <body>
 
-<div class="app-title-row">
-  <h1>履修管理アプリ</h1>
+<header class="app-title-row">
+  <h1>履修管理アプリ</h1> <!-- 見出し構造の適正化 -->
   <div class="top-credit-gauge" title="卒業要件の総単位進捗">
     <span class="gauge-label">総単位</span>
     <span class="gauge-value"><span id="top-earned-x">0</span>/124</span>
@@ -16,15 +16,15 @@
       <div class="gauge-fill" id="top-earned-fill"></div>
     </div>
   </div>
-</div>
+</header>
 
 <!-- 
   メインコンテナ: 画面全体を左右に分けるための親要素 
   style.css の .main-container で flexbox を適用しています
 -->
-<div class="main-container">
+<main class="main-container">
   <!-- 左カラム: 検索機能と授業の選択リスト -->
-  <div class="left-column">
+  <section class="left-column">
     <div class="input-area">
       <input id="search-bar" type="text" placeholder="授業名や教員名で検索...">
       <select id="year-filter">
@@ -43,31 +43,26 @@
       </select>
       <select id="category-filter">
         <option value="すべて表示">カテゴリ</option>
+      </select>
+      <select id="requirement-filter">
+        <option value="すべて表示">必修フィルター</option>
         <option value="必修">必修</option>
-        <option value="選択">選択</option>
-        <option value="専門">専門</option>
-        <option value="教養">教養</option>
+        <option value="選択必修">選択必修</option>
       </select>
-      <select id="intro-filter">
-        <option value="すべて表示">導入科目</option>
-        <option value="該当">該当</option>
-        <option value="非該当">非該当</option>
-      </select>
-      <button id="analysis-btn">卒業要件分析</button>
-
-
+      <button id="analysis-btn" type="button">卒業要件分析</button>
     </div>
 
     <h2>授業を探して追加</h2>
+    <div id="search-count" class="search-count"></div>
     <div class="predefined-classes-section">
       <!-- ここに JavaScript (app.js) で生成された授業リストが入ります -->
       <ul id="predefined-classes-list">
       </ul>
     </div>
-  </div>
+  </section>
 
   <!-- 右カラム: 自分が選択した授業の確認リスト -->
-  <div class="right-column">
+  <section class="right-column">
     <h2>マイ履修</h2>
     <div class="summary-box">
       <div>取得単位：<span id="earned-credits">0</span></div>
@@ -80,20 +75,28 @@
 
     <h3 class="completed-title">履修済み</h3>
     <ul id="completed-list"></ul>
-  </div>
-</div>
+  </section>
+</main>
 
 <!-- 必修分析ポップアップ -->
-<div id="analysis-modal" class="modal-overlay">
+<div id="analysis-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="analysis-modal-title">
   <div class="modal-content">
     <span id="close-modal" class="close-btn">&times;</span>
-    <h2>卒業要件分析結果</h2>
+    <h2 id="analysis-modal-title">卒業要件分析結果</h2>
 
     <div id="analysis-result">
       <!-- ここに分析結果のUIを後で実装 -->
     </div>
   </div>
 </div>
+
+<footer class="app-footer">
+  <p>ZEN Course Planner (Unofficial) は非公式の履修管理支援ツールです。</p>
+  <p>卒業要件分析、単位計算、履修判定結果は参考情報であり、正確性や完全性を保証するものではありません。</p>
+  <p>履修登録および卒業要件の最終確認は、大学の公式情報・学生要覧・シラバス等で行ってください。</p>
+  <p>本アプリの利用によって生じた損害について、開発者は一切の責任を負いません。</p>
+  <p>Version Beta 0.1</p>
+</footer>
 
 <script src="app.js"></script>
 </body>

@@ -165,14 +165,6 @@ body {
   margin-bottom: 10px;
 }
 
-/* 導入科目（該当）を強調表示 */
-.intro-highlight {
-  border-left-color: #f59e0b !important;
-  background: #fff7ed !important;
-}
-
-
-
 .class-detail {
   /* 「詳細」エリアの初期状態：高さを0にして隠す */
   max-height: 0;
@@ -184,7 +176,7 @@ body {
 }
 
 .class-detail.open {
-  max-height: 200px;
+  max-height: 1000px;
   padding: 10px 15px;
   border: 1px solid #ddd;
   border-top: none;
@@ -348,3 +340,98 @@ body {
   cursor: pointer;
 }
 
+.category-highlight {
+  color: #e53e3e; /* 赤系の色 */
+  font-weight: bold;
+  background-color: #fff5f5; /* 薄い赤の背景 */
+  padding: 0 4px;
+  border-radius: 3px;
+  border: 1px solid #feb2b2;
+}
+
+/* 詳細画面のレイアウト改善 */
+.detail-subject {
+  margin: 0 0 10px 0;
+  font-size: 1.1em;
+  color: #2d3748;
+  border-bottom: 2px solid #edf2f7;
+  padding-bottom: 5px;
+}
+
+.detail-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.badge-cat, .badge-item {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.85em;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  height: 24px; /* 高さを一定にしてズレを防止 */
+  box-sizing: border-box;
+  border: 1px solid transparent; /* 枠線の有無による1〜2pxのガタつきを防止 */
+}
+
+.badge-cat { background: #edf2f7; color: #4a5568; border-color: #edf2f7; }
+.badge-cat.important { background: #fff5f5; color: #e53e3e; border: 1px solid #feb2b2; }
+.badge-item { background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
+
+.detail-sections p {
+  margin: 6px 0;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+.detail-sections .description {
+  background: #f8fafc;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+/* Footer Styles */
+.app-footer {
+  margin-top: 60px; /* メインコンテンツからの上部余白 */
+  padding: 30px 20px; /* 上下左右のパディング */
+  background-color: #f8f9fa; /* 薄いグレーの背景色 */
+  color: #6c757d; /* テキストの色 */
+  text-align: center; /* テキストを中央揃え */
+  font-size: 0.875em; /* 本文より少し小さい文字サイズ (例: 14px) */
+  line-height: 1.6; /* 行の高さ */
+  border-top: 1px solid #e9ecef; /* 上部に控えめな境界線 */
+}
+
+.app-footer p {
+  margin: 0; /* 段落のデフォルトマージンをリセット */
+  padding: 2px 0; /* 各行の上下にわずかなパディング */
+}
+
+/* Search Count Styles */
+.search-count {
+  font-size: 0.95em;
+  color: #666;
+  margin: -10px 0 15px 5px; /* 見出しとのバランス調整 */
+}
+
+.badge {
+  display: inline-block;
+  padding: 1px 8px;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+  white-space: nowrap;
+}
+
+.badge.required {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
