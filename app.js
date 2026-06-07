@@ -491,6 +491,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   // 外部JSONから授業データを読み込む
+  let loadErrorTimer = null; // 通信エラーアラートの遅延表示用タイマー
   try {
     const response = await fetch('courses.json');
     if (!response.ok) throw new Error(`ファイルが見つかりません (${response.status})`);
@@ -520,10 +521,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const normalizedData = data.map(normalizeClass).filter(Boolean);
     state.predefinedData = normalizedData;
     state.coursesMap = new Map(normalizedData.map(item => [normalizeKey(item.subject), item]));
+
+    // 3秒以内に読み込みが完了した場合は、もし予約されていたエラーアラートがあればキャンセルする
+    if (loadErrorTimer) clearTimeout(loadErrorTimer);
     renderAll(); // データロード後にクリーンアップを含めて再描画
   } catch (error) {
     console.error('データの読み込みに失敗しました:', error);
-    alert('授業データの読み込みに失敗しました。VS Codeの Live Server などを使用して開いてください。');
+    // GitHub Pagesの初回読み込み遅延等による誤検知を防ぐため、3秒待機してからアラートを表示する。
+    // fetchが本当に失敗（catchブロックへ到達）した場合のみ実行される。
+    loadErrorTimer = setTimeout(() => {
+      alert('授業データの読み込みに失敗しました。VS Codeの Live Server などを使用して開いてください。');
+    }, 3000);
   }
 
   const renderPredefinedList = () => {
