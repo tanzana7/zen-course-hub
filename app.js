@@ -605,50 +605,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderPredefinedList();
   };
 
-  // 外部JSONから授業データを読み込む
-  let loadErrorTimer = null; // 通信エラーアラートの遅延表示用タイマー
-  try {
-    const response = await fetch('courses.json');
-    if (!response.ok) throw new Error(`ファイルが見つかりません (${response.status})`);
-    const data = await response.json();
-
-    data.sort((a, b) => {
-      const getPriority = (cat) => {
-        if (cat === '必修') return 1;
-        if (cat === '選択必修') return 2;
-        if (cat === '選択') return 3;
-        return 4;
-      };
-
-      const priorityA = getPriority(a.category);
-      const priorityB = getPriority(b.category);
-      if (priorityA !== priorityB) return priorityA - priorityB;
-
-      const aYear = parseInt(a.year) || 0;
-      const bYear = parseInt(b.year) || 0;
-      if (aYear !== bYear) return aYear - bYear;
-
-      if (a.tag !== b.tag) return (a.tag || '').localeCompare(b.tag || '', 'ja');
-      return a.subject.localeCompare(b.subject, 'ja');
-    });
-
-    // データの正規化
-    const normalizedData = data.map(normalizeClass).filter(Boolean);
-    state.predefinedData = normalizedData;
-    state.coursesMap = new Map(normalizedData.map(item => [normalizeKey(item.subject), item]));
-
-    // 3秒以内に読み込みが完了した場合は、もし予約されていたエラーアラートがあればキャンセルする
-    if (loadErrorTimer) clearTimeout(loadErrorTimer);
-    renderAll(); // データロード後にクリーンアップを含めて再描画
-  } catch (error) {
-    console.error('データの読み込みに失敗しました:', error);
-    // GitHub Pagesの初回読み込み遅延等による誤検知を防ぐため、3秒待機してからアラートを表示する。
-    // fetchが本当に失敗（catchブロックへ到達）した場合のみ実行される。
-    loadErrorTimer = setTimeout(() => {
-      alert('授業データの読み込みに失敗しました。VS Codeの Live Server などを使用して開いてください。');
-    }, 3000);
-  }
-
   const setupFilters = () => {
     // フィルターの選択肢を「分野」リストに書き換え
     const categoryFilter = document.getElementById('category-filter');
@@ -722,8 +678,55 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
   };
 
+  // --- アプリケーションの実行開始 ---
+  // すべての関数(const)の定義が完了した後に、呼び出しを行います。
+
   setupFilters();
   setupAnalysisModal();
-  renderPredefinedList();
-  renderList();
+
+  // 外部JSONから授業データを読み込む
+  let loadErrorTimer = null; // 通信エラーアラートの遅延表示用タイマー
+  try {
+    const response = await fetch('courses.json');
+    if (!response.ok) throw new Error(`ファイルが見つかりません (${response.status})`);
+    const data = await response.json();
+
+    data.sort((a, b) => {
+      const getPriority = (cat) => {
+        if (cat === '必修') return 1;
+        if (cat === '選択必修') return 2;
+        if (cat === '選択') return 3;
+        return 4;
+      };
+
+      const priorityA = getPriority(a.category);
+      const priorityB = getPriority(b.category);
+      if (priorityA !== priorityB) return priorityA - priorityB;
+
+      const aYear = parseInt(a.year) || 0;
+      const bYear = parseInt(b.year) || 0;
+      if (aYear !== bYear) return aYear - bYear;
+
+      if (a.tag !== b.tag) return (a.tag || '').localeCompare(b.tag || '', 'ja');
+      return a.subject.localeCompare(b.subject, 'ja');
+    });
+
+    // データの正規化
+    const normalizedData = data.map(normalizeClass).filter(Boolean);
+    state.predefinedData = normalizedData;
+    state.coursesMap = new Map(normalizedData.map(item => [normalizeKey(item.subject), item]));
+
+    // 3秒以内に読み込みが完了した場合は、もし予約されていたエラーアラートがあればキャンセルする
+    if (loadErrorTimer) clearTimeout(loadErrorTimer);
+    renderAll(); // データロード後にクリーンアップを含めて再描画
+  } catch (error) {
+    console.error('データの読み込みに失敗しました:', error);
+    // GitHub Pagesの初回読み込み遅延等による誤検知を防ぐため、3秒待機してからアラートを表示する。
+    loadErrorTimer = setTimeout(() => {
+      alert('授業データの読み込みに失敗しました。VS Codeの Live Server などを使用して開いてください。');
+    }, 3000);
+  }
+
+  renderPredefinedList(); // 初期リスト描画
+  renderList();           // 登録済みリスト描画
 });
