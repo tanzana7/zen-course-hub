@@ -8,27 +8,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 卒業要件分析（導入科目）の判定に使用するリストを復活
   const introSubjects = [
-    'ITリテラシー',
-    'アカデミックリテラシー',
-    'デジタルツールの使い方',
-    '経済入門',
-    '現代社会と数学',
-    '人工知能活用実践',
-    '人文社会入門'
+    'it_literacy',
+    'academic_literacy',
+    'digital_tools_usage',
+    'economics_intro',
+    'modern_society_math',
+    'ai_practical_usage',
+    'humanities_intro'
   ];
-
-  /**
-   * キーの正規化関数
-   * 空白除去、全角英数の半角化、重複スペースの集約を行い不整合を防ぐ
-   */
-  const normalizeKey = (subject) => {
-    if (typeof subject !== 'string') return '';
-    return subject
-      .trim()
-      .replace(/[！-～]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0)) // 全角英数を半角へ
-      .replace(/　/g, ' ') // 全角スペースを半角へ
-      .replace(/\s+/g, ' '); // 連続する空白を1つに集約
-  };
 
   /**
    * localStorageのキー管理
@@ -46,6 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!subject) return null;
     return {
       ...(typeof cls === 'object' && cls !== null ? cls : {}),
+      id: cls?.id || '',
       subject: subject,
       credits: Number(cls?.credits || 0),
       tag: String(cls?.tag || ''),
@@ -63,15 +51,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       let parsed = JSON.parse(item);
       if (!Array.isArray(parsed)) parsed = [];
 
-      // subject文字列のみを抽出・正規化（不正データは排除）
+      // IDのみを抽出（不正データは排除）
       return parsed
-        .map(i => {
-          const val = (typeof i === 'object' && i !== null) ? i.subject : i;
-          if (typeof val === 'string') {
-            return normalizeKey(val);
-          }
-          return null;
-        })
+        .map(i => (typeof i === 'object' && i !== null) ? i.id : i)
+        .filter(val => typeof val === 'string')
+        .map(s => s.trim())
         .filter(s => s && s.length > 0);
     } catch (e) {
       return [];
@@ -82,40 +66,39 @@ document.addEventListener('DOMContentLoaded', async () => {
    * アプリケーションの状態（State）
    */
   const state = {
-    // 科目名(ID)の配列として管理
+    // 科目IDの配列として管理
     registeredClasses: new Set(safeParse(STORAGE_KEYS.REGISTERED)), 
     completedClasses: new Set(safeParse(STORAGE_KEYS.COMPLETED)),
-    // 全科目データを subject キーで高速検索するためのMap
+    // 全科目データを id キーで高速検索するためのMap
     coursesMap: new Map(), 
     predefinedData: [],
     filterYear: 'すべて表示',
     filterQuarter: 'すべて表示',
     filterCategory: '分野',
     filterRequirement: 'すべて表示',
-    filterSearch: ''
+    filterIntro: 'すべて表示',
+    filterSearch: '',
+    reviewsMap: {} // 口コミデータを保持するオブジェクト
   };
 
   /**
    * 状態変更のコミット（追加・削除・移動をここで一括管理）
-   * @param {string} subject - 科目名
+   * @param {string} id - 科目ID
    * @param {'REGISTER'|'COMPLETE'|'DELETE'} action - アクション
    */
-  const commitStateChange = (subject, action) => {
-    const sub = normalizeKey(subject);
-    if (!sub) return;
-
+  const commitStateChange = (id, action) => {
     switch (action) {
       case 'REGISTER':
-        state.completedClasses.delete(sub);
-        state.registeredClasses.add(sub);
+        state.completedClasses.delete(id);
+        state.registeredClasses.add(id);
         break;
       case 'COMPLETE':
-        state.registeredClasses.delete(sub);
-        state.completedClasses.add(sub);
+        state.registeredClasses.delete(id);
+        state.completedClasses.add(id);
         break;
       case 'DELETE':
-        state.registeredClasses.delete(sub);
-        state.completedClasses.delete(sub);
+        state.registeredClasses.delete(id);
+        state.completedClasses.delete(id);
         break;
     }
 
@@ -128,31 +111,29 @@ document.addEventListener('DOMContentLoaded', async () => {
    */
   const cleanupState = () => {
     const validate = (set) => {
-      const validArray = Array.from(set).filter(s => s && state.coursesMap.has(normalizeKey(s)));
+      const validArray = Array.from(set).filter(id => id && state.coursesMap.has(id));
       set.clear();
-      validArray.forEach(s => set.add(normalizeKey(s)));
+      validArray.forEach(id => set.add(id));
     };
     validate(state.registeredClasses);
     validate(state.completedClasses);
-    // 排他制御の再確認（正規化されたキーで比較）
-    state.registeredClasses.forEach(s => state.completedClasses.delete(s));
+    // 排他制御の再確認
+    state.registeredClasses.forEach(id => state.completedClasses.delete(id));
   };
 
   /**
    * 既に対象科目が登録済みかチェック
    */
-  const isAlreadyExists = (subject) => {
-    const s = normalizeKey(typeof subject === 'string' ? subject : subject?.subject);
-    if (!s) return false;
-    return state.registeredClasses.has(s) || state.completedClasses.has(s);
+  const isAlreadyExists = (id) => {
+    return state.registeredClasses.has(id) || state.completedClasses.has(id);
   };
 
   /**
-   * localStorageへの保存（Setを配列に戻して保存、正規化済みデータのみ）
+   * localStorageへの保存（Setを配列に戻して保存、IDベースで保存）
    */
   const saveState = () => {
-    const reg = Array.from(state.registeredClasses).filter(s => s && state.coursesMap.has(normalizeKey(s)));
-    const comp = Array.from(state.completedClasses).filter(s => s && state.coursesMap.has(normalizeKey(s)));
+    const reg = Array.from(state.registeredClasses).filter(id => id && state.coursesMap.has(id));
+    const comp = Array.from(state.completedClasses).filter(id => id && state.coursesMap.has(id));
     
     localStorage.setItem(STORAGE_KEYS.REGISTERED, JSON.stringify(reg));
     localStorage.setItem(STORAGE_KEYS.COMPLETED, JSON.stringify(comp));
@@ -166,7 +147,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const allSelected = [
       ...Array.from(state.registeredClasses),
       ...Array.from(state.completedClasses)
-    ].map(sub => state.coursesMap.get(normalizeKey(sub))).filter(Boolean);
+    ].map(id => state.coursesMap.get(id)).filter(Boolean);
 
     let rawTotalCredits = 0;
     let socialCredits = 0;
@@ -227,7 +208,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         <div class="class-meta">
           ${(cls.category === '必修' || cls.category === '選択必修') ? `<span class="badge required">${cls.category}</span>` : ''}
           ${cls.year ? `<span class="badge">${cls.year}</span>` : ''}
-          ${cls.quarter ? cls.quarter.split(/,\s*/).map(q => `<span class="badge">${q}</span>`).join('') : ''}
+          ${cls.quarter ? cls.quarter.replace(/\s*([〜～ー－–—\-])\s*/g, '$1').split(/[・,、，\s]+/).filter(Boolean).map(q => `<span class="badge">${q}</span>`).join('') : ''}
         </div>
       </div>
       <div class="actions">
@@ -236,8 +217,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
 
     li.querySelector('.delete-btn').onclick = () => {
-      // 正規化したsubjectベースでの一括削除を共通関数に委譲
-      commitStateChange(cls.subject, 'DELETE');
+      // IDベースでの一括削除を共通関数に委譲
+      commitStateChange(cls.id, 'DELETE');
     };
 
     return li;
@@ -250,16 +231,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     list.innerHTML = '';
     completedList.innerHTML = '';
 
-    // 正規化キーからオブジェクトを復元
-    const regObjects = Array.from(state.registeredClasses).map(s => state.coursesMap.get(normalizeKey(s))).filter(Boolean);
-    const compObjects = Array.from(state.completedClasses).map(s => state.coursesMap.get(normalizeKey(s))).filter(Boolean);
+    // IDからオブジェクトを復元
+    const regObjects = Array.from(state.registeredClasses).map(id => state.coursesMap.get(id)).filter(Boolean);
+    const compObjects = Array.from(state.completedClasses).map(id => state.coursesMap.get(id)).filter(Boolean);
     const allSelected = [...regObjects, ...compObjects];
 
     const stats = calculateCredits(state);
     const regCredits = sumCredits(regObjects);
     const earnedCredits = sumCredits(compObjects);
 
-    const completedIntro = allSelected.filter(c => introSubjects.includes(c.subject));
+    const completedIntro = allSelected.filter(c => introSubjects.includes(c.id));
     const introCredits = sumCredits(completedIntro);
 
 
@@ -403,9 +384,9 @@ document.addEventListener('DOMContentLoaded', async () => {
               <summary style="cursor: pointer; color: #007bff; font-size: 0.9em; text-decoration: underline;">詳細</summary>
               <div style="margin-top: 10px; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 5px; min-width: 220px;">
                 <ul style="margin: 0; padding: 0; list-style: none; font-size: 0.85em;">
-                  ${introSubjects
+                  ${introSubjects.map(id => state.coursesMap.get(id)?.subject || id)
                     .map(s => {
-                      const has = allSelected.some(c => c.subject === s);
+                      const has = allSelected.some(c => c.subject === s || c.id === s);
                       return `<li style="padding: 3px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; color: ${has ? '#2c7a7b' : '#e53e3e'};">
                         <span>${s}</span>
                         <span>${has ? '〇' : '×'}</span>
@@ -491,9 +472,34 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const filtered = state.predefinedData.filter(item => {
       const matchYear = state.filterYear === 'すべて表示' || item.year === state.filterYear;
-      const matchQuarter = state.filterQuarter === 'すべて表示' || item.quarter.includes(state.filterQuarter);
+
+      // 学期（Quarter）判定：範囲指定(1Q〜2Q)や複数指定(1Q・2Q)に対応した正規化判定
+      const matchQuarter = (function() {
+        const f = state.filterQuarter;
+        const q = item.quarter || '';
+        if (f === 'すべて表示') return true;
+
+        const filterNum = parseInt(f.replace(/[^0-9]/g, ''));
+        // 1. 範囲記号（〜やハイフン）の前後のスペースを消し、記号を半角ハイフンに統一
+        // 2. 区切り記号（・やカンマ、残ったスペース）を半角カンマに統一
+        const standardized = q.replace(/\s*[〜～ー－–—\-]\s*/g, '-')
+                              .replace(/[・,、，\s]+/g, ',');
+
+        return standardized.split(',').filter(Boolean).some(part => {
+          if (part.includes('-')) {
+            const nums = part.split('-').map(s => parseInt(s.replace(/[^0-9]/g, '')));
+            if (nums.length === 2 && !isNaN(nums[0]) && !isNaN(nums[1])) {
+              return filterNum >= nums[0] && filterNum <= nums[1];
+            }
+          }
+          return part.trim() === f || parseInt(part.replace(/[^0-9]/g, '')) === filterNum;
+        });
+      })();
 
       const matchRequirement = state.filterRequirement === 'すべて表示' || item.category === state.filterRequirement;
+
+      // 導入科目フィルタ：introSubjectsに含まれるかどうかで判定
+      const matchIntro = state.filterIntro === 'すべて表示' || (state.filterIntro === '該当' ? introSubjects.includes(item.id) : !introSubjects.includes(item.id));
 
       let matchCategory = state.filterCategory === '分野';
       if (!matchCategory) {
@@ -516,7 +522,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         item.teacher.toLowerCase().includes(searchLower) ||
         (item.tag && item.tag.toLowerCase().includes(searchLower.replace('#', '')));
 
-      return matchYear && matchQuarter && matchRequirement && matchCategory && matchSearch;
+      return matchYear && matchQuarter && matchRequirement && matchIntro && matchCategory && matchSearch;
     });
 
     // 検索結果件数の表示更新
@@ -527,9 +533,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     filtered.forEach(data => {
-      const normalizedSub = normalizeKey(data.subject);
-      const isRegistered = state.registeredClasses.has(normalizedSub);
-      const isCompleted = state.completedClasses.has(normalizedSub);
+      const isRegistered = state.registeredClasses.has(data.id);
+      const isCompleted = state.completedClasses.has(data.id);
       // UI上の背景色などは「どちらかに入っている」場合に適用
       const isHandled = isRegistered || isCompleted; 
 
@@ -537,6 +542,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       const displayTeacher = teacherParts.length > 1 
         ? `${teacherParts[0]} 他${teacherParts.length - 1}名` 
         : data.teacher;
+
+      // 口コミセクションの生成
+      const courseReviews = state.reviewsMap[data.id] || [];
+      let reviewsHtml = '';
+      if (courseReviews.length > 0) {
+        reviewsHtml = `
+        <div class="detail-section-item reviews-area" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #eee;">
+          <p><strong>受講者の感想:</strong></p>
+          ${courseReviews.map(r => `
+            <blockquote style="margin: 5px 0 10px 10px; padding: 5px 10px; border-left: 3px solid #ddd; background: #fcfcfc; font-size: 0.9em;">
+              <span style="color: #f59e0b;">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span><br>
+              <span style="color: #555; line-height: 1.4;">${r.text}</span>
+            </blockquote>
+          `).join('')}
+        </div>
+        `;
+      }
 
       const li = document.createElement('li');
 
@@ -550,7 +572,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="class-meta">
               ${(data.category === '必修' || data.category === '選択必修') ? `<span class="badge required">${data.category}</span>` : ''}
               ${data.year ? `<span class="badge">${data.year}</span>` : ''}
-              ${data.quarter ? data.quarter.split(/,\s*/).map(q => `<span class="badge">${q}</span>`).join('') : ''}
+              ${data.quarter ? data.quarter.replace(/\s*([〜～ー－–—\-])\s*/g, '$1').split(/[・,、，\s]+/).filter(Boolean).map(q => `<span class="badge">${q}</span>`).join('') : ''}
             </div>
           </div>
           <div class="actions">
@@ -574,6 +596,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <p class="evaluation"><strong>評価方法:</strong> ${data.evaluation}</p>
             ${data.url ? `<p><a href="${data.url}" target="_blank" class="syllabus-link" title="ZEN大学シラバスサイトの該当ページを開きます">ZEN大学シラバスで詳細を確認</a></p>` : ''}
             <p class="description"><strong>授業概要:</strong> ${data.description}</p>
+            ${reviewsHtml}
           </div>
         </div>
       `;
@@ -584,12 +607,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       li.querySelector('.add-predefined').onclick = () => {
         // 排他的な追加（登録予定へ）
-        commitStateChange(data.subject, 'REGISTER');
+        commitStateChange(data.id, 'REGISTER');
       };
 
       li.querySelector('.complete-predefined').onclick = () => {
         // 排他的な追加（履修済みへ）
-        commitStateChange(data.subject, 'COMPLETE');
+        commitStateChange(data.id, 'COMPLETE');
       };
 
       predefinedList.appendChild(li);
@@ -624,27 +647,38 @@ document.addEventListener('DOMContentLoaded', async () => {
       categoryFilter.innerHTML = fields.map(f => `<option value="${f}">${f}</option>`).join('');
     }
 
-    document.getElementById('year-filter').addEventListener('change', (e) => {
+    // 各フィルタ要素が存在する場合のみイベントリスナーを設定（エラー落ち防止）
+    const yearF = document.getElementById('year-filter');
+    if (yearF) yearF.addEventListener('change', (e) => {
       state.filterYear = e.target.value;
       renderPredefinedList();
     });
 
-    document.getElementById('quarter-filter').addEventListener('change', (e) => {
+    const quarterF = document.getElementById('quarter-filter');
+    if (quarterF) quarterF.addEventListener('change', (e) => {
       state.filterQuarter = e.target.value;
       renderPredefinedList();
     });
 
-    document.getElementById('category-filter').addEventListener('change', (e) => {
+    if (categoryFilter) categoryFilter.addEventListener('change', (e) => {
       state.filterCategory = e.target.value;
       renderPredefinedList();
     });
 
-    document.getElementById('requirement-filter').addEventListener('change', (e) => {
+    const reqF = document.getElementById('requirement-filter');
+    if (reqF) reqF.addEventListener('change', (e) => {
       state.filterRequirement = e.target.value;
       renderPredefinedList();
     });
 
-    document.getElementById('search-bar').addEventListener('input', (e) => {
+    const introF = document.getElementById('intro-filter');
+    if (introF) introF.addEventListener('change', (e) => {
+      state.filterIntro = e.target.value;
+      renderPredefinedList();
+    });
+
+    const searchB = document.getElementById('search-bar');
+    if (searchB) searchB.addEventListener('input', (e) => {
       state.filterSearch = e.target.value;
       renderPredefinedList();
     });
@@ -670,12 +704,76 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
 
-    btn.onclick = () => (modal.style.display = 'block');
-    closeSpan.onclick = () => (modal.style.display = 'none');
+    if (btn && modal) {
+      btn.onclick = () => (modal.style.display = 'block');
+      if (closeSpan) closeSpan.onclick = () => (modal.style.display = 'none');
 
-    modal.onclick = (event) => {
-      if (event.target === modal) modal.style.display = 'none';
-    };
+      modal.onclick = (event) => {
+        if (event.target === modal) modal.style.display = 'none';
+      };
+    }
+  };
+
+  /**
+   * 使い方（チュートリアル）モーダルの制御
+   */
+  const setupTutorialModal = async () => {
+    const modal = document.getElementById('tutorial-modal');
+    const btn = document.getElementById('tutorial-btn');
+    const closeSpan = document.getElementById('close-tutorial');
+    const body = document.getElementById('tutorial-body');
+
+    if (btn && modal && body) {
+      // JSONからデータを読み込んでHTMLを生成
+      try {
+        const res = await fetch('tutorial.json');
+        if (res.ok) {
+          const data = await res.json();
+          body.innerHTML = `
+            <h1>${data.title}</h1>
+            <p>${data.intro}</p>
+            ${data.sections.map(s => `
+              <div class="tutorial-section">
+                <h3>${s.heading}</h3>
+                ${s.list ? `<ul>${s.list.map(item => `<li>${item}</li>`).join('')}</ul>` : ''}
+                ${s.text ? `<p>${s.text}</p>` : ''}
+              </div>
+            `).join('')}
+            <hr>
+            <div class="disclaimer-box">
+              <p><strong>${data.disclaimer.heading}</strong></p>
+              <p style="font-size: 0.85em; color: #666;">${data.disclaimer.text}</p>
+            </div>
+          `;
+        } else {
+          body.innerHTML = '<p>使い方の読み込みに失敗しました。</p>';
+        }
+      } catch (e) {
+        console.error('Tutorial load error:', e);
+        body.innerHTML = '<p>使い方の読み込みに失敗しました。</p>';
+      }
+
+      btn.onclick = () => (modal.style.display = 'block');
+      
+      // ×ボタンのイベント
+      if (closeSpan) {
+        closeSpan.onclick = () => {
+          modal.style.display = 'none';
+        };
+      }
+
+      // モーダル外クリックで閉じる
+      modal.onclick = (event) => {
+        if (event.target === modal) modal.style.display = 'none';
+      };
+
+      // Escキーで閉じる（アクセシビリティ対応）
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.style.display === 'block') {
+          modal.style.display = 'none';
+        }
+      });
+    }
   };
 
   // --- アプリケーションの実行開始 ---
@@ -683,13 +781,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   setupFilters();
   setupAnalysisModal();
+  setupTutorialModal();
 
   // 外部JSONから授業データを読み込む
   let loadErrorTimer = null; // 通信エラーアラートの遅延表示用タイマー
   try {
-    const response = await fetch('courses.json');
-    if (!response.ok) throw new Error(`ファイルが見つかりません (${response.status})`);
-    const data = await response.json();
+    // 授業データと口コミデータを並行して読み込む
+    const [coursesRes, reviewsRes] = await Promise.all([
+      fetch('courses.json'),
+      fetch('reviews.json').catch(() => ({ ok: false })) // ファイルがない場合は空として扱う
+    ]);
+
+    if (!coursesRes.ok) throw new Error(`授業データが見つかりません (${coursesRes.status})`);
+    const data = await coursesRes.json();
+
+    if (reviewsRes.ok) {
+      state.reviewsMap = await reviewsRes.json();
+    }
 
     data.sort((a, b) => {
       const getPriority = (cat) => {
@@ -714,7 +822,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // データの正規化
     const normalizedData = data.map(normalizeClass).filter(Boolean);
     state.predefinedData = normalizedData;
-    state.coursesMap = new Map(normalizedData.map(item => [normalizeKey(item.subject), item]));
+    state.coursesMap = new Map(normalizedData.map(item => [item.id, item]));
 
     // 3秒以内に読み込みが完了した場合は、もし予約されていたエラーアラートがあればキャンセルする
     if (loadErrorTimer) clearTimeout(loadErrorTimer);
@@ -726,7 +834,4 @@ document.addEventListener('DOMContentLoaded', async () => {
       alert('授業データの読み込みに失敗しました。VS Codeの Live Server などを使用して開いてください。');
     }, 3000);
   }
-
-  renderPredefinedList(); // 初期リスト描画
-  renderList();           // 登録済みリスト描画
 });

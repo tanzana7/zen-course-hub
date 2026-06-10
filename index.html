@@ -7,16 +7,45 @@
 </head>
 <body>
 
-<header class="app-title-row">
-  <h1>履修管理アプリ</h1> <!-- 見出し構造の適正化 -->
-  <div class="top-credit-gauge" title="卒業要件の総単位進捗">
-    <span class="gauge-label">総単位</span>
-    <span class="gauge-value"><span id="top-earned-x">0</span>/124</span>
-    <div class="gauge-bar" role="progressbar" aria-valuemin="0" aria-valuemax="124">
-      <div class="gauge-fill" id="top-earned-fill"></div>
+<div class="sticky-controls">
+  <header class="app-title-row">
+    <h1>履修管理アプリ</h1>
+    <div class="top-credit-gauge" title="卒業要件の総単位進捗">
+      <span class="gauge-label">総単位</span>
+      <span class="gauge-value"><span id="top-earned-x">0</span>/124</span>
+      <div class="gauge-bar" role="progressbar" aria-valuemin="0" aria-valuemax="124">
+        <div class="gauge-fill" id="top-earned-fill"></div>
+      </div>
     </div>
+  </header>
+
+  <div class="input-area">
+    <input id="search-bar" type="text" placeholder="授業名や教員名で検索...">
+    <select id="year-filter">
+      <option value="すべて表示">学年</option>
+      <option value="1年次">1年次</option>
+      <option value="2年次">2年次</option>
+      <option value="3年次">3年次</option>
+      <option value="4年次">4年次</option>
+    </select>
+    <select id="quarter-filter">
+      <option value="すべて表示">学期</option>
+      <option value="1Q">1Q</option>
+      <option value="2Q">2Q</option>
+      <option value="3Q">3Q</option>
+      <option value="4Q">4Q</option>
+    </select>
+    <select id="category-filter">
+      <option value="すべて表示">カテゴリ</option>
+    </select>
+    <select id="requirement-filter">
+      <option value="すべて表示">必修フィルター</option>
+      <option value="必修">必修</option>
+      <option value="選択必修">選択必修</option>
+    </select>
+    <button id="analysis-btn" type="button">卒業要件分析</button>
   </div>
-</header>
+</div>
 
 <!-- 
   メインコンテナ: 画面全体を左右に分けるための親要素 
@@ -25,33 +54,6 @@
 <main class="main-container">
   <!-- 左カラム: 検索機能と授業の選択リスト -->
   <section class="left-column">
-    <div class="input-area">
-      <input id="search-bar" type="text" placeholder="授業名や教員名で検索...">
-      <select id="year-filter">
-        <option value="すべて表示">学年</option>
-        <option value="1年次">1年次</option>
-        <option value="2年次">2年次</option>
-        <option value="3年次">3年次</option>
-        <option value="4年次">4年次</option>
-      </select>
-      <select id="quarter-filter">
-        <option value="すべて表示">学期</option>
-        <option value="1Q">1Q</option>
-        <option value="2Q">2Q</option>
-        <option value="3Q">3Q</option>
-        <option value="4Q">4Q</option>
-      </select>
-      <select id="category-filter">
-        <option value="すべて表示">カテゴリ</option>
-      </select>
-      <select id="requirement-filter">
-        <option value="すべて表示">必修フィルター</option>
-        <option value="必修">必修</option>
-        <option value="選択必修">選択必修</option>
-      </select>
-      <button id="analysis-btn" type="button">卒業要件分析</button>
-    </div>
-
     <h2>授業を探して追加</h2>
     <div id="search-count" class="search-count"></div>
     <div class="predefined-classes-section">
@@ -97,6 +99,19 @@
   <p>本アプリの利用によって生じた損害について、開発者は一切の責任を負いません。</p>
   <p>Version Beta 0.1</p>
 </footer>
+
+<!-- 使い方表示ボタン -->
+<button id="tutorial-btn" title="使い方">使い方</button>
+
+<!-- 使い方モーダル -->
+<div id="tutorial-modal" class="modal-overlay" role="dialog" aria-modal="true">
+  <div class="modal-content tutorial-content">
+    <span id="close-tutorial" class="close-btn">&times;</span>
+    <div id="tutorial-body">
+      <p>読み込み中...</p>
+    </div>
+  </div>
+</div>
 
 <script src="app.js"></script>
 </body>

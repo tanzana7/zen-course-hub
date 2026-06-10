@@ -21,8 +21,10 @@ body {
 
 .right-column {
   width: 440px; /* 履修管理状況を全体の約1/3の幅に調整 */
-  position: sticky; /* スクロールしても画面上部に固定される */
-  top: 20px;
+  position: sticky;
+  top: 150px; /* 固定ヘッダーの高さに合わせて調整 */
+  max-height: calc(100vh - 170px); /* 画面からはみ出さないよう高さを制限 */
+  overflow-y: auto; /* 科目が増えた場合にリスト内スクロールを可能にする */
   /* 枠のような見た目にする */
   background-color: #fff;
   padding: 20px;
@@ -49,7 +51,7 @@ body {
 .input-area {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 0;
   align-items: center;
 }
 
@@ -223,7 +225,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
 }
 
 .app-title-row h1 {
@@ -434,4 +436,68 @@ body {
   background-color: #fee2e2;
   color: #b91c1c;
   border-color: #fca5a5;
+}
+
+/* 上部操作エリアの固定表示 */
+.sticky-controls {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: white;
+  padding: 15px 0 20px 0;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 25px;
+  /* 背景を透過させないため、bodyの背景色に合わせた透過防止（または完全な白） */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* 使い方ボタン（右下固定） */
+#tutorial-btn {
+  position: fixed;
+  bottom: 25px;
+  right: 20px; /* 少し内側に調整 */
+  padding: 10px 18px; /* テキストに合わせてパディングを調整 */
+  border-radius: 25px; /* 角丸の長方形に */
+  background-color: #007bff; /* 青色 */
+  color: white;
+  border: none;
+  font-size: 18px; /* 文字サイズを調整 */
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  z-index: 3000; /* 他の要素より上に表示 */
+  transition: transform 0.2s, background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#tutorial-btn:hover {
+  transform: scale(1.1);
+  background-color: #0056b3;
+}
+
+/* 使い方モーダル内のレイアウト調整 */
+.tutorial-content {
+  max-width: 500px;
+}
+
+.tutorial-content h1 {
+  font-size: 1.5rem;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 8px;
+  margin-bottom: 15px;
+}
+
+.tutorial-section {
+  margin-top: 15px;
+  text-align: left;
+}
+
+.disclaimer-box {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 5px;
+  margin-top: 15px;
+  border: 1px solid #e9ecef;
 }

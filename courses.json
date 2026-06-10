@@ -1,5 +1,6 @@
 [
   {
+    "id": "academic_literacy",
     "subject": "アカデミックリテラシー",
     "teacher": "若山 正人",
     "credits": 2,
@@ -14,6 +15,7 @@
     "tag": "必修"
   },
   {
+    "id": "modern_society_math",
     "subject": "現代社会と数学",
     "teacher": "若山 正人, 瀬下 大輔",
     "credits": 2,
@@ -28,6 +30,7 @@
     "tag": "必修"
   },
   {
+    "id": "it_literacy",
     "subject": "ITリテラシー",
     "teacher": "吉村 総一郎",
     "credits": 2,
@@ -42,6 +45,7 @@
     "tag": "必修"
   },
   {
+    "id": "digital_tools_usage",
     "subject": "デジタルツールの使い方",
     "teacher": "櫻田 英樹, 津野 貴大",
     "credits": 2,
@@ -56,6 +60,7 @@
     "tag": "必修"
   },
   {
+    "id": "ai_practical_usage",
     "subject": "人工知能活用実践",
     "teacher": "ガーバー 明菜, 瀬下 大輔",
     "credits": 2,
@@ -70,6 +75,7 @@
     "tag": "必修"
   },
   {
+    "id": "humanities_intro",
     "subject": "人文社会入門",
     "teacher": "谷口 祐人, Hernández Álvaro David, 細井 浩一, 千葉 尚志, 積山 薫, 竹内 薫, 大塚 淳, 山口 真由, Pradhan Gouranga Charan, 山内 康英, 大塚 英志",
     "credits": 2,
@@ -84,6 +90,7 @@
     "tag": "必修"
   },
   {
+    "id": "economics_intro",
     "subject": "経済入門",
     "teacher": "渡邉 聡",
     "credits": 2,
@@ -98,6 +105,7 @@
     "tag": "必修"
   },
   {
+    "id": "multilingual_it_comm",
     "subject": "多言語ITコミュニケーション",
     "teacher": "田岡 恵, 吉村 総一郎, Hernández Álvaro David, 大野 元己, 竹内 薫",
     "credits": 2,
@@ -113,6 +121,7 @@
     "foundationRequirement": "多言語情報理解"
   },
   {
+    "id": "project_practice",
     "subject": "プロジェクト実践",
     "teacher": "若山 正人, 上山 信一, 渡邉 聡, 大塚 淳, 加藤 文元, 木野 泰伸, 西郷 甲矢人, 櫻田 英樹, 積山 薫, 田岡 恵, 竹内 薫, 氷川 竜介, 細井 浩一, 山口 真由, 山内 康英, 千葉 尚志, Hernández Álvaro David, 大野 元己, Pradhan Gouranga Charan, Ivan Fesenko, 市橋 勝, 岩渕 潤子, 印南 一路, 竹村 眞一, 村藤 功, 池田 達彦, 作道 直幸, 河野 慎, 湯山 孝雄, 梅崎 直也, 折原 ダビデ竜, ガーバー 明菜, 瀬下 大輔, 谷口 祐人, 吉村 総一郎, 福岡 伸一",
     "credits": 4,
@@ -128,6 +137,7 @@
     "graduationRequirement": true
   },
   {
+    "id": "sociology_1",
     "subject": "社会学Ⅰ",
     "teacher": "谷口 祐人",
     "credits": 2,
@@ -144,6 +154,7 @@
     "foundationRequirement": "社会ネットワーク"
   },
   {
+    "id": "law_1",
     "subject": "法学Ⅰ",
     "teacher": "山口 真由",
     "credits": 2,
@@ -160,6 +171,7 @@
     "foundationRequirement": "社会ネットワーク"
   },
   {
+    "id": "logical_comm",
     "subject": "伝わる論理とコミュニケーション",
     "teacher": "千葉 尚志",
     "credits": 2,
@@ -176,6 +188,7 @@
     "foundationRequirement": "社会ネットワーク"
   },
   {
+    "id": "ai_society_walk",
     "subject": "AI社会の歩き方",
     "teacher": "江間 有沙",
     "credits": 2,
@@ -192,6 +205,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "regional_studies",
     "subject": "地域研究",
     "teacher": "大野 元己, H.A. David, P.G. Charan",
     "credits": 2,
@@ -208,6 +222,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "decision_making_dev",
     "subject": "意思決定の能力開発",
     "teacher": "印南 一路",
     "credits": 2,
@@ -224,6 +239,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "co_creation_earth",
     "subject": "共創地球論",
     "teacher": "竹村 眞一",
     "credits": 2,
@@ -240,6 +256,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "info_society_security",
     "subject": "情報社会の総合安全保障",
     "teacher": "山内 康英, 髙見澤 將林",
     "credits": 2,
@@ -256,6 +273,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "business_mgmt",
     "subject": "企業経営",
     "teacher": "上山 信一",
     "credits": 2,
@@ -272,6 +290,7 @@
     "foundationRequirement": "経済マーケット"
   },
   {
+    "id": "regional_entrepreneurship",
     "subject": "地域アントレプレナーシップ",
     "teacher": "上山 信一",
     "credits": 2,
@@ -288,6 +307,7 @@
     "foundationRequirement": "経済マーケット"
   },
   {
+    "id": "regional_innovation",
     "subject": "地域課題の解決とイノベーション",
     "teacher": "上山 信一, 瀬下 翔太",
     "credits": 2,
@@ -304,6 +324,7 @@
     "foundationRequirement": "経済マーケット"
   },
    {
+    "id": "machine_translation_english",
     "subject": "機械翻訳実践（英語読解・作文）",
     "teacher": "中久喜 匠太郎, 田岡 恵",
     "credits": 2,
@@ -320,6 +341,7 @@
     "multilingualRequirement": true
   },
   {
+    "id": "machine_translation_law",
     "subject": "機械翻訳実践（法学）",
     "teacher": "山口 真由",
     "credits": 2,
@@ -336,6 +358,7 @@
     "multilingualRequirement": true
   },
   {
+    "id": "economics_history",
     "subject": "経済言説史",
     "teacher": "市橋 勝",
     "credits": 2,
@@ -352,6 +375,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "marxian_economics",
     "subject": "マルクス経済学",
     "teacher": "斎藤 幸平",
     "credits": 2,
@@ -368,6 +392,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "business_mgmt_accounting",
     "subject": "企業経営と会計",
     "teacher": "田岡 恵",
     "credits": 2,
@@ -384,6 +409,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "mathematical_thinking",
     "subject": "数学的思考とは何か",
     "teacher": "西郷 甲矢人",
     "credits": 2,
@@ -400,6 +426,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "math_history",
     "subject": "数学史",
     "teacher": "加藤 文元",
     "credits": 2,
@@ -416,6 +443,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "modern_society_science",
     "subject": "現代社会とサイエンス",
     "teacher": "竹内 薫",
     "credits": 2,
@@ -432,6 +460,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "elementary_algebra",
     "subject": "初等代数概論",
     "teacher": "加藤 文元",
     "credits": 2,
@@ -448,6 +477,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "methods_of_math",
     "subject": "数学の方法",
     "teacher": "瀬下 大輔",
     "credits": 2,
@@ -464,6 +494,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "reverse_science_history",
     "subject": "逆さ科学史",
     "teacher": "竹内 薫",
     "credits": 2,
@@ -480,6 +511,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "linear_algebra_1",
     "subject": "線形代数1",
     "teacher": "梅崎 直也",
     "credits": 2,
@@ -496,6 +528,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "calculus_1",
     "subject": "解析学1",
     "teacher": "梅崎 直也",
     "credits": 2,
@@ -512,6 +545,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "linear_algebra_2",
     "subject": "線形代数2",
     "teacher": "梅崎 直也",
     "credits": 2,
@@ -528,6 +562,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "calculus_2",
     "subject": "解析学2",
     "teacher": "梅崎 直也",
     "credits": 2,
@@ -544,6 +579,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "set_theory_logic",
     "subject": "集合と論理",
     "teacher": "梅崎 直也",
     "credits": 2,
@@ -560,6 +596,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "symbolic_logic",
     "subject": "記号論理",
     "teacher": "湯山 孝雄",
     "credits": 2,
@@ -576,6 +613,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "graph_theory",
     "subject": "グラフ理論",
     "teacher": "辻 順平",
     "credits": 2,
@@ -591,6 +629,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "internet_copyright",
     "subject": "ネット時代の著作権",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -607,6 +646,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "gender_studies",
     "subject": "ジェンダー論",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -623,6 +663,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "media_studies",
     "subject": "メディア論",
     "teacher": "塚越 健司",
     "credits": 2,
@@ -639,6 +680,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "science_tech_society",
     "subject": "科学技術と社会",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -655,6 +697,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "postwar_japan_history_1",
     "subject": "戦後日本史1",
     "teacher": "山内 康英, ゲスト講師",
     "credits": 2,
@@ -671,6 +714,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "cross_cultural_understanding",
     "subject": "異文化理解",
     "teacher": "田岡 恵",
     "credits": 2,
@@ -687,6 +731,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "university_media_anthropology",
     "subject": "大学とメディアの人類史",
     "teacher": "吉見 俊哉",
     "credits": 2,
@@ -703,6 +748,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "sociology_2",
     "subject": "社会学Ⅱ",
     "teacher": "谷口 祐人",
     "credits": 2,
@@ -719,6 +765,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "sociology_3",
     "subject": "社会学Ⅲ",
     "teacher": "谷口 祐人",
     "credits": 2,
@@ -735,6 +782,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "modern_sports_analysis",
     "subject": "現代スポーツ構造分析",
     "teacher": "戸塚 隆, ゲスト講師",
     "credits": 2,
@@ -751,6 +799,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "sf_future_vision",
     "subject": "SFから考える未来ビジョン",
     "teacher": "宮本 道人",
     "credits": 2,
@@ -767,6 +816,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "modern_social_theory",
     "subject": "現代社会理論",
     "teacher": "小熊 英二",
     "credits": 2,
@@ -783,6 +833,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "future_society_design",
     "subject": "未来社会デザイン論",
     "teacher": "竹村 眞一",
     "credits": 2,
@@ -799,6 +850,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "music_society",
     "subject": "音楽と社会",
     "teacher": "木許 裕介, ゲスト講師",
     "credits": 2,
@@ -815,6 +867,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "children_regional_creation",
     "subject": "子どもと地域づくり",
     "teacher": "中村 圭子",
     "credits": 2,
@@ -831,6 +884,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "collaboration_creative",
     "subject": "コラボレーション・クリエイティブ",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -847,6 +901,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "japan_politics_diplomacy_history",
     "subject": "日本政治外交史",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -863,6 +918,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "math_structure_discovery",
     "subject": "数理構造の発見と活用",
     "teacher": "西郷 甲矢人",
     "credits": 2,
@@ -879,6 +935,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "complex_analysis",
     "subject": "複素解析",
     "teacher": "梅崎 直也",
     "credits": 2,
@@ -895,6 +952,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "calculus_3",
     "subject": "解析学3",
     "teacher": "梅崎 直也",
     "credits": 2,
@@ -911,6 +969,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "metric_spaces",
     "subject": "距離空間",
     "teacher": "梅崎 直也",
     "credits": 2,
@@ -927,6 +986,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "group_theory",
     "subject": "群論",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -943,6 +1003,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "topological_spaces",
     "subject": "位相空間",
     "teacher": "湯山 孝雄",
     "credits": 2,
@@ -959,6 +1020,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "manifolds",
     "subject": "多様体",
     "teacher": "梅崎 直也",
     "credits": 2,
@@ -975,6 +1037,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "category_theory",
     "subject": "圏論",
     "teacher": "梅崎 直也",
     "credits": 2,
@@ -991,6 +1054,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "mechanics",
     "subject": "力学",
     "teacher": "作道 直幸",
     "credits": 2,
@@ -1007,6 +1071,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "everyday_physics",
     "subject": "日常に現れる物理学",
     "teacher": "作道 直幸",
     "credits": 2,
@@ -1023,6 +1088,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "math_science_advanced_exercise_1",
     "subject": "数理科学発展演習Ⅰ",
     "teacher": "湯山 孝雄",
     "credits": 2,
@@ -1039,6 +1105,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "iut_1",
     "subject": "Inter-universal Teichmüller Theory 1（宇宙際タイヒミューラー理論 1）",
     "teacher": "Ivan Fesenko",
     "credits": 2,
@@ -1055,6 +1122,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "math_science_advanced_exercise_2",
     "subject": "数理科学発展演習Ⅱ",
     "teacher": "湯山 孝雄",
     "credits": 2,
@@ -1071,6 +1139,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "iut_2",
     "subject": "Inter-universal Teichmüller Theory 2（宇宙際タイヒミューラー理論 2）",
     "teacher": "Ivan Fesenko",
     "credits": 2,
@@ -1087,6 +1156,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "iut_3",
     "subject": "Inter-universal Teichmüller Theory 3（宇宙際タイヒミューラー理論 3）",
     "teacher": "Ivan Fesenko",
     "credits": 2,
@@ -1103,6 +1173,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "macroeconomics",
     "subject": "マクロ経済学",
     "teacher": "市橋 勝",
     "credits": 2,
@@ -1119,6 +1190,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "microeconomics",
     "subject": "ミクロ経済学",
     "teacher": "渡邉 聡",
     "credits": 2,
@@ -1135,6 +1207,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "business_mgmt_finance",
     "subject": "企業経営とファイナンス",
     "teacher": "村藤 功",
     "credits": 2,
@@ -1151,6 +1224,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "digital_marketing",
     "subject": "デジタル・マーケティング",
     "teacher": "千葉 尚志",
     "credits": 2,
@@ -1167,6 +1241,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "startup",
     "subject": "スタートアップ",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -1183,6 +1258,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "agriculture_digital_tech",
     "subject": "農業とデジタルテクノロジー",
     "teacher": "橋本 剛",
     "credits": 2,
@@ -1199,6 +1275,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "negotiation_consensus_intro",
     "subject": "交渉・合意形成概論",
     "teacher": "印南 一路",
     "credits": 2,
@@ -1215,6 +1292,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "modern_capitalism_theory",
     "subject": "現代資本主義論",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -1231,6 +1309,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "mathematical_statistics",
     "subject": "数理統計",
     "teacher": "梅崎 直也",
     "credits": 2,
@@ -1247,6 +1326,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "statistical_mechanics",
     "subject": "熱統計力学",
     "teacher": "池田 達彦",
     "credits": 2,
@@ -1263,6 +1343,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "electromagnetism",
     "subject": "電磁気学",
     "teacher": "作道 直幸",
     "credits": 2,
@@ -1279,6 +1360,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "quantum_mechanics",
     "subject": "量子力学",
     "teacher": "池田 達彦",
     "credits": 2,
@@ -1295,6 +1377,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "combinatorics",
     "subject": "組合せ論",
     "teacher": "前野 俊昭",
     "credits": 2,
@@ -1311,6 +1394,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "ring_theory",
     "subject": "環論",
     "teacher": "加藤 文元",
     "credits": 2,
@@ -1327,6 +1411,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "topology",
     "subject": "トポロジー",
     "teacher": "前野 俊昭",
     "credits": 2,
@@ -1343,6 +1428,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "wolfram_scientific_computing",
     "subject": "Wolfram言語で学ぶ科学計算",
     "teacher": "竹内 薫",
     "credits": 2,
@@ -1359,6 +1445,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "integration_measure",
     "subject": "積分と測度",
     "teacher": "西郷 甲矢人",
     "credits": 2,
@@ -1375,6 +1462,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "iut_4",
     "subject": "Inter-universal Teichmüller Theory 4（宇宙際タイヒミューラー理論 4）",
     "teacher": "Ivan Fesenko",
     "credits": 2,
@@ -1391,6 +1479,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "quantum_computing_exercise",
     "subject": "量子コンピュータ演習",
     "teacher": "池田 達彦",
     "credits": 2,
@@ -1406,6 +1495,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "macro_econ_analysis_exercise",
     "subject": "マクロ経済分析演習",
     "teacher": "市橋 勝",
     "credits": 2,
@@ -1422,6 +1512,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "econometric_analysis_problem_solving",
     "subject": "課題解決のための計量経済分析",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -1438,6 +1529,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "statistics_from_cases",
     "subject": "事例から学ぶ統計学",
     "teacher": "渡邉 聡",
     "credits": 2,
@@ -1454,6 +1546,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "financial_analysis_exercise",
     "subject": "財務分析演習",
     "teacher": "村藤 功",
     "credits": 2,
@@ -1470,6 +1563,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "enterprise_value_ma",
     "subject": "企業価値創造とM＆A",
     "teacher": "村藤 功",
     "credits": 2,
@@ -1486,6 +1580,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "negotiation_consensus_exercise",
     "subject": "交渉・合意形成演習",
     "teacher": "印南 一路",
     "credits": 2,
@@ -1502,6 +1597,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_regional_new_business",
     "subject": "ゼミ（地域づくり新事業ワークショップ）",
     "teacher": "中村 圭子",
     "credits": 4,
@@ -1518,6 +1614,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "law_2",
     "subject": "法学Ⅱ",
     "teacher": "山口 真由",
     "credits": 2,
@@ -1534,6 +1631,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "postwar_japan_history_2",
     "subject": "戦後日本史2",
     "teacher": "山内 康英, ゲスト講師",
     "credits": 2,
@@ -1550,6 +1648,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "smart_rural_living",
     "subject": "スマート田舎のススメ",
     "teacher": "橋本 剛",
     "credits": 2,
@@ -1566,6 +1665,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "leadership_reform",
     "subject": "課題解決と改革のリーダーシップ",
     "teacher": "上山 信一",
     "credits": 2,
@@ -1582,6 +1682,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "democracy_theory",
     "subject": "民主主義論",
     "teacher": "山内 康英",
     "credits": 2,
@@ -1598,6 +1699,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_info_society_politics",
     "subject": "ゼミ（情報社会の政治学）",
     "teacher": "山内 康英",
     "credits": 4,
@@ -1614,6 +1716,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_diverse_families",
     "subject": "ゼミ（多様化する家族）",
     "teacher": "山口 真由",
     "credits": 4,
@@ -1630,6 +1733,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "international_relations",
     "subject": "国際関係論",
     "teacher": "山内 康英",
     "credits": 2,
@@ -1646,6 +1750,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_sociology",
     "subject": "ゼミ（社会学）",
     "teacher": "谷口 祐人",
     "credits": 4,
@@ -1662,6 +1767,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_decision_making",
     "subject": "ゼミ（意思決定研究と実践）",
     "teacher": "印南 一路",
     "credits": 4,
@@ -1678,6 +1784,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "startup_practice",
     "subject": "スタートアップ実践",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -1694,6 +1801,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_business_model_analysis",
     "subject": "ゼミ（ビジネスモデル分析）",
     "teacher": "上山 信一",
     "credits": 4,
@@ -1710,6 +1818,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_econ_development",
     "subject": "ゼミ（経済発展を考える）",
     "teacher": "市橋 勝",
     "credits": 4,
@@ -1726,6 +1835,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_econometrics",
     "subject": "ゼミ（計量経済）",
     "teacher": "渡邉 聡",
     "credits": 4,
@@ -1742,6 +1852,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_happiness_curve",
     "subject": "ゼミ（幸福曲線）",
     "teacher": "村藤 功",
     "credits": 4,
@@ -1758,6 +1869,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "probability_theory_quantum",
     "subject": "量子からはじまる確率論",
     "teacher": "西郷 甲矢人",
     "credits": 2,
@@ -1774,6 +1886,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "seminar_math_science_1",
     "subject": "ゼミ（数理科学特論ゼミⅠ）",
     "teacher": "加藤 文元",
     "credits": 4,
@@ -1790,6 +1903,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "seminar_math_science_2",
     "subject": "ゼミ（数理科学特論ゼミⅡ）",
     "teacher": "西郷 甲矢人",
     "credits": 4,
@@ -1806,6 +1920,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "seminar_physics_1",
     "subject": "ゼミ（数理科学特論ゼミⅢ）",
     "teacher": "作道 直幸",
     "credits": 4,
@@ -1822,6 +1937,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "seminar_math_science_3",
     "subject": "ゼミ（数理科学特論ゼミⅣ）",
     "teacher": "Ivan Fesenko",
     "credits": 4,
@@ -1838,6 +1954,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "seminar_quantum_tech",
     "subject": "ゼミ（量子科学技術）",
     "teacher": "池田 達彦",
     "credits": 4,
@@ -1854,6 +1971,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "info_security_intro",
     "subject": "情報セキュリティ概論",
     "teacher": "岡田 雅之, 津野 貴大",
     "credits": 2,
@@ -1870,6 +1988,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "info_ethics_law",
     "subject": "情報倫理と法",
     "teacher": "木野 泰伸",
     "credits": 2,
@@ -1886,6 +2005,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "data_science_intro",
     "subject": "データサイエンス概論",
     "teacher": "瀬下 大輔",
     "credits": 2,
@@ -1902,6 +2022,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "visual_programming",
     "subject": "ビジュアルプログラミング",
     "teacher": "ガーバー 明菜",
     "credits": 2,
@@ -1918,6 +2039,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "web_app_dev_1",
     "subject": "Webアプリケーション開発1",
     "teacher": "折原 ダビデ竜",
     "credits": 2,
@@ -1934,6 +2056,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "web_app_dev_2",
     "subject": "Webアプリケーション開発2",
     "teacher": "折原 ダビデ竜",
     "credits": 2,
@@ -1950,6 +2073,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "python_programming",
     "subject": "Pythonプログラミング",
     "teacher": "ガーバー 明菜",
     "credits": 2,
@@ -1966,6 +2090,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "web_ux",
     "subject": "Webユーザーエクスペリエンス",
     "teacher": "折原 レオナルド賢, ゲスト講師",
     "credits": 2,
@@ -1982,6 +2107,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "media_art_history",
     "subject": "メディアアート史",
     "teacher": "順次公開予定, ゲスト講師",
     "credits": 2,
@@ -1998,6 +2124,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "intro_to_statistics",
     "subject": "統計学入門",
     "teacher": "川本 宗孝",
     "credits": 2,
@@ -2014,6 +2141,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "deep_learning_1",
     "subject": "ディープラーニング1",
     "teacher": "河野 慎",
     "credits": 2,
@@ -2030,6 +2158,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "internet_intro",
     "subject": "インターネット概論",
     "teacher": "岡田 雅之",
     "credits": 2,
@@ -2046,6 +2175,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "project_management_intro",
     "subject": "プロジェクトマネジメント概論",
     "teacher": "木野 泰伸",
     "credits": 2,
@@ -2062,6 +2192,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "web_app_dev_3",
     "subject": "Webアプリケーション開発3",
     "teacher": "折原 ダビデ竜",
     "credits": 2,
@@ -2078,6 +2209,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "linux_intro",
     "subject": "Linux概論",
     "teacher": "津野 貴大",
     "credits": 2,
@@ -2094,6 +2226,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "object_oriented_programming",
     "subject": "オブジェクト指向プログラミング",
     "teacher": "吉村 総一郎",
     "credits": 2,
@@ -2110,6 +2243,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "computer_science_intro",
     "subject": "コンピューターサイエンス概論",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -2126,6 +2260,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "javascript_automation",
     "subject": "JavaScriptによる自動化、効率化",
     "teacher": "折原 ダビデ竜",
     "credits": 2,
@@ -2142,6 +2277,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "info_processing_intro",
     "subject": "情報処理概論",
     "teacher": "折原 ダビデ竜",
     "credits": 2,
@@ -2158,6 +2294,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "computer_intro",
     "subject": "コンピュータ概論",
     "teacher": "木野 泰伸",
     "credits": 2,
@@ -2174,6 +2311,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "web_app_dev_4",
     "subject": "Webアプリケーション開発4",
     "teacher": "折原 ダビデ竜",
     "credits": 2,
@@ -2190,6 +2328,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "machine_learning_intro",
     "subject": "機械学習概論",
     "teacher": "御手洗 拓真",
     "credits": 2,
@@ -2206,6 +2345,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "deep_learning_2",
     "subject": "ディープラーニング2",
     "teacher": "河野 慎",
     "credits": 2,
@@ -2222,6 +2362,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "big_data_analysis_intro",
     "subject": "ビッグデータ分析概論",
     "teacher": "塚本 圭一郎",
     "credits": 2,
@@ -2238,6 +2379,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "r_programming",
     "subject": "R言語プログラミング",
     "teacher": "川本 宗孝",
     "credits": 2,
@@ -2254,6 +2396,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "cloud_computing_tech",
     "subject": "クラウドコンピューティング技術",
     "teacher": "津野 貴大",
     "credits": 2,
@@ -2270,6 +2413,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "functional_programming",
     "subject": "関数型プログラミング",
     "teacher": "吉村 総一郎",
     "credits": 2,
@@ -2286,6 +2430,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "automata_formal_languages",
     "subject": "オートマトンと形式言語理論",
     "teacher": "佐藤 弘崇",
     "credits": 2,
@@ -2302,6 +2447,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "cryptography_apps",
     "subject": "暗号技術とその応用",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -2318,6 +2464,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "database_ops_practice",
     "subject": "データベース運用実践",
     "teacher": "折原 ダビデ竜",
     "credits": 2,
@@ -2334,6 +2481,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "concurrent_programming",
     "subject": "並行処理プログラミング",
     "teacher": "吉村 総一郎",
     "credits": 2,
@@ -2350,6 +2498,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "image_processing_theory",
     "subject": "画像処理論",
     "teacher": "櫻井 快勢",
     "credits": 2,
@@ -2366,6 +2515,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "logic_circuits_intro",
     "subject": "論理回路概論",
     "teacher": "佐藤 弘崇",
     "credits": 2,
@@ -2382,6 +2532,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "data_science_practice_1",
     "subject": "データサイエンス実践Ⅰ（アンケート）",
     "teacher": "赤倉 貴子",
     "credits": 2,
@@ -2398,6 +2549,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "data_science_practice_2",
     "subject": "データサイエンス実践Ⅱ（モデリング）",
     "teacher": "田沼 巌",
     "credits": 2,
@@ -2414,6 +2566,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "data_science_practice_3",
     "subject": "データサイエンス実践Ⅲ（時系列）",
     "teacher": "田沼 巌",
     "credits": 2,
@@ -2430,6 +2583,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "deep_learning_3",
     "subject": "ディープラーニング3",
     "teacher": "河野 慎",
     "credits": 2,
@@ -2446,6 +2600,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "big_data_analysis_practice",
     "subject": "ビッグデータ分析実践",
     "teacher": "塚本 圭一郎",
     "credits": 2,
@@ -2462,6 +2617,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "info_collection_comm_tech",
     "subject": "情報収集と伝達技術",
     "teacher": "深津 貴之",
     "credits": 2,
@@ -2478,6 +2634,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "3d_modeling_exercise",
     "subject": "3Dモデリング技術演習",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -2494,6 +2651,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "generative_art_exercise",
     "subject": "ジェネラティブアート演習",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -2510,6 +2668,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "internet_mechanics",
     "subject": "インターネットのしくみ",
     "teacher": "岡田 雅之",
     "credits": 2,
@@ -2526,6 +2685,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "java_programming_exercise",
     "subject": "Javaプログラミング演習",
     "teacher": "吉村 総一郎",
     "credits": 2,
@@ -2542,6 +2702,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "web_security_exercise",
     "subject": "Webセキュリティ演習",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -2558,6 +2719,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "digital_illustration_basic",
     "subject": "デジタルイラスト演習基礎",
     "teacher": "濵田 順教",
     "credits": 2,
@@ -2574,6 +2736,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "ai_algorithms_practice",
     "subject": "AIアルゴリズム実践",
     "teacher": "葛木 美紀",
     "credits": 2,
@@ -2590,6 +2753,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "marketing_data_science",
     "subject": "マーケティング × データサイエンス",
     "teacher": "千葉 尚志",
     "credits": 2,
@@ -2606,6 +2770,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "game_programming_exercise",
     "subject": "ゲームプログラミング演習",
     "teacher": "荒川 巧也",
     "credits": 2,
@@ -2622,6 +2787,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "team_programming_exercise",
     "subject": "チームプログラミング演習",
     "teacher": "吉村 総一郎",
     "credits": 2,
@@ -2638,6 +2804,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "project_management_applied",
     "subject": "プロジェクトマネジメント応用",
     "teacher": "木野 泰伸",
     "credits": 2,
@@ -2654,6 +2821,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "web_app_dev_exercise",
     "subject": "Webアプリケーション開発演習",
     "teacher": "津野 貴大",
     "credits": 2,
@@ -2670,6 +2838,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "video_creator_exercise",
     "subject": "動画クリエイター技術演習",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -2686,6 +2855,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "web_design_exercise",
     "subject": "Webデザイン演習",
     "teacher": "小島 芳樹",
     "credits": 2,
@@ -2702,6 +2872,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "digital_illustration_advanced",
     "subject": "デジタルイラスト演習発展",
     "teacher": "濵田 順教",
     "credits": 2,
@@ -2718,6 +2889,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "co_creation_field_design",
     "subject": "共創場デザイン演習",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -2734,6 +2906,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "seminar_internet_mechanics_applied",
     "subject": "ゼミ（インターネットのしくみ（応用））",
     "teacher": "岡田 雅之",
     "credits": 4,
@@ -2750,6 +2923,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "seminar_qualitative_data_agent_sim",
     "subject": "ゼミ（質的データ分析&エージェントシミュレーション）",
     "teacher": "木野 泰伸",
     "credits": 4,
@@ -2766,6 +2940,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "seminar_info_security",
     "subject": "ゼミ（情報セキュリティ）",
     "teacher": "順次公開予定",
     "credits": 4,
@@ -2782,6 +2957,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "seminar_ai_ds_value_1",
     "subject": "ゼミ（AIデータサイエンス価値創造ゼミⅠ）",
     "teacher": "河野 慎",
     "credits": 4,
@@ -2798,6 +2974,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "seminar_ai_ds_value_2",
     "subject": "ゼミ（AIデータサイエンス価値創造ゼミⅡ）",
     "teacher": "千葉 尚志",
     "credits": 4,
@@ -2814,6 +2991,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "seminar_media_art",
     "subject": "ゼミ（メディアアート）",
     "teacher": "順次公開予定",
     "credits": 4,
@@ -2830,6 +3008,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "probability_monte_carlo_experiments",
     "subject": "計算機実験で学ぶ確率とモンテカルロ法",
     "teacher": "伊庭 幸人",
     "credits": 2,
@@ -2846,6 +3025,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "statistics_perspectives",
     "subject": "統計学展望",
     "teacher": "伊庭 幸人",
     "credits": 2,
@@ -2862,6 +3042,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "statistical_math_methods",
     "subject": "統計数理の方法",
     "teacher": "伊庭 幸人",
     "credits": 2,
@@ -2878,6 +3059,7 @@
     "literacyRequirement": true
   },
   {
+    "id": "nlp_methods",
     "subject": "自然言語処理の方法",
     "teacher": "赤倉 貴子",
     "credits": 2,
@@ -2893,6 +3075,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "japanese_literature_1",
     "subject": "日本文学Ⅰ",
     "teacher": "Pradhan Gouranga Charan",
     "credits": 2,
@@ -2909,6 +3092,7 @@
     "globalStudiesRequirement": true
   },
   {
+    "id": "cultural_anthropology_1",
     "subject": "文化人類学Ⅰ",
     "teacher": "Hernández Álvaro David",
     "credits": 2,
@@ -2925,6 +3109,7 @@
     "foundationRequirement": "文化思想"
   },
   {
+    "id": "psychology",
     "subject": "心理学",
     "teacher": "積山 薫",
     "credits": 2,
@@ -2941,6 +3126,7 @@
     "globalStudiesRequirement": true
   },
   {
+    "id": "editing_power",
     "subject": "世界が変わる編集力",
     "teacher": "安藤 昭子",
     "credits": 2,
@@ -2957,6 +3143,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "narrative_theory",
     "subject": "リテラシーと応用のための物語理論",
     "teacher": "大塚 英志",
     "credits": 2,
@@ -2973,6 +3160,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "intro_to_philosophy",
     "subject": "哲学概論",
     "teacher": "出口 康夫",
     "credits": 2,
@@ -2989,6 +3177,7 @@
     "globalStudiesRequirement": true
   },
   {
+    "id": "public_philosophy",
     "subject": "公共哲学",
     "teacher": "鈴木 寛",
     "credits": 2,
@@ -3005,6 +3194,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "manga_storyboard_visuals",
     "subject": "マンガ絵コンテから学ぶ視覚表現",
     "teacher": "浅野 龍哉",
     "credits": 2,
@@ -3021,6 +3211,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "modern_contemporary_art_intro",
     "subject": "近・現代アート概論",
     "teacher": "岩渕 潤子",
     "credits": 2,
@@ -3037,6 +3228,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "cognitive_neuroscience",
     "subject": "認知神経科学",
     "teacher": "積山 薫",
     "credits": 2,
@@ -3053,6 +3245,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "philosophy_of_science",
     "subject": "科学哲学",
     "teacher": "大塚 淳",
     "credits": 2,
@@ -3069,6 +3262,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "anthropocene_anthropology",
     "subject": "人新世の人類学",
     "teacher": "竹村 眞一",
     "credits": 2,
@@ -3085,6 +3279,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "folklore_studies",
     "subject": "民俗学",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -3101,6 +3296,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "japanese_science_history",
     "subject": "日本科学史",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -3117,6 +3313,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "art_cultural_capital_1",
     "subject": "芸術と文化資本Ⅰ",
     "teacher": "岩渕 潤子",
     "credits": 2,
@@ -3133,6 +3330,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "philosophy_of_statistics",
     "subject": "統計学を哲学する",
     "teacher": "大塚 淳",
     "credits": 2,
@@ -3149,6 +3347,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "japanese_pop_culture_history",
     "subject": "日本大衆文化史",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -3165,6 +3364,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "zen_for_living",
     "subject": "生きてゆくための禅",
     "teacher": "細川 晋輔",
     "credits": 2,
@@ -3181,6 +3381,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "philosophy_beyond_politics_1",
     "subject": "政治を超える哲学Ⅰ",
     "teacher": "東 浩紀",
     "credits": 2,
@@ -3197,6 +3398,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "philosophy_beyond_politics_2",
     "subject": "政治を超える哲学Ⅱ",
     "teacher": "東 浩紀",
     "credits": 2,
@@ -3213,6 +3415,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "go_theory_in_society",
     "subject": "社会で活きる囲碁論",
     "teacher": "藤澤 一就",
     "credits": 2,
@@ -3229,6 +3432,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "psychology_experiments_exercise",
     "subject": "心理学実験・調査演習",
     "teacher": "積山 薫",
     "credits": 2,
@@ -3245,6 +3449,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "web_comic_exercise",
     "subject": "WEBコミック演習",
     "teacher": "浅野 龍哉",
     "credits": 2,
@@ -3261,6 +3466,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "mental_health_dev",
     "subject": "こころの成り立ちとメンタルヘルス",
     "teacher": "濱田 庸子",
     "credits": 2,
@@ -3277,6 +3483,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "designing_wellbeing",
     "subject": "ウェルビーイングをデザインする",
     "teacher": "三戸 麻子",
     "credits": 2,
@@ -3293,6 +3500,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "art_cultural_capital_2",
     "subject": "芸術と文化資本Ⅱ",
     "teacher": "岩渕 潤子",
     "credits": 2,
@@ -3309,6 +3517,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "japanese_literature_3",
     "subject": "日本文学Ⅲ",
     "teacher": "Pradhan Gouranga Charan",
     "credits": 2,
@@ -3325,6 +3534,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "cultural_anthropology_3",
     "subject": "文化人類学Ⅲ",
     "teacher": "Hernández Álvaro David",
     "credits": 2,
@@ -3341,6 +3551,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "science_philosophy_ai_age",
     "subject": "AI時代の科学と哲学",
     "teacher": "大塚 淳",
     "credits": 2,
@@ -3357,6 +3568,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "religious_thought_history_fieldwork",
     "subject": "フィールドワークで学ぶ宗教思想史",
     "teacher": "茂木 誠",
     "credits": 2,
@@ -3373,6 +3585,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_mind_science",
     "subject": "ゼミ（心の科学）",
     "teacher": "積山 薫",
     "credits": 4,
@@ -3389,6 +3602,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_narrative_structure",
     "subject": "ゼミ（物語創作と物語の構造分析）",
     "teacher": "順次公開予定",
     "credits": 4,
@@ -3405,6 +3619,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_talk_events",
     "subject": "ゼミ（トークイベントをつくる）",
     "teacher": "東 浩紀",
     "credits": 4,
@@ -3421,6 +3636,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_exhibition_design",
     "subject": "ゼミ（展覧会のつくりかた）",
     "teacher": "岩渕 潤子",
     "credits": 4,
@@ -3437,6 +3653,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_literary_criticism",
     "subject": "ゼミ（文芸批評論）",
     "teacher": "Pradhan Gouranga Charan",
     "credits": 4,
@@ -3453,6 +3670,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_fan_culture",
     "subject": "ゼミ（ファン文化論を捉えなおすための参加型文化論）",
     "teacher": "Hernández Álvaro David",
     "credits": 4,
@@ -3469,6 +3687,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_math_philosophy",
     "subject": "ゼミ（数理哲学）",
     "teacher": "大塚 淳",
     "credits": 4,
@@ -3485,6 +3704,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "life_science_theory",
     "subject": "生命科学論　ー動的平衡の視点から「生命とはなにか」を哲学するー",
     "teacher": "福岡 伸一",
     "credits": 2,
@@ -3501,6 +3721,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_life_culture",
     "subject": "ゼミ（生命と文化）",
     "teacher": "福岡 伸一",
     "credits": 4,
@@ -3517,6 +3738,7 @@
     "globalStudiesRequirement": true
   },
   {
+    "id": "it_industry_history",
     "subject": "IT産業史",
     "teacher": "遠藤 諭",
     "credits": 2,
@@ -3534,6 +3756,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "manga_industry_history",
     "subject": "マンガ産業史",
     "teacher": "佐渡島 庸平",
     "credits": 2,
@@ -3551,6 +3774,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "anime_industry_history",
     "subject": "アニメ産業史",
     "teacher": "氷川 竜介",
     "credits": 2,
@@ -3568,6 +3792,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "japanese_game_industry_history",
     "subject": "日本のゲーム産業史",
     "teacher": "細井 浩一, 平 信一",
     "credits": 2,
@@ -3585,6 +3810,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "net_culture_derivative_works_history",
     "subject": "二次創作の歴史から見るネット文化",
     "teacher": "伴 龍一郎",
     "credits": 2,
@@ -3601,6 +3827,7 @@
     "globalStudiesRequirement": true
   },
   {
+    "id": "content_industry_theory",
     "subject": "コンテンツ産業論",
     "teacher": "細井 浩一",
     "credits": 2,
@@ -3617,6 +3844,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "game_production_theory_basic",
     "subject": "ゲーム制作論基礎",
     "teacher": "細井 浩一, 平 信一",
     "credits": 2,
@@ -3633,6 +3861,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "game_production_theory_applied",
     "subject": "ゲーム制作論応用",
     "teacher": "細井 浩一, 平 信一",
     "credits": 2,
@@ -3649,6 +3878,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "future_creation_via_media",
     "subject": "メディアで検証する未来の作り方",
     "teacher": "遠藤 諭",
     "credits": 2,
@@ -3665,6 +3895,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "anime_quality_mgmt",
     "subject": "アニメのクオリティー管理と商品性",
     "teacher": "氷川 竜介",
     "credits": 2,
@@ -3681,6 +3912,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "manga_planning_production",
     "subject": "マンガの企画立案とプロデュース論",
     "teacher": "佐渡島 庸平",
     "credits": 2,
@@ -3697,6 +3929,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "cultural_resources_metaverse",
     "subject": "文化資源とメタバース",
     "teacher": "細井 浩一",
     "credits": 2,
@@ -3713,6 +3946,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "cultural_resources_digital_archive",
     "subject": "文化資源のデジタルアーカイブ",
     "teacher": "細井 浩一",
     "credits": 2,
@@ -3729,6 +3963,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_cultural_archives_metaverse",
     "subject": "ゼミ（文化資源アーカイブとメタバース）",
     "teacher": "細井 浩一",
     "credits": 4,
@@ -3745,6 +3980,7 @@
     "advancedRequirement": true
   },
   {
+    "id": "seminar_anime_analysis",
     "subject": "ゼミ（アニメ作品の分析メソッド）",
     "teacher": "氷川 竜介",
     "credits": 4,
@@ -3759,6 +3995,7 @@
     "tag": "デジタル産業"
   },
   {
+    "id": "machine_translation_it",
     "subject": "機械翻訳実践（情報）",
     "teacher": "ガーバー 明菜",
     "credits": 2,
@@ -3775,6 +4012,7 @@
     "multilingualRequirement": true
   },
   {
+    "id": "machine_translation_cross_cultural",
     "subject": "機械翻訳実践（異文化理解）",
     "teacher": "田岡 恵",
     "credits": 2,
@@ -3790,6 +4028,7 @@
     "multilingualRequirement": true
   },
   {
+    "id": "machine_translation_natural_science",
     "subject": "機械翻訳実践（自然科学）",
     "teacher": "竹内 薫",
     "credits": 2,
@@ -3805,6 +4044,7 @@
     "multilingualRequirement": true
   },
   {
+    "id": "machine_translation_japan_studies",
     "subject": "機械翻訳実践（日本研究）",
     "teacher": "Pradhan Gouranga Charan",
     "credits": 2,
@@ -3820,6 +4060,7 @@
     "multilingualRequirement": true
   },
   {
+    "id": "career_design_1",
     "subject": "キャリアデザインⅠ（自己理解）",
     "teacher": "藤澤 広美",
     "credits": 2,
@@ -3834,6 +4075,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "interpersonal_comm_theory",
     "subject": "対人コミュニケーション論",
     "teacher": "吉田 尚記",
     "credits": 2,
@@ -3848,6 +4090,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "english_comm_1",
     "subject": "英語コミュニケーションⅠ（発音）",
     "teacher": "横山 カズ",
     "credits": 2,
@@ -3862,6 +4105,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "english_comm_2",
     "subject": "英語コミュニケーションⅡ（日常会話）",
     "teacher": "鈴木 栄",
     "credits": 2,
@@ -3876,6 +4120,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "creative_workplace_theory",
     "subject": "クリエイティブ現場論",
     "teacher": "吉田 尚記",
     "credits": 2,
@@ -3890,6 +4135,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "social_innovation_intro",
     "subject": "ソーシャルイノベーション概論",
     "teacher": "鈴木 寛",
     "credits": 2,
@@ -3904,6 +4150,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "net_info_broadcast_intro",
     "subject": "ネット情報発信概論",
     "teacher": "高橋 弘樹",
     "credits": 2,
@@ -3918,6 +4165,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "digital_image_tech_1",
     "subject": "デジタル画像技法論Ⅰ（デジタルイラストツール基礎）",
     "teacher": "ディープブリザード",
     "credits": 1,
@@ -3932,6 +4180,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "digital_image_tech_2",
     "subject": "デジタル画像技法論Ⅱ（クロッキーとスケッチ）",
     "teacher": "下田 スケッチ",
     "credits": 1,
@@ -3946,6 +4195,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "digital_image_tech_3",
     "subject": "デジタル画像技法論Ⅲ（マンガ概論）",
     "teacher": "赤坂 アカ",
     "credits": 1,
@@ -3960,6 +4210,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "career_design_2",
     "subject": "キャリアデザインⅡ（仕事理解）",
     "teacher": "髙橋 南海子",
     "credits": 2,
@@ -3974,6 +4225,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "career_design_3",
     "subject": "キャリアデザインⅢ（就活実践）",
     "teacher": "髙橋 南海子",
     "credits": 2,
@@ -3988,6 +4240,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "dx_working_style",
     "subject": "デジタルトランスフォーメーション時代の働き方",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -4002,6 +4255,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "personal_finance",
     "subject": "パーソナルファイナンス",
     "teacher": "順次公開予定",
     "credits": 2,
@@ -4016,6 +4270,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "network_industry_theory",
     "subject": "ネットワーク産業論",
     "teacher": "夏野 剛",
     "credits": 2,
@@ -4030,6 +4285,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "digital_image_creation_1",
     "subject": "デジタル画像創作論Ⅰ（メディアデザイン概論）",
     "teacher": "有馬 トモユキ",
     "credits": 1,
@@ -4044,6 +4300,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "digital_image_creation_2",
     "subject": "デジタル画像創作論Ⅱ（キャラクターデザイン）",
     "teacher": "順次公開予定",
     "credits": 1,
@@ -4058,6 +4315,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "digital_image_creation_3",
     "subject": "デジタル画像創作論Ⅲ（イラスト制作基礎　人物画）",
     "teacher": "ディープブリザード",
     "credits": 1,
@@ -4072,6 +4330,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "anime_industry_jobs",
     "subject": "アニメ産業に関わる仕事",
     "teacher": "氷川 竜介",
     "credits": 2,
@@ -4086,6 +4345,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "english_comm_4",
     "subject": "英語コミュニケーションⅣ（ビジネス会話）",
     "teacher": "横山 カズ",
     "credits": 2,
@@ -4100,6 +4360,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "english_comm_3",
     "subject": "英語コミュニケーションⅢ（プレゼンテーション）",
     "teacher": "鈴木 栄",
     "credits": 2,
@@ -4114,6 +4375,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "digital_image_apps_1",
     "subject": "デジタル画像活用Ⅰ（イラスト制作基礎　写真模写）",
     "teacher": "下田 スケッチ",
     "credits": 1,
@@ -4128,6 +4390,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "digital_image_apps_2",
     "subject": "デジタル画像活用Ⅱ（イラストディレクション講座）",
     "teacher": "大塚 勇",
     "credits": 1,
@@ -4142,6 +4405,7 @@
     "tag": "社会接続"
   },
   {
+    "id": "illustration_entertainment_b",
     "subject": "イラストとエンタテインメントB（イラスト制作基礎　構図/構成）",
     "teacher": "六番",
     "credits": 1,
@@ -4156,6 +4420,7 @@
     "tag": "自由科目"
   },
   {
+    "id": "illustration_entertainment_c",
     "subject": "イラストとエンタテインメントC（色彩表現概論）",
     "teacher": "早川 涼太",
     "credits": 1,
@@ -4170,6 +4435,7 @@
     "tag": "自由科目"
   },
   {
+    "id": "illustration_entertainment_d",
     "subject": "イラストとエンタテインメントD（キービジュアル）",
     "teacher": "たいら あきら",
     "credits": 1,
@@ -4184,6 +4450,7 @@
     "tag": "自由科目"
   },
   {
+    "id": "illustration_design_a",
     "subject": "イラストとデザインA（イラスト解剖学）",
     "teacher": "ふるり",
     "credits": 1,
@@ -4198,6 +4465,7 @@
     "tag": "自由科目"
   },
   {
+    "id": "illustration_design_b",
     "subject": "イラストとデザインB（陰影から学ぶライティング講座）",
     "teacher": "早川 涼太",
     "credits": 1,
@@ -4212,6 +4480,7 @@
     "tag": "自由科目"
   },
   {
+    "id": "illustration_design_c",
     "subject": "イラストとデザインC（業界別ポートフォリオ基礎）",
     "teacher": "早川 涼太",
     "credits": 1,
@@ -4226,6 +4495,7 @@
     "tag": "自由科目"
   },
   {
+    "id": "illustration_design_d",
     "subject": "イラストとデザインD（デッサン）",
     "teacher": "ふるり",
     "credits": 1,
@@ -4240,6 +4510,7 @@
     "tag": "自由科目"
   },
   {
+    "id": "illustration_apps_a",
     "subject": "イラストとその活用A（イラストコンセプト特論）",
     "teacher": "早川 涼太",
     "credits": 1,
@@ -4254,6 +4525,7 @@
     "tag": "自由科目"
   },
   {
+    "id": "illustration_apps_b",
     "subject": "イラストとその活用B（業界研究）",
     "teacher": "たいら あきら",
     "credits": 1,
@@ -4268,6 +4540,7 @@
     "tag": "自由科目"
   },
   {
+    "id": "illustration_apps_c",
     "subject": "イラストとその活用C（背景イラスト概論）",
     "teacher": "六番",
     "credits": 1,
@@ -4282,6 +4555,7 @@
     "tag": "自由科目"
   },
   {
+    "id": "illustration_apps_d",
     "subject": "イラストとその活用D（アニメーション概論）",
     "teacher": "浅川 りか",
     "credits": 1,
