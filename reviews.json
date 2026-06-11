@@ -1,0 +1,18 @@
+{
+  "academic_literacy": {
+    "stars": 1,
+    "review": "レポートはちゃんと書きましょう。かなり簡単"
+  },
+  "sociology_1": {
+    "stars": 1,
+    "review": ""
+  },
+  "modern_society_math": {
+    "stars": 1,
+    "review": "数学だからといって、身構えなくても大丈夫。"
+  },
+  "it_literacy": {
+    "stars": 3,
+    "review": "おそらく導入科目最難関　ITパスポートを受けたことある人には簡単かも。"
+  }
+}
