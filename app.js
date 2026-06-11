@@ -42,6 +42,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   /**
+   * HTML文字列のエスケープ処理（セキュリティ対策）
+   */
+  const escapeHTML = (str) => {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, (m) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;',
+      '"': '&quot;', "'": '&#39;'
+    }[m]));
+  };
+
+  /**
    * localStorageから安全にデータを取得・パースする関数
    */
   const safeParse = (key) => {
@@ -78,7 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     filterRequirement: 'すべて表示',
     filterIntro: 'すべて表示',
     filterSearch: '',
-    reviewsMap: {} // 口コミデータを保持するオブジェクト
+    reviewsMap: new Map() // 科目IDをキーにしたMap管理
   };
 
   /**
@@ -543,21 +554,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         ? `${teacherParts[0]} 他${teacherParts.length - 1}名` 
         : data.teacher;
 
-      // 口コミセクションの生成
-      const courseReviews = state.reviewsMap[data.id] || [];
+      // 授業攻略情報（レビュー）セクションの生成
+      const review = state.reviewsMap.get(data.id);
       let reviewsHtml = '';
-      if (courseReviews.length > 0) {
+      
+      if (review) {
+        const stars = '⭐'.repeat(Math.max(0, Math.min(5, review.difficulty))) + '☆'.repeat(Math.max(0, 5 - review.difficulty));
         reviewsHtml = `
-        <div class="detail-section-item reviews-area" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #eee;">
-          <p><strong>受講者の感想:</strong></p>
-          ${courseReviews.map(r => `
-            <blockquote style="margin: 5px 0 10px 10px; padding: 5px 10px; border-left: 3px solid #ddd; background: #fcfcfc; font-size: 0.9em;">
-              <span style="color: #f59e0b;">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span><br>
-              <span style="color: #555; line-height: 1.4;">${r.text}</span>
-            </blockquote>
-          `).join('')}
+        <div class="review-section" style="background: #f9f9f9; border-left: 4px solid #007bff; padding: 12px; margin-top: 15px; font-size: 0.95em;">
+          <p style="margin: 0 0 10px 0; font-weight: bold; font-size: 1em;">🎮 授業攻略情報</p>
+          <p style="margin: 5px 0;"><strong>難易度：</strong> <span style="color: #f59e0b;">${stars}</span></p>
+          <p style="margin: 10px 0 4px 0;"><strong>一言：</strong></p>
+          <div style="white-space: pre-wrap; color: #333; line-height: 1.6; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #eee;">${escapeHTML(review.comment)}</div>
         </div>
         `;
+      } else {
+        reviewsHtml = `
+        <div class="review-section" style="background: #f9f9f9; border-left: 4px solid #ccc; padding: 12px; margin-top: 15px; font-size: 0.95em;">
+          <p style="margin: 0 0 5px 0; font-weight: bold;">🎮 授業攻略情報</p>
+          <p style="color: #888; margin: 0;">まだ投稿がありません。</p>
+        </div>`;
       }
 
       const li = document.createElement('li');
@@ -796,7 +812,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const data = await coursesRes.json();
 
     if (reviewsRes.ok) {
-      state.reviewsMap = await reviewsRes.json();
+      const reviewsData = await reviewsRes.json();
+      state.reviewsMap = new Map((Array.isArray(reviewsData) ? reviewsData : []).map(r => [r.id, r]));
     }
 
     data.sort((a, b) => {
