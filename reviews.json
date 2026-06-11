@@ -1,18 +1,22 @@
-{
-  "academic_literacy": {
-    "stars": 1,
-    "review": "レポートはちゃんと書きましょう。かなり簡単"
+[
+  {
+    "id": "academic_literacy",
+    "difficulty": 1,
+    "comment": "レポートはちゃんと書きましょう。かなり優しめの科目"
   },
-  "sociology_1": {
-    "stars": 1,
-    "review": ""
+  {
+    "id": "sociology_1",
+    "difficulty": 1,
+    "comment": ""
   },
-  "modern_society_math": {
-    "stars": 1,
-    "review": "数学だからといって、身構えなくても大丈夫。"
+  {
+    "id": "modern_society_math",
+    "difficulty": 1,
+    "comment": "数学だからといって、身構えなくても大丈夫。"
   },
-  "it_literacy": {
-    "stars": 3,
-    "review": "おそらく導入科目最難関　ITパスポートを受けたことある人には簡単かも。"
+  {
+    "id": "it_literacy",
+    "difficulty": 3,
+    "comment": "おそらく導入科目最難関　ITパスポートを受けたことある人には簡単かも。"
   }
-}
+]
