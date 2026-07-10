@@ -397,6 +397,42 @@ body {
   border-radius: 4px;
 }
 
+.difficulty-section {
+  margin-top: 15px;
+  padding: 12px;
+  border: 1px solid #dbeafe;
+  border-left: 4px solid #2563eb;
+  border-radius: 4px;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.difficulty-section p {
+  margin: 0 0 6px;
+}
+
+.difficulty-title {
+  margin: 0 0 10px;
+  color: #1e3a8a;
+  font-size: 1em;
+  font-weight: 700;
+}
+
+.difficulty-source-row {
+  margin-bottom: 0 !important;
+}
+
+.difficulty-source {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.difficulty-source:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
 /* Footer Styles */
 .app-footer {
   margin-top: 60px; /* メインコンテンツからの上部余白 */
@@ -412,6 +448,15 @@ body {
 .app-footer p {
   margin: 0; /* 段落のデフォルトマージンをリセット */
   padding: 2px 0; /* 各行の上下にわずかなパディング */
+}
+
+.app-footer a {
+  color: #1d4ed8;
+}
+
+.app-footer a:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
 }
 
 /* Search Count Styles */

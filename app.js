@@ -89,7 +89,73 @@ document.addEventListener('DOMContentLoaded', async () => {
     filterRequirement: 'すべて表示',
     filterIntro: 'すべて表示',
     filterSearch: '',
-    reviewsMap: new Map() // 科目IDをキーにしたMap管理
+    reviewsMap: new Map(), // 科目IDをキーにしたMap管理
+    difficultyMap: new Map() // 科目IDをキーにした難易度目安データ
+  };
+
+  /**
+   * 難易度データを検証し、表示に利用できる形式へ正規化する
+   */
+  const normalizeDifficulty = (entry) => {
+    try {
+      const id = typeof entry?.id === 'string' ? entry.id.trim() : '';
+      const average = Number(entry?.average);
+      const votes = Number(entry?.votes);
+      const sourceUrl = typeof entry?.sourceUrl === 'string' ? entry.sourceUrl.trim() : '';
+      const sourceName = typeof entry?.sourceName === 'string' ? entry.sourceName.trim() : '';
+      const sourceAuthor = typeof entry?.sourceAuthor === 'string' ? entry.sourceAuthor.trim() : '';
+      const sourceLabel = typeof entry?.sourceLabel === 'string' && entry.sourceLabel.trim()
+        ? entry.sourceLabel.trim()
+        : `${sourceName || '出典'}${sourceAuthor ? `（運営：${sourceAuthor}）` : ''}`;
+      const parsedSourceUrl = sourceUrl ? new URL(sourceUrl, window.location.href) : null;
+      const hasSafeSourceUrl = parsedSourceUrl && ['http:', 'https:'].includes(parsedSourceUrl.protocol);
+
+      if (
+        !id ||
+        !Number.isFinite(average) ||
+        average < 0 ||
+        average > 10 ||
+        !Number.isInteger(votes) ||
+        votes < 0 ||
+        !hasSafeSourceUrl
+      ) {
+        console.warn('不正な難易度データを除外しました:', entry);
+        return null;
+      }
+
+      return { id, average, votes, sourceUrl, sourceLabel };
+    } catch (error) {
+      console.warn('難易度データの検証に失敗しました:', error);
+      return null;
+    }
+  };
+
+  /**
+   * 難易度データを任意データとして安全に読み込む
+   */
+  const loadDifficultyData = async () => {
+    try {
+      const response = await fetch('difficulty.json');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const difficultyData = await response.json();
+      if (!Array.isArray(difficultyData)) {
+        throw new TypeError('難易度データのルート要素が配列ではありません');
+      }
+
+      return new Map(
+        difficultyData
+          .map(normalizeDifficulty)
+          .filter(Boolean)
+          .map(entry => [entry.id, entry])
+      );
+    } catch (error) {
+      // 難易度は任意情報のため、失敗しても授業データの読み込みを継続する
+      console.warn('難易度データを読み込めませんでした。難易度欄を非表示にします:', error);
+      return new Map();
+    }
   };
 
   /**
@@ -557,24 +623,29 @@ document.addEventListener('DOMContentLoaded', async () => {
       // 授業攻略情報（レビュー）セクションの生成
       const review = state.reviewsMap.get(data.id);
       let reviewsHtml = '';
-      
+
       if (review) {
-        const stars = '⭐'.repeat(Math.max(0, Math.min(5, review.difficulty))) + '☆'.repeat(Math.max(0, 5 - review.difficulty));
         reviewsHtml = `
         <div class="review-section" style="background: #f9f9f9; border-left: 4px solid #007bff; padding: 12px; margin-top: 15px; font-size: 0.95em;">
           <p style="margin: 0 0 10px 0; font-weight: bold; font-size: 1em;">🎮 授業攻略情報</p>
-          <p style="margin: 5px 0;"><strong>難易度：</strong> <span style="color: #f59e0b;">${stars}</span></p>
           <p style="margin: 10px 0 4px 0;"><strong>一言：</strong></p>
           <div style="white-space: pre-wrap; color: #333; line-height: 1.6; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #eee;">${escapeHTML(review.comment)}</div>
         </div>
         `;
-      } else {
-        reviewsHtml = `
-        <div class="review-section" style="background: #f9f9f9; border-left: 4px solid #ccc; padding: 12px; margin-top: 15px; font-size: 0.95em;">
-          <p style="margin: 0 0 5px 0; font-weight: bold;">🎮 授業攻略情報</p>
-          <p style="color: #888; margin: 0;">まだ投稿がありません。</p>
-        </div>`;
       }
+
+      // 難易度データが登録されている科目に限り、詳細欄へ表示する
+      const difficulty = state.difficultyMap.get(data.id);
+      const difficultyHtml = difficulty ? `
+        <section class="difficulty-section" aria-label="授業難易度">
+          <h5 class="difficulty-title">📊 授業難易度</h5>
+          <p><strong>難易度目安：</strong>${difficulty.average.toFixed(2)} / 10.0</p>
+          <p><strong>投票数：</strong>${difficulty.votes}票</p>
+          <p class="difficulty-source-row">
+            <strong>出典：</strong><a href="${escapeHTML(difficulty.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="difficulty-source">${escapeHTML(difficulty.sourceLabel)}</a>
+          </p>
+        </section>
+      ` : '';
 
       const li = document.createElement('li');
 
@@ -612,6 +683,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <p class="evaluation"><strong>評価方法:</strong> ${data.evaluation}</p>
             ${data.url ? `<p><a href="${data.url}" target="_blank" class="syllabus-link" title="ZEN大学シラバスサイトの該当ページを開きます">ZEN大学シラバスで詳細を確認</a></p>` : ''}
             <p class="description"><strong>授業概要:</strong> ${data.description}</p>
+            ${difficultyHtml}
             ${reviewsHtml}
           </div>
         </div>
@@ -802,10 +874,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 外部JSONから授業データを読み込む
   let loadErrorTimer = null; // 通信エラーアラートの遅延表示用タイマー
   try {
-    // 授業データと口コミデータを並行して読み込む
-    const [coursesRes, reviewsRes] = await Promise.all([
+    // 授業データ、口コミデータ、任意の難易度データを並行して読み込む
+    const [coursesRes, reviewsRes, difficultyMap] = await Promise.all([
       fetch('courses.json'),
-      fetch('reviews.json').catch(() => ({ ok: false })) // ファイルがない場合は空として扱う
+      fetch('reviews.json').catch(() => ({ ok: false })), // ファイルがない場合は空として扱う
+      loadDifficultyData()
     ]);
 
     if (!coursesRes.ok) throw new Error(`授業データが見つかりません (${coursesRes.status})`);
@@ -815,6 +888,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const reviewsData = await reviewsRes.json();
       state.reviewsMap = new Map((Array.isArray(reviewsData) ? reviewsData : []).map(r => [r.id, r]));
     }
+    state.difficultyMap = difficultyMap;
 
     data.sort((a, b) => {
       const getPriority = (cat) => {
