@@ -4,7 +4,7 @@ ZEN大学生向けの非公式履修管理ツールです。
 
 履修予定・履修済み科目を管理しながら、卒業要件の達成状況を簡単に確認できます。
 
-##公開URL：https://zencoursehub.netlify.app/
+## 公開URL：https://zencoursehub.netlify.app/
 
 ## 主な機能
 
