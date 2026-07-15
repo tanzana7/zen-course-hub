@@ -7,6 +7,13 @@ body {
   color: #333;
 }
 
+.app-description {
+  margin: -6px 0 14px;
+  color: #5f6b7a;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
 .main-container {
   display: flex; /* 左右に並べる */
   gap: 40px; /* 左右の余白 */
