@@ -550,6 +550,12 @@ body {
 
   .sticky-controls {
     position: static;
+    left: auto;
+    right: auto;
+    transform: none;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     padding: 12px 0 16px;
     margin-bottom: 18px;
   }
@@ -601,6 +607,7 @@ body {
     gap: 24px;
     width: 100%;
     max-width: 100%;
+    min-width: 0;
     overflow-x: hidden;
   }
 
@@ -608,16 +615,35 @@ body {
   .right-column {
     width: 100%;
     max-width: 100%;
+    min-width: 0;
     flex: 0 1 auto;
     box-sizing: border-box;
+  }
+
+  /* スマホでは履修状況を先に確認できるよう、右カラムを一覧より前へ移動 */
+  .right-column {
+    order: 1;
+  }
+
+  .left-column {
+    order: 2;
   }
 
   .right-column {
     position: static;
     top: auto;
+    left: auto;
+    right: auto;
+    transform: none;
     max-height: none;
     overflow-y: visible;
     padding: 16px;
+  }
+
+  .predefined-classes-section {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   #predefined-classes-list,
