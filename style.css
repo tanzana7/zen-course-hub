@@ -550,6 +550,13 @@ body {
 
   .sticky-controls {
     position: static;
+    left: auto;
+    right: auto;
+    transform: none;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     padding: 12px 0 16px;
     margin-bottom: 18px;
   }
@@ -577,10 +584,13 @@ body {
   }
 
   .input-area {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 8px;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   #search-bar,
@@ -597,24 +607,54 @@ body {
   }
 
   .main-container {
-    flex-direction: column;
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
     gap: 24px;
-    width: 100%;
-    max-width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
     overflow-x: hidden;
   }
 
   .left-column,
   .right-column {
-    width: 100%;
-    max-width: 100%;
-    flex: 0 1 auto;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 0 0 100% !important;
+    flex-basis: 100% !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* スマホでは履修状況を先に確認できるよう、右カラムを一覧より前へ移動 */
+  .right-column {
+    order: 1 !important;
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    transform: none !important;
+    align-self: stretch !important;
+  }
+
+  .left-column {
+    order: 2 !important;
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    transform: none !important;
+    align-self: stretch !important;
+  }
+
+  .predefined-classes-section {
     box-sizing: border-box;
   }
 
   .right-column {
-    position: static;
-    top: auto;
     max-height: none;
     overflow-y: visible;
     padding: 16px;
@@ -632,9 +672,10 @@ body {
 
   .predefined-item,
   .class-item {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
   }
 
   .class-item {
@@ -720,7 +761,7 @@ body {
 
 @media (max-width: 420px) {
   .input-area {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
 
@@ -747,4 +788,141 @@ body {
   border-radius: 5px;
   margin-top: 15px;
   border: 1px solid #e9ecef;
+}
+
+/*
+ * モバイル最終上書き（このファイルの末尾でPC向け指定との競合を解消）
+ * Safariでデスクトップ用の固定幅が残らないよう、親子の幅とflex-basisを明示する。
+ */
+@media screen and (max-width: 768px) {
+  html,
+  body {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  body {
+    margin: 0 !important;
+    padding: 0 12px 80px !important;
+  }
+
+  .sticky-controls,
+  .app-title-row,
+  .input-area,
+  .main-container,
+  .left-column,
+  .right-column,
+  .predefined-classes-section,
+  .class-item {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+  }
+
+  .sticky-controls,
+  .app-title-row {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .app-title-row {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .top-credit-gauge {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .input-area {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 18px !important;
+  }
+
+  #search-bar,
+  #analysis-btn {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .input-area select {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .main-container {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    gap: 24px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .right-column,
+  .left-column {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    flex: 0 0 100% !important;
+    flex-basis: 100% !important;
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    align-self: stretch !important;
+  }
+
+  .right-column {
+    order: 1 !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+
+  .left-column {
+    order: 2 !important;
+  }
+
+  .predefined-classes-section,
+  #predefined-classes-list,
+  #list,
+  #completed-list,
+  .predefined-item,
+  .class-item,
+  .class-detail,
+  .difficulty-section {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .class-info,
+  .class-detail,
+  .detail-sections,
+  .difficulty-section {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+@media screen and (max-width: 420px) {
+  .input-area {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
 }
