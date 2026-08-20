@@ -1,12 +1,12 @@
 [
   {
     "id": "academic_literacy",
-    "average": 1.92,
-    "votes": 65,
+    "average": 1.9,
+    "votes": 67,
     "level": "易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=academic_literacy"
   },
   {
     "id": "economics_intro",
@@ -15,7 +15,7 @@
     "level": "普通",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=economics"
   },
   {
     "id": "modern_society_science",
@@ -24,16 +24,16 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=modern_society_science"
   },
   {
     "id": "modern_society_math",
-    "average": 4.29,
-    "votes": 80,
+    "average": 4.26,
+    "votes": 82,
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=modern_society_math"
   },
   {
     "id": "methods_of_math",
@@ -42,7 +42,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=mathematics_methods"
   },
   {
     "id": "co_creation_earth",
@@ -51,7 +51,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=collaborative_earth"
   },
   {
     "id": "intro_to_philosophy",
@@ -60,7 +60,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=philosophy_intro"
   },
   {
     "id": "career_design_1",
@@ -69,16 +69,16 @@
     "level": "易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=career_design1"
   },
   {
     "id": "english_comm_1",
-    "average": 3.7,
-    "votes": 30,
+    "average": 3.68,
+    "votes": 31,
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=english_comm1"
   },
   {
     "id": "english_comm_2",
@@ -87,34 +87,34 @@
     "level": "易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=english_comm2"
   },
   {
     "id": "humanities_intro",
-    "average": 4.61,
-    "votes": 51,
+    "average": 4.6,
+    "votes": 52,
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=humanities_social_intro"
   },
   {
     "id": "philosophy_of_science",
-    "average": 4.5,
-    "votes": 4,
+    "average": 4.6,
+    "votes": 5,
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=philosophy_of?science"
   },
   {
     "id": "it_literacy",
     "average": 6.33,
-    "votes": 45,
+    "votes": 46,
     "level": "普通",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=it_literacy"
   },
   {
     "id": "info_ethics_law",
@@ -123,7 +123,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=information_ethics_law"
   },
   {
     "id": "multilingual_it_comm",
@@ -132,7 +132,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=multilingual_it"
   },
   {
     "id": "digital_tools_usage",
@@ -141,7 +141,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=digital_tools"
   },
   {
     "id": "python_programming",
@@ -150,7 +150,7 @@
     "level": "普通",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=python_programming"
   },
   {
     "id": "visual_programming",
@@ -159,7 +159,7 @@
     "level": "普通",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=visual_programming"
   },
   {
     "id": "object_oriented_programming",
@@ -168,7 +168,7 @@
     "level": "普通",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=Object_oriented_programming"
   },
   {
     "id": "web_app_dev_1",
@@ -177,7 +177,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=web_app_dev1"
   },
   {
     "id": "web_app_dev_2",
@@ -186,16 +186,16 @@
     "level": "普通",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=web_app_dev2"
   },
   {
     "id": "web_app_dev_3",
-    "average": 6.38,
-    "votes": 8,
+    "average": 6.11,
+    "votes": 9,
     "level": "普通",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=web_app_dev3"
   },
   {
     "id": "info_society_security",
@@ -204,7 +204,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=information_security"
   },
   {
     "id": "info_security_intro",
@@ -213,7 +213,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=information_security_intro"
   },
   {
     "id": "internet_intro",
@@ -222,7 +222,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=information_internet"
   },
   {
     "id": "linux_intro",
@@ -231,7 +231,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=linux_intro"
   },
   {
     "id": "japanese_game_industry_history",
@@ -240,7 +240,7 @@
     "level": "普通",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=japanese_game_history"
   },
   {
     "id": "anime_industry_history",
@@ -249,7 +249,7 @@
     "level": "普通",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=anime_industry"
   },
   {
     "id": "manga_industry_history",
@@ -258,7 +258,7 @@
     "level": "普通",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=manga_industry"
   },
   {
     "id": "media_art_history",
@@ -267,16 +267,16 @@
     "level": "普通",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=media_art_history"
   },
   {
     "id": "it_industry_history",
-    "average": 4.26,
-    "votes": 35,
+    "average": 4.22,
+    "votes": 36,
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=it_industry_history"
   },
   {
     "id": "net_culture_derivative_works_history",
@@ -285,7 +285,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=net_culture_history"
   },
   {
     "id": "media_studies",
@@ -294,7 +294,7 @@
     "level": "易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=media_theory"
   },
   {
     "id": "regional_innovation",
@@ -303,7 +303,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=regional_innovation"
   },
   {
     "id": "regional_studies",
@@ -312,7 +312,7 @@
     "level": "易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=regional_studies"
   },
   {
     "id": "regional_entrepreneurship",
@@ -321,7 +321,7 @@
     "level": "易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=regional_entrepreneurship"
   },
   {
     "id": "business_mgmt",
@@ -330,7 +330,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=business_management"
   },
   {
     "id": "business_mgmt_accounting",
@@ -339,7 +339,7 @@
     "level": "普通",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=business_accounting"
   },
   {
     "id": "decision_making_dev",
@@ -348,7 +348,7 @@
     "level": "難しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=decision_making"
   },
   {
     "id": "manga_storyboard_visuals",
@@ -357,7 +357,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=manga_storyboard"
   },
   {
     "id": "modern_contemporary_art_intro",
@@ -366,286 +366,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "editing_power",
-    "average": 5.02,
-    "votes": 51,
-    "level": "普通",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "public_philosophy",
-    "average": 5.21,
-    "votes": 14,
-    "level": "普通",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "calculus_1",
-    "average": 8.9,
-    "votes": 68,
-    "level": "難しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "calculus_2",
-    "average": 10,
-    "votes": 2,
-    "level": "とても難しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "linear_algebra_1",
-    "average": 8.13,
-    "votes": 24,
-    "level": "難しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "linear_algebra_2",
-    "average": 7.67,
-    "votes": 3,
-    "level": "難しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "graph_theory",
-    "average": 5.17,
-    "votes": 6,
-    "level": "普通",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "mathematical_thinking",
-    "average": 6.56,
-    "votes": 34,
-    "level": "普通",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "elementary_algebra",
-    "average": 5.75,
-    "votes": 12,
-    "level": "普通",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "math_history",
-    "average": 4.21,
-    "votes": 33,
-    "level": "やや易しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "interpersonal_comm_theory",
-    "average": 2.71,
-    "votes": 38,
-    "level": "易しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "logical_comm",
-    "average": 3.98,
-    "votes": 44,
-    "level": "やや易しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "marxian_economics",
-    "average": 4.15,
-    "votes": 13,
-    "level": "やや易しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "economics_history",
-    "average": 7.38,
-    "votes": 13,
-    "level": "難しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "psychology",
-    "average": 6.21,
-    "votes": 104,
-    "level": "普通",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "law_1",
-    "average": 5,
-    "votes": 32,
-    "level": "やや易しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "japanese_literature_1",
-    "average": 3.94,
-    "votes": 16,
-    "level": "やや易しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "cultural_anthropology_1",
-    "average": 5.39,
-    "votes": 28,
-    "level": "普通",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "sociology_1",
-    "average": 3.51,
-    "votes": 45,
-    "level": "やや易しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "narrative_theory",
-    "average": 3.71,
-    "votes": 31,
-    "level": "やや易しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "gender_studies",
-    "average": 2.38,
-    "votes": 8,
-    "level": "易しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "ai_society_walk",
-    "average": 4,
-    "votes": 46,
-    "level": "やや易しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "ai_practical_usage",
-    "average": 4,
-    "votes": 23,
-    "level": "やや易しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "data_science_intro",
-    "average": 6.5,
-    "votes": 72,
-    "level": "普通",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "intro_to_statistics",
-    "average": 7.7,
-    "votes": 10,
-    "level": "難しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "deep_learning_1",
-    "average": 5.89,
-    "votes": 9,
-    "level": "普通",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "web_ux",
-    "average": 4,
-    "votes": 10,
-    "level": "やや易しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "science_tech_society",
-    "average": 2.25,
-    "votes": 4,
-    "level": "易しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "reverse_science_history",
-    "average": 3.42,
-    "votes": 12,
-    "level": "やや易しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "net_info_broadcast_intro",
-    "average": 2.07,
-    "votes": 15,
-    "level": "易しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
-  },
-  {
-    "id": "machine_translation_english",
-    "average": 8.36,
-    "votes": 76,
-    "level": "難しい",
-    "sourceName": "ZEN大学履修難易度投票サイト",
-    "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=modern_art"
   },
   {
     "id": "digital_image_tech_1",
@@ -654,7 +375,7 @@
     "level": "易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=digital_image1"
   },
   {
     "id": "digital_image_tech_2",
@@ -663,7 +384,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=digital_image2"
   },
   {
     "id": "digital_image_tech_3",
@@ -672,7 +393,7 @@
     "level": "普通",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=digital_image3"
   },
   {
     "id": "illustration_entertainment_a",
@@ -681,7 +402,7 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=illustration_a"
   },
   {
     "id": "illustration_entertainment_b",
@@ -690,7 +411,7 @@
     "level": "易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=illustration_b"
   },
   {
     "id": "illustration_entertainment_c",
@@ -699,7 +420,7 @@
     "level": "易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=illustration_c"
   },
   {
     "id": "illustration_entertainment_d",
@@ -708,6 +429,285 @@
     "level": "やや易しい",
     "sourceName": "ZEN大学履修難易度投票サイト",
     "sourceAuthor": "nekon",
-    "sourceUrl": "https://zen.nekon.jp/level-survey/"
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=illustration_d"
+  },
+  {
+    "id": "editing_power",
+    "average": 5.02,
+    "votes": 51,
+    "level": "普通",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=editing_power"
+  },
+  {
+    "id": "public_philosophy",
+    "average": 5.21,
+    "votes": 14,
+    "level": "普通",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=public_philosophy"
+  },
+  {
+    "id": "calculus_1",
+    "average": 8.9,
+    "votes": 68,
+    "level": "難しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=calculus1"
+  },
+  {
+    "id": "calculus_2",
+    "average": 10,
+    "votes": 2,
+    "level": "とても難しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=calculus2"
+  },
+  {
+    "id": "linear_algebra_1",
+    "average": 8.13,
+    "votes": 24,
+    "level": "難しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=linear_algebra1"
+  },
+  {
+    "id": "linear_algebra_2",
+    "average": 7.67,
+    "votes": 3,
+    "level": "難しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=linear_algebra2"
+  },
+  {
+    "id": "graph_theory",
+    "average": 5.17,
+    "votes": 6,
+    "level": "普通",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=graph_theory"
+  },
+  {
+    "id": "mathematical_thinking",
+    "average": 6.56,
+    "votes": 34,
+    "level": "普通",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=mathematical_thinking"
+  },
+  {
+    "id": "elementary_algebra",
+    "average": 5.75,
+    "votes": 12,
+    "level": "普通",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=elementary_algebra"
+  },
+  {
+    "id": "math_history",
+    "average": 4.21,
+    "votes": 33,
+    "level": "やや易しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=math_history"
+  },
+  {
+    "id": "interpersonal_comm_theory",
+    "average": 2.71,
+    "votes": 38,
+    "level": "易しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=communication_theory"
+  },
+  {
+    "id": "logical_comm",
+    "average": 3.98,
+    "votes": 44,
+    "level": "やや易しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=logical_communication"
+  },
+  {
+    "id": "marxian_economics",
+    "average": 4.15,
+    "votes": 13,
+    "level": "やや易しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=marxist_economics"
+  },
+  {
+    "id": "economics_history",
+    "average": 7.29,
+    "votes": 14,
+    "level": "難しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=economic_discourse"
+  },
+  {
+    "id": "psychology",
+    "average": 6.21,
+    "votes": 104,
+    "level": "普通",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=psychology"
+  },
+  {
+    "id": "law_1",
+    "average": 5,
+    "votes": 32,
+    "level": "やや易しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=law1"
+  },
+  {
+    "id": "japanese_literature_1",
+    "average": 3.94,
+    "votes": 16,
+    "level": "やや易しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=japanese_literature1"
+  },
+  {
+    "id": "cultural_anthropology_1",
+    "average": 5.31,
+    "votes": 29,
+    "level": "普通",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=cultural_anthropology1"
+  },
+  {
+    "id": "sociology_1",
+    "average": 3.51,
+    "votes": 45,
+    "level": "やや易しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=sociology1"
+  },
+  {
+    "id": "narrative_theory",
+    "average": 3.71,
+    "votes": 31,
+    "level": "やや易しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=narrative_theory"
+  },
+  {
+    "id": "gender_studies",
+    "average": 2.38,
+    "votes": 8,
+    "level": "易しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=gender_theory"
+  },
+  {
+    "id": "ai_society_walk",
+    "average": 4,
+    "votes": 46,
+    "level": "やや易しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=ai_society"
+  },
+  {
+    "id": "ai_practical_usage",
+    "average": 4,
+    "votes": 23,
+    "level": "やや易しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=ai_practice"
+  },
+  {
+    "id": "data_science_intro",
+    "average": 6.5,
+    "votes": 72,
+    "level": "普通",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=data_science"
+  },
+  {
+    "id": "intro_to_statistics",
+    "average": 7.73,
+    "votes": 11,
+    "level": "難しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=statistics_intro"
+  },
+  {
+    "id": "deep_learning_1",
+    "average": 6,
+    "votes": 10,
+    "level": "普通",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=deep_learning1"
+  },
+  {
+    "id": "web_ux",
+    "average": 4,
+    "votes": 10,
+    "level": "やや易しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=web_ux"
+  },
+  {
+    "id": "science_tech_society",
+    "average": 2.25,
+    "votes": 4,
+    "level": "易しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=science_tech_history"
+  },
+  {
+    "id": "reverse_science_history",
+    "average": 3.42,
+    "votes": 12,
+    "level": "やや易しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=reverse_science_history"
+  },
+  {
+    "id": "net_info_broadcast_intro",
+    "average": 2.07,
+    "votes": 15,
+    "level": "易しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=net_info_publishing"
+  },
+  {
+    "id": "machine_translation_english",
+    "average": 8.36,
+    "votes": 76,
+    "level": "難しい",
+    "sourceName": "ZEN大学履修難易度投票サイト",
+    "sourceAuthor": "nekon",
+    "sourceUrl": "https://zen.nekon.jp/level-survey/?subject=machine_translation"
   }
 ]
