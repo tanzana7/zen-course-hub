@@ -934,6 +934,9 @@ body {
 
 @media screen and (max-width: 768px) {
   #back-to-top-btn.is-visible {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: fixed;
     right: 12px;
     bottom: calc(68px + env(safe-area-inset-bottom, 0px));
