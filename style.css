@@ -926,3 +926,33 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
+
+/* スマートフォン用のページ上部への戻るボタン。固定UI同士が重ならないよう使い方ボタンの上に配置する。 */
+#back-to-top-btn {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  #back-to-top-btn.is-visible {
+    position: fixed;
+    right: 12px;
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+    z-index: 2999;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background-color: #475569;
+    color: #fff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+  }
+
+  #back-to-top-btn.is-visible:focus-visible {
+    outline: 3px solid #93c5fd;
+    outline-offset: 2px;
+  }
+}
