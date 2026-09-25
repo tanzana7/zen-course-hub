@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const list = document.getElementById('list');
   const completedList = document.getElementById('completed-list');
   const predefinedList = document.getElementById('predefined-classes-list');
+  const dataStatus = document.getElementById('data-status');
 
   // 卒業要件分析（導入科目）の判定に使用するリストを復活
   const introSubjects = [
@@ -649,6 +650,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const li = document.createElement('li');
 
+      const addButton = isRegistered
+        ? '<button class="add-predefined current-state" disabled>履修予定 ✓</button>'
+        : isCompleted
+          ? '<button class="add-predefined">履修予定に戻す</button>'
+          : '<button class="add-predefined">追加</button>';
+      const completeButton = isCompleted
+        ? '<button class="complete-predefined current-state" disabled>履修済み ✓</button>'
+        : isRegistered
+          ? '<button class="complete-predefined">履修済みにする</button>'
+          : '<button class="complete-predefined">履修済み</button>';
+
+
       li.className = 'predefined-item';
       li.innerHTML = `
         <div class="class-item ${isHandled ? 'added' : ''}">
@@ -664,8 +677,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
           <div class="actions">
             <button class="detail-btn">詳細</button>
-            <button class="add-predefined" ${isRegistered ? 'disabled' : ''}>追加</button>
-            <button class="complete-predefined" ${isCompleted ? 'disabled' : ''}>履修済み</button>
+            ${addButton}
+            ${completeButton}
           </div>
         </div>
         <div class="class-detail">
@@ -681,7 +694,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <p><strong>タグ:</strong> ${data.tag ? `#${data.tag}` : '-'}</p>
             <p><strong>教員情報:</strong> ${displayTeacher}</p>
             <p class="evaluation"><strong>評価方法:</strong> ${data.evaluation}</p>
-            ${data.url ? `<p><a href="${data.url}" target="_blank" class="syllabus-link" title="ZEN大学シラバスサイトの該当ページを開きます">ZEN大学シラバスで詳細を確認</a></p>` : ''}
+            ${data.url ? `<p><a href="${data.url}" target="_blank" rel="noopener noreferrer" class="syllabus-link" title="ZEN大学シラバスサイトの該当ページを開きます">ZEN大学シラバスで詳細を確認</a></p>` : ''}
             <p class="description"><strong>授業概要:</strong> ${data.description}</p>
             ${difficultyHtml}
             ${reviewsHtml}
@@ -939,12 +952,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 3秒以内に読み込みが完了した場合は、もし予約されていたエラーアラートがあればキャンセルする
     if (loadErrorTimer) clearTimeout(loadErrorTimer);
+    if (dataStatus) {
+      dataStatus.hidden = true;
+      dataStatus.classList.remove('is-error');
+    }
     renderAll(); // データロード後にクリーンアップを含めて再描画
   } catch (error) {
     console.error('データの読み込みに失敗しました:', error);
+    if (dataStatus) {
+      dataStatus.hidden = false;
+      dataStatus.classList.add('is-error');
+      dataStatus.textContent = '授業データの読み込みに失敗しました。ページを再読み込みしてください。';
+    }
     // GitHub Pagesの初回読み込み遅延等による誤検知を防ぐため、3秒待機してからアラートを表示する。
     loadErrorTimer = setTimeout(() => {
-      alert('授業データの読み込みに失敗しました。VS Codeの Live Server などを使用して開いてください。');
+      alert('授業データの読み込みに失敗しました。ページを再読み込みしてください。');
     }, 3000);
   }
 });
