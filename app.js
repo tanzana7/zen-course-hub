@@ -864,12 +864,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
+  /**
+   * スマートフォンで長い授業一覧を閲覧するとき、固定ボタンから先頭へ戻れるようにする。
+   * PCではCSSで非表示にし、スクロール位置の判定はモバイル時だけ行う。
+   */
+  const setupBackToTopButton = () => {
+    const button = document.getElementById('back-to-top-btn');
+    if (!button) return;
+
+    const mobileQuery = window.matchMedia('(max-width: 768px)');
+    const updateVisibility = () => {
+      button.classList.toggle('is-visible', mobileQuery.matches && window.scrollY > 320);
+    };
+
+    window.addEventListener('scroll', updateVisibility, { passive: true });
+    window.addEventListener('resize', updateVisibility);
+    button.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    updateVisibility();
+  };
+
   // --- アプリケーションの実行開始 ---
   // すべての関数(const)の定義が完了した後に、呼び出しを行います。
 
   setupFilters();
   setupAnalysisModal();
   setupTutorialModal();
+  setupBackToTopButton();
 
   // 外部JSONから授業データを読み込む
   let loadErrorTimer = null; // 通信エラーアラートの遅延表示用タイマー
