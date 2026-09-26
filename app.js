@@ -878,24 +878,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   /**
-   * スマートフォンで長い授業一覧を閲覧するとき、固定ボタンから先頭へ戻れるようにする。
-   * PCではCSSで非表示にし、スクロール位置の判定はモバイル時だけ行う。
+   * スマートフォンでは常に表示する固定ボタンから先頭へ戻れるようにする。
+   * 表示・非表示はCSSのブレークポイントで制御し、クリック時の移動だけを担当する。
    */
   const setupBackToTopButton = () => {
     const button = document.getElementById('back-to-top-btn');
     if (!button) return;
 
-    const mobileQuery = window.matchMedia('(max-width: 768px)');
-    const updateVisibility = () => {
-      button.classList.toggle('is-visible', mobileQuery.matches && window.scrollY > 320);
-    };
-
-    window.addEventListener('scroll', updateVisibility, { passive: true });
-    window.addEventListener('resize', updateVisibility);
     button.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
-    updateVisibility();
   };
 
   // --- アプリケーションの実行開始 ---
