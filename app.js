@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     filterRequirement: 'すべて表示',
     filterIntro: 'すべて表示',
     filterSearch: '',
-    reviewsMap: new Map(), // 科目IDをキーにしたMap管理
+    difficultySort: 'default',
     difficultyMap: new Map(), // 科目IDをキーにした難易度目安データ
     relationsMap: new Map() // 科目IDをキーにした前提・後継科目データ
   };
@@ -661,14 +661,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       return matchYear && matchQuarter && matchRequirement && matchIntro && matchCategory && matchSearch;
     });
 
+    const sorted = state.difficultySort === 'default'
+      ? filtered
+      : filtered
+          .map((item, index) => ({ item, index, average: state.difficultyMap.get(item.id)?.average }))
+          .sort((a, b) => {
+            const aMissing = !Number.isFinite(a.average);
+            const bMissing = !Number.isFinite(b.average);
+            if (aMissing !== bMissing) return aMissing ? 1 : -1;
+            if (aMissing) return a.index - b.index;
+            const difference = state.difficultySort === 'difficulty-asc'
+              ? a.average - b.average
+              : b.average - a.average;
+            return difference || (a.index - b.index);
+          })
+          .map(({ item }) => item);
+
     // 検索結果件数の表示更新
     const searchCountEl = document.getElementById('search-count');
     if (searchCountEl) {
-      searchCountEl.textContent = `表示中：${filtered.length}科目`;
+      searchCountEl.textContent = `表示中：${sorted.length}科目`;
     }
 
 
-    filtered.forEach(data => {
+    sorted.forEach(data => {
       const isRegistered = state.registeredClasses.has(data.id);
       const isCompleted = state.completedClasses.has(data.id);
       // UI上の背景色などは「どちらかに入っている」場合に適用
@@ -678,20 +694,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       const displayTeacher = teacherParts.length > 1
         ? `${teacherParts[0]} 他${teacherParts.length - 1}名`
         : data.teacher;
-
-      // 授業攻略情報（レビュー）セクションの生成
-      const review = state.reviewsMap.get(data.id);
-      let reviewsHtml = '';
-
-      if (review) {
-        reviewsHtml = `
-        <div class="review-section" style="background: #f9f9f9; border-left: 4px solid #007bff; padding: 12px; margin-top: 15px; font-size: 0.95em;">
-          <p style="margin: 0 0 10px 0; font-weight: bold; font-size: 1em;">🎮 授業攻略情報</p>
-          <p style="margin: 10px 0 4px 0;"><strong>一言：</strong></p>
-          <div style="white-space: pre-wrap; color: #333; line-height: 1.6; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #eee;">${escapeHTML(review.comment)}</div>
-        </div>
-        `;
-      }
 
       // 難易度データが登録されている科目に限り、詳細欄へ表示する
       const difficulty = state.difficultyMap.get(data.id);
@@ -778,7 +780,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             <p class="description"><strong>授業概要:</strong> ${data.description}</p>
             ${difficultyHtml}
             ${relationsHtml}
-            ${reviewsHtml}
           </div>
         </div>
       `;
@@ -869,6 +870,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const introF = document.getElementById('intro-filter');
     if (introF) introF.addEventListener('change', (e) => {
       state.filterIntro = e.target.value;
+      renderPredefinedList();
+    });
+
+    const sortF = document.getElementById('sort-filter');
+    if (sortF) sortF.addEventListener('change', (e) => {
+      state.difficultySort = e.target.value;
       renderPredefinedList();
     });
 
@@ -995,10 +1002,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 外部JSONから授業データを読み込む
   let loadErrorTimer = null; // 通信エラーアラートの遅延表示用タイマー
   try {
-    // 授業データ、口コミデータ、任意の難易度データ、前提・後継科目データを並行して読み込む
-    const [coursesRes, reviewsRes, difficultyMap, relationsData] = await Promise.all([
+    // 授業データ、任意の難易度データ、前提・後継科目データを並行して読み込む
+    const [coursesRes, difficultyMap, relationsData] = await Promise.all([
       fetch('courses.json'),
-      fetch('reviews.json').catch(() => ({ ok: false })), // ファイルがない場合は空として扱う
       loadDifficultyData(),
       loadCourseRelationsData()
     ]);
@@ -1006,10 +1012,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!coursesRes.ok) throw new Error(`授業データが見つかりません (${coursesRes.status})`);
     const data = await coursesRes.json();
 
-    if (reviewsRes.ok) {
-      const reviewsData = await reviewsRes.json();
-      state.reviewsMap = new Map((Array.isArray(reviewsData) ? reviewsData : []).map(r => [r.id, r]));
-    }
     state.difficultyMap = difficultyMap;
 
     data.sort((a, b) => {
