@@ -442,6 +442,49 @@ body {
   border-radius: 2px;
 }
 
+.course-relations {
+  margin-top: 15px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #64748b;
+  border-radius: 4px;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.course-relations-title {
+  margin: 0 0 10px;
+  color: #334155;
+  font-size: 1em;
+  font-weight: 700;
+}
+
+.course-relation-group + .course-relation-group {
+  margin-top: 10px;
+}
+
+.course-relation-group strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.9em;
+}
+
+.course-relation-group ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.related-course-link {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.related-course-link:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 /* Footer Styles */
 .app-footer {
   margin-top: 60px; /* メインコンテンツからの上部余白 */

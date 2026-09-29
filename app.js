@@ -90,8 +90,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     filterRequirement: 'すべて表示',
     filterIntro: 'すべて表示',
     filterSearch: '',
-    reviewsMap: new Map(), // 科目IDをキーにしたMap管理
-    difficultyMap: new Map() // 科目IDをキーにした難易度目安データ
+    difficultyMap: new Map(), // 科目IDをキーにした難易度目安データ
+    relationsMap: new Map() // 科目IDをキーにした前提・後継科目データ
   };
 
   /**
@@ -157,6 +157,56 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.warn('難易度データを読み込めませんでした。難易度欄を非表示にします:', error);
       return new Map();
     }
+  };
+
+  /**
+   * 前提・後継科目の関係を任意データとして安全に読み込む。
+   * 関係データは授業一覧とは独立させ、取得失敗時も授業一覧を利用可能にする。
+   */
+  const loadCourseRelationsData = async () => {
+    try {
+      const response = await fetch('course-relations.json');
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const relations = await response.json();
+      if (!Array.isArray(relations)) throw new TypeError('関係データのルート要素が配列ではありません');
+      return relations;
+    } catch (error) {
+      console.warn('前提・後継科目データを読み込めませんでした。関連科目欄を非表示にします:', error);
+      return [];
+    }
+  };
+
+  /**
+   * 一方向の関係データから、画面表示用の前提・後継の両方向を生成する。
+   * コースIDが実在しない関係は表示対象から除外する。
+   */
+  const buildRelationsMap = (relations, coursesMap) => {
+    const map = new Map();
+    const ensure = (id) => {
+      if (!map.has(id)) map.set(id, { prerequisites: [], successors: [] });
+      return map.get(id);
+    };
+
+    (Array.isArray(relations) ? relations : []).forEach((entry) => {
+      const prerequisiteId = typeof entry?.prerequisiteId === 'string' ? entry.prerequisiteId.trim() : '';
+      const successorId = typeof entry?.successorId === 'string' ? entry.successorId.trim() : '';
+      if (!prerequisiteId || !successorId || prerequisiteId === successorId) return;
+      if (!coursesMap.has(prerequisiteId) || !coursesMap.has(successorId)) {
+        console.warn('存在しない科目IDを含む関係を除外しました:', entry);
+        return;
+      }
+
+      const prerequisiteRelations = ensure(prerequisiteId);
+      const successorRelations = ensure(successorId);
+      if (!prerequisiteRelations.successors.includes(successorId)) {
+        prerequisiteRelations.successors.push(successorId);
+      }
+      if (!successorRelations.prerequisites.includes(prerequisiteId)) {
+        successorRelations.prerequisites.push(prerequisiteId);
+      }
+    });
+
+    return map;
   };
 
   /**
@@ -621,20 +671,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         ? `${teacherParts[0]} 他${teacherParts.length - 1}名` 
         : data.teacher;
 
-      // 授業攻略情報（レビュー）セクションの生成
-      const review = state.reviewsMap.get(data.id);
-      let reviewsHtml = '';
-
-      if (review) {
-        reviewsHtml = `
-        <div class="review-section" style="background: #f9f9f9; border-left: 4px solid #007bff; padding: 12px; margin-top: 15px; font-size: 0.95em;">
-          <p style="margin: 0 0 10px 0; font-weight: bold; font-size: 1em;">🎮 授業攻略情報</p>
-          <p style="margin: 10px 0 4px 0;"><strong>一言：</strong></p>
-          <div style="white-space: pre-wrap; color: #333; line-height: 1.6; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #eee;">${escapeHTML(review.comment)}</div>
-        </div>
-        `;
-      }
-
       // 難易度データが登録されている科目に限り、詳細欄へ表示する
       const difficulty = state.difficultyMap.get(data.id);
       const difficultyHtml = difficulty ? `
@@ -645,6 +681,22 @@ document.addEventListener('DOMContentLoaded', async () => {
           <p class="difficulty-source-row">
             <strong>出典：</strong><a href="${escapeHTML(difficulty.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="difficulty-source">${escapeHTML(difficulty.sourceLabel)}</a>
           </p>
+        </section>
+      ` : '';
+
+      const relations = state.relationsMap.get(data.id);
+      const renderRelationLinks = (ids) => (ids || []).map((id) => {
+        const relatedCourse = state.coursesMap.get(id);
+        if (!relatedCourse) return '';
+        return `<li><a href="#course-${escapeHTML(relatedCourse.id)}" class="related-course-link" data-course-id="${escapeHTML(relatedCourse.id)}">${escapeHTML(relatedCourse.subject)}</a></li>`;
+      }).join('');
+      const prerequisiteLinks = renderRelationLinks(relations?.prerequisites);
+      const successorLinks = renderRelationLinks(relations?.successors);
+      const relationsHtml = (prerequisiteLinks || successorLinks) ? `
+        <section class="course-relations" aria-label="関連科目">
+          <h5 class="course-relations-title">関連科目</h5>
+          ${prerequisiteLinks ? `<div class="course-relation-group"><strong>前提科目</strong><ul>${prerequisiteLinks}</ul></div>` : ''}
+          ${successorLinks ? `<div class="course-relation-group"><strong>後継科目</strong><ul>${successorLinks}</ul></div>` : ''}
         </section>
       ` : '';
 
@@ -663,6 +715,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
       li.className = 'predefined-item';
+      li.id = `course-${data.id}`;
+      li.dataset.courseId = data.id;
       li.innerHTML = `
         <div class="class-item ${isHandled ? 'added' : ''}">
 
@@ -697,7 +751,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             ${data.url ? `<p><a href="${data.url}" target="_blank" rel="noopener noreferrer" class="syllabus-link" title="ZEN大学シラバスサイトの該当ページを開きます">ZEN大学シラバスで詳細を確認</a></p>` : ''}
             <p class="description"><strong>授業概要:</strong> ${data.description}</p>
             ${difficultyHtml}
-            ${reviewsHtml}
+            ${relationsHtml}
           </div>
         </div>
       `;
@@ -705,6 +759,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       const detailBtn = li.querySelector('.detail-btn');
       const detailDiv = li.querySelector('.class-detail');
       detailBtn.onclick = () => detailDiv.classList.toggle('open');
+
+      li.querySelectorAll('.related-course-link').forEach((link) => {
+        link.addEventListener('click', (event) => {
+          const relatedId = link.dataset.courseId;
+          const relatedItem = Array.from(predefinedList.querySelectorAll('.predefined-item'))
+            .find((item) => item.dataset.courseId === relatedId);
+          if (!relatedItem) return;
+
+          event.preventDefault();
+          relatedItem.querySelector('.class-detail')?.classList.add('open');
+          relatedItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      });
 
       li.querySelector('.add-predefined').onclick = () => {
         // 排他的な追加（登録予定へ）
@@ -901,20 +968,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 外部JSONから授業データを読み込む
   let loadErrorTimer = null; // 通信エラーアラートの遅延表示用タイマー
   try {
-    // 授業データ、口コミデータ、任意の難易度データを並行して読み込む
-    const [coursesRes, reviewsRes, difficultyMap] = await Promise.all([
+    // 授業データ、任意の難易度データ、前提・後継科目データを並行して読み込む
+    const [coursesRes, difficultyMap, relationsData] = await Promise.all([
       fetch('courses.json'),
-      fetch('reviews.json').catch(() => ({ ok: false })), // ファイルがない場合は空として扱う
-      loadDifficultyData()
+      loadDifficultyData(),
+      loadCourseRelationsData()
     ]);
 
     if (!coursesRes.ok) throw new Error(`授業データが見つかりません (${coursesRes.status})`);
     const data = await coursesRes.json();
 
-    if (reviewsRes.ok) {
-      const reviewsData = await reviewsRes.json();
-      state.reviewsMap = new Map((Array.isArray(reviewsData) ? reviewsData : []).map(r => [r.id, r]));
-    }
     state.difficultyMap = difficultyMap;
 
     data.sort((a, b) => {
@@ -941,6 +1004,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const normalizedData = data.map(normalizeClass).filter(Boolean);
     state.predefinedData = normalizedData;
     state.coursesMap = new Map(normalizedData.map(item => [item.id, item]));
+    state.relationsMap = buildRelationsMap(relationsData, state.coursesMap);
 
     // 3秒以内に読み込みが完了した場合は、もし予約されていたエラーアラートがあればキャンセルする
     if (loadErrorTimer) clearTimeout(loadErrorTimer);
