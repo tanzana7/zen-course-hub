@@ -1608,5 +1608,70 @@
     "prerequisiteId": "business_mgmt_finance",
     "successorId": "seminar_happiness_curve",
     "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_1",
+    "successorId": "linear_algebra_2",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_1",
+    "successorId": "quantum_computing_exercise",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "calculus_1",
+    "successorId": "calculus_2",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_2",
+    "successorId": "quantum_mechanics",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "calculus_2",
+    "successorId": "calculus_3",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "calculus_2",
+    "successorId": "electromagnetism",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "calculus_2",
+    "successorId": "quantum_mechanics",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "calculus_2",
+    "successorId": "statistical_mechanics",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "set_theory_logic",
+    "successorId": "metric_spaces",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "metric_spaces",
+    "successorId": "topological_spaces",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "mechanics",
+    "successorId": "electromagnetism",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "mechanics",
+    "successorId": "statistical_mechanics",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "topological_spaces",
+    "successorId": "topology",
+    "strength": "strongly_recommended"
   }
 ]
