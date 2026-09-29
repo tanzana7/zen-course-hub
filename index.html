@@ -61,11 +61,14 @@
       <option value="必修">必修</option>
       <option value="選択必修">選択必修</option>
     </select>
-    <select id="sort-filter" aria-label="並び順">
-      <option value="default">並び順</option>
-      <option value="difficulty-asc">難易度：低い順</option>
-      <option value="difficulty-desc">難易度：高い順</option>
-    </select>
+    <div class="sort-control">
+      <span class="sort-control-label" aria-hidden="true">↕ 難易度順</span>
+      <select id="sort-filter" aria-label="難易度順">
+        <option value="default">標準</option>
+        <option value="difficulty-asc">難易度：低い順</option>
+        <option value="difficulty-desc">難易度：高い順</option>
+      </select>
+    </div>
     <button id="analysis-btn" type="button">卒業要件分析</button>
   </div>
 </div>
