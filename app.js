@@ -426,9 +426,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const renderSimulator = () => {
     const summary = document.getElementById('simulator-summary');
-    const unplacedList = document.getElementById('sim-unplaced-list');
+    const totalSummary = document.getElementById('simulator-total-summary');
+    const scheduledList = document.getElementById('sim-scheduled-list');
     const yearGrid = document.getElementById('simulator-year-grid');
-    if (!summary || !unplacedList || !yearGrid) return;
+    if (!summary || !totalSummary || !scheduledList || !yearGrid) return;
 
     const years = [1, 2, 3, 4];
     const getCourse = (id) => state.coursesMap.get(id);
@@ -441,30 +442,40 @@ document.addEventListener('DOMContentLoaded', async () => {
       .map((placement) => getCourse(placement.courseId))
       .filter(Boolean)
       .reduce((sum, course) => sum + Number(course.credits || 0), 0);
+    totalSummary.innerHTML = `<span>総予定単位</span><strong>${totalCredits}単位</strong>`;
     summary.innerHTML = `
       <div><strong>4年間の総予定単位</strong><span>${totalCredits}単位</span></div>
       ${years.map((year) => `<div><strong>${year}年</strong><span>${yearPlacements.get(year).reduce((sum, placement) => sum + Number(getCourse(placement.courseId)?.credits || 0), 0)}単位</span></div>`).join('')}
     `;
 
-    const registeredUnplaced = Array.from(state.registeredClasses)
-      .filter((courseId) => !getSimulatorPlacement(courseId))
-      .map(getCourse)
-      .filter(Boolean);
-    unplacedList.innerHTML = registeredUnplaced.length
-      ? registeredUnplaced.map((course) => `
-          <li class="sim-unplaced-item" draggable="true" data-sim-drag-course="${escapeHTML(course.id)}">
-            <span><strong>${escapeHTML(course.subject)}</strong><small>${escapeHTML(course.quarter || 'Q未定')} / ${course.credits}単位</small></span>
-            <div class="sim-year-buttons" aria-label="${escapeHTML(course.subject)}の配置年">
-              ${years.map((year) => `<button type="button" data-sim-place-year="${year}" data-sim-course-id="${escapeHTML(course.id)}">${year}年</button>`).join('')}
-            </div>
-          </li>
-        `).join('')
-      : '<li class="simulator-empty">未配置の履修予定はありません。</li>';
+    // 通常画面の履修予定は、配置済み・未配置を問わず右側へ常時表示する。
+    // シミュレーターからの配置・削除では通常のlocalStorageを変更しない。
+    const scheduledCourses = state.predefinedData.filter((course) => state.registeredClasses.has(course.id));
+    scheduledList.innerHTML = scheduledCourses.length
+      ? scheduledCourses.map((course) => {
+          const placement = getSimulatorPlacement(course.id);
+          const placementText = placement
+            ? `✓ ${placement.year}年 / ${course.quarter || 'Q未定'}`
+            : '未配置';
+          return `
+            <li class="sim-scheduled-item" draggable="true" data-sim-drag-course="${escapeHTML(course.id)}">
+              <div class="sim-scheduled-info">
+                <strong>${escapeHTML(course.subject)}</strong>
+                <span>${escapeHTML(course.quarter || 'Q未定')} / ${course.credits}単位</span>
+                <small class="sim-placement-status ${placement ? 'is-placed' : 'is-unplaced'}">${escapeHTML(placementText)}</small>
+              </div>
+              <div class="sim-year-buttons" aria-label="${escapeHTML(course.subject)}の配置年">
+                ${years.map((year) => `<button type="button" data-sim-place-year="${year}" data-sim-course-id="${escapeHTML(course.id)}">${year}年</button>`).join('')}
+              </div>
+            </li>
+          `;
+        }).join('')
+      : '<li class="simulator-empty">通常画面の履修予定はありません。</li>';
 
-    unplacedList.querySelectorAll('[data-sim-place-year]').forEach((button) => {
+    scheduledList.querySelectorAll('[data-sim-place-year]').forEach((button) => {
       button.onclick = () => placeSimulatorCourse(button.dataset.simCourseId, Number(button.dataset.simPlaceYear));
     });
-    unplacedList.querySelectorAll('[data-sim-drag-course]').forEach((item) => {
+    scheduledList.querySelectorAll('[data-sim-drag-course]').forEach((item) => {
       item.addEventListener('dragstart', (event) => {
         event.dataTransfer?.setData('text/plain', item.dataset.simDragCourse);
       });
@@ -1172,22 +1183,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     const searchInput = document.getElementById('sim-course-search');
     if (!modal || !button) return;
 
+    const closeSimulator = () => {
+      modal.classList.remove('is-active');
+      modal.hidden = true;
+      document.body.classList.remove('simulator-view-active');
+      button.focus();
+    };
+
     button.onclick = () => {
-      modal.style.display = 'block';
+      modal.hidden = false;
+      modal.classList.add('is-active');
+      document.body.classList.add('simulator-view-active');
       renderSimulator();
     };
     if (closeButton) {
-      closeButton.onclick = () => { modal.style.display = 'none'; };
-      closeButton.onkeydown = (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          modal.style.display = 'none';
-        }
-      };
+      closeButton.onclick = closeSimulator;
     }
-    modal.onclick = (event) => {
-      if (event.target === modal) modal.style.display = 'none';
-    };
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && modal.classList.contains('is-active')) closeSimulator();
+    });
     if (searchInput) searchInput.addEventListener('input', renderSimulatorCourseResults);
   };
 

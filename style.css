@@ -338,11 +338,114 @@ body {
   background: #dbeafe;
 }
 
-.simulator-content {
-  width: min(1180px, 94vw);
-  max-width: 1180px;
-  max-height: 90vh;
+.simulator-view {
+  display: none;
+  position: fixed;
+  z-index: 5000;
+  inset: 0;
   overflow-y: auto;
+  background: #f8fafc;
+}
+
+.simulator-view.is-active {
+  display: block;
+}
+
+body.simulator-view-active {
+  overflow: hidden;
+}
+
+body.simulator-view-active > header,
+body.simulator-view-active > .filter-container,
+body.simulator-view-active > .main-container,
+body.simulator-view-active > .app-footer,
+body.simulator-view-active > #tutorial-btn,
+body.simulator-view-active > #back-to-top-btn,
+body.simulator-view-active > #analysis-modal {
+  display: none !important;
+}
+
+.simulator-shell {
+  width: min(1480px, 100%);
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 20px clamp(16px, 3vw, 42px) 42px;
+  box-sizing: border-box;
+}
+
+.simulator-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 18px;
+  padding: 14px 0;
+  border-bottom: 1px solid #dbe3ef;
+}
+
+.simulator-toolbar h1 {
+  margin: 0;
+  color: #1e3a8a;
+  font-size: clamp(1.25rem, 2.4vw, 1.8rem);
+}
+
+.simulator-back {
+  padding: 9px 13px;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  background: #fff;
+  color: #1d4ed8;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.simulator-back:hover {
+  background: #eff6ff;
+}
+
+.simulator-total-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  white-space: nowrap;
+}
+
+.simulator-total-summary strong {
+  font-size: 1.1em;
+}
+
+.simulator-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 350px);
+  align-items: start;
+  gap: 20px;
+}
+
+.simulator-plan-panel,
+.simulator-scheduled-panel {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+}
+
+.simulator-scheduled-panel {
+  position: sticky;
+  top: 18px;
+}
+
+.simulator-scheduled-panel h2,
+.simulator-plan-panel h2 {
+  margin: 0 0 10px;
+  color: #1e3a8a;
+  font-size: 1.15rem;
 }
 
 .simulator-note {
@@ -375,14 +478,13 @@ body {
 }
 
 .simulator-picker,
-.sim-unplaced-section,
-.simulator-plan {
+.simulator-plan,
+.simulator-scheduled-panel {
   margin-top: 18px;
 }
 
-.simulator-picker h3,
-.sim-unplaced-section h3,
-.simulator-plan h3 {
+.simulator-picker h2,
+.simulator-plan h2 {
   margin: 0 0 8px;
   font-size: 1.05rem;
 }
@@ -396,7 +498,8 @@ body {
 }
 
 .sim-course-results,
-.sim-unplaced-list {
+.sim-unplaced-list,
+.sim-scheduled-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -406,7 +509,8 @@ body {
 }
 
 .sim-course-picker-item,
-.sim-unplaced-item {
+.sim-unplaced-item,
+.sim-scheduled-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -418,7 +522,8 @@ body {
 }
 
 .sim-course-picker-info,
-.sim-unplaced-item > span {
+.sim-unplaced-item > span,
+.sim-scheduled-info {
   display: flex;
   min-width: 0;
   flex-direction: column;
@@ -426,9 +531,24 @@ body {
 }
 
 .sim-course-picker-info span,
-.sim-unplaced-item small {
+.sim-unplaced-item small,
+.sim-scheduled-info > span {
   color: #64748b;
   font-size: 0.8em;
+}
+
+.sim-placement-status {
+  margin-top: 3px;
+  font-size: 0.82em;
+  font-weight: 700;
+}
+
+.sim-placement-status.is-placed {
+  color: #166534;
+}
+
+.sim-placement-status.is-unplaced {
+  color: #64748b;
 }
 
 .sim-year-buttons {
@@ -1385,14 +1505,46 @@ body {
 }
 
 @media screen and (max-width: 768px) {
-  .simulator-content {
-    width: calc(100% - 24px);
-    max-height: 88vh;
-    padding: 20px;
+  .simulator-shell {
+    padding: 10px 12px 28px;
+  }
+
+  .simulator-toolbar {
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    padding: 10px 0;
+  }
+
+  .simulator-toolbar h1 {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    font-size: 1.35rem;
+  }
+
+  .simulator-back {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .simulator-total-summary {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    padding: 7px 9px;
   }
 
   .simulator-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .simulator-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .simulator-scheduled-panel {
+    position: static;
+    margin-top: 0;
   }
 
   .simulator-year-row {
@@ -1418,7 +1570,8 @@ body {
   }
 
   .sim-course-picker-item,
-  .sim-unplaced-item {
+  .sim-unplaced-item,
+  .sim-scheduled-item {
     align-items: flex-start;
     flex-direction: column;
   }

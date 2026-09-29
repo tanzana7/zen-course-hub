@@ -120,31 +120,38 @@
   </div>
 </div>
 
-<!-- 4年間履修シミュレーター（MVP） -->
-<div id="simulator-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="simulator-modal-title">
-  <div class="modal-content simulator-content">
-    <span id="close-simulator" class="close-btn" role="button" tabindex="0" aria-label="シミュレーターを閉じる">&times;</span>
-    <h2 id="simulator-modal-title">4年間履修シミュレーター</h2>
-    <p class="simulator-note">科目の開講Qをもとに、履修する年次を配置します。通常の履修予定とは別に保存されます。</p>
+<!-- 4年間履修シミュレーター（全画面ビュー） -->
+<div id="simulator-modal" class="simulator-view" hidden aria-labelledby="simulator-modal-title">
+  <div class="simulator-shell">
+    <header class="simulator-toolbar">
+      <button id="close-simulator" class="simulator-back" type="button">← 履修管理に戻る</button>
+      <h1 id="simulator-modal-title">4年間履修シミュレーター</h1>
+      <div id="simulator-total-summary" class="simulator-total-summary" aria-live="polite"></div>
+    </header>
 
-    <div class="simulator-summary" id="simulator-summary"></div>
+    <div class="simulator-layout">
+      <section class="simulator-plan-panel" aria-labelledby="simulator-plan-title">
+        <p class="simulator-note">科目の開講Qをもとに年次へ配置します。通常の履修予定とは別に保存されます。</p>
+        <div class="simulator-summary" id="simulator-summary"></div>
 
-    <section class="simulator-picker" aria-labelledby="simulator-picker-title">
-      <h3 id="simulator-picker-title">科目を追加</h3>
-      <input id="sim-course-search" type="search" placeholder="科目名や教員名で検索..." aria-label="シミュレーター科目検索">
-      <div id="sim-course-results" class="sim-course-results"></div>
-    </section>
+        <section class="simulator-picker" aria-labelledby="simulator-picker-title">
+          <h2 id="simulator-picker-title">シミュレーターに科目を追加</h2>
+          <input id="sim-course-search" type="search" placeholder="科目名や教員名で検索..." aria-label="シミュレーター科目検索">
+          <div id="sim-course-results" class="sim-course-results"></div>
+        </section>
 
-    <section class="sim-unplaced-section" aria-labelledby="sim-unplaced-title">
-      <h3 id="sim-unplaced-title">未配置の履修予定</h3>
-      <p class="simulator-note">通常画面の「履修予定」にある科目を、年次へ配置できます。</p>
-      <ul id="sim-unplaced-list" class="sim-unplaced-list"></ul>
-    </section>
+        <section class="simulator-plan" aria-labelledby="simulator-plan-title">
+          <h2 id="simulator-plan-title">4年間の計画</h2>
+          <div id="simulator-year-grid" class="simulator-year-grid"></div>
+        </section>
+      </section>
 
-    <section class="simulator-plan" aria-labelledby="simulator-plan-title">
-      <h3 id="simulator-plan-title">4年間の計画</h3>
-      <div id="simulator-year-grid" class="simulator-year-grid"></div>
-    </section>
+      <aside class="simulator-scheduled-panel" aria-labelledby="sim-scheduled-title">
+        <h2 id="sim-scheduled-title">履修予定の科目</h2>
+        <p class="simulator-note">通常画面の「履修予定」に登録した科目を、すべてここから年次へ配置できます。</p>
+        <ul id="sim-scheduled-list" class="sim-scheduled-list"></ul>
+      </aside>
+    </div>
   </div>
 </div>
 
