@@ -318,9 +318,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       return { label, quarters: [1, 2, 3, 4], start: 1, end: 4, contiguous: true };
     }
 
+    const segments = label.split(/[,、]/).map((segment) => segment.trim()).filter(Boolean);
     const quarters = [...new Set((label.match(/[1-4]/g) || []).map(Number))].sort((a, b) => a - b);
     if (!quarters.length) return { label, quarters: [], start: null, end: null, contiguous: false };
-    const contiguous = quarters.every((quarter, index) => index === 0 || quarter === quarters[index - 1] + 1);
+    // カンマ区切りの複数開講パターン（例: 1-2Q, 3-4Q）は
+    // 1つの連続期間とはみなさず、先頭Qへの安全なフォールバックにする。
+    const contiguous = segments.length === 1
+      && quarters.every((quarter, index) => index === 0 || quarter === quarters[index - 1] + 1);
     return {
       label,
       quarters,
