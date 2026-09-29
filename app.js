@@ -191,7 +191,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     (Array.isArray(relations) ? relations : []).forEach((entry) => {
       const prerequisiteId = typeof entry?.prerequisiteId === 'string' ? entry.prerequisiteId.trim() : '';
       const successorId = typeof entry?.successorId === 'string' ? entry.successorId.trim() : '';
+      const strength = entry?.strength === 'strongly_recommended' || entry?.strength === 'recommended'
+        ? entry.strength
+        : '';
       if (!prerequisiteId || !successorId || prerequisiteId === successorId) return;
+      if (!strength) {
+        console.warn('不正な強度の関係を除外しました:', entry);
+        return;
+      }
       if (!coursesMap.has(prerequisiteId) || !coursesMap.has(successorId)) {
         console.warn('存在しない科目IDを含む関係を除外しました:', entry);
         return;
@@ -199,11 +206,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const prerequisiteRelations = ensure(prerequisiteId);
       const successorRelations = ensure(successorId);
-      if (!prerequisiteRelations.successors.includes(successorId)) {
-        prerequisiteRelations.successors.push(successorId);
+      if (!prerequisiteRelations.successors.some((relation) => relation.id === successorId)) {
+        prerequisiteRelations.successors.push({ id: successorId, strength });
       }
-      if (!successorRelations.prerequisites.includes(prerequisiteId)) {
-        successorRelations.prerequisites.push(prerequisiteId);
+      if (!successorRelations.prerequisites.some((relation) => relation.id === prerequisiteId)) {
+        successorRelations.prerequisites.push({ id: prerequisiteId, strength });
       }
     });
 
@@ -700,10 +707,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       ` : '';
 
       const relations = state.relationsMap.get(data.id);
-      const renderRelationLinks = (ids) => (ids || []).map((id) => {
-        const relatedCourse = state.coursesMap.get(id);
+      const renderRelationLinks = (relationItems) => (relationItems || []).map((relation) => {
+        const relatedId = typeof relation === 'string' ? relation : relation.id;
+        const strength = typeof relation === 'string' ? 'recommended' : relation.strength;
+        const relatedCourse = state.coursesMap.get(relatedId);
         if (!relatedCourse) return '';
-        return `<li><a href="#course-${escapeHTML(relatedCourse.id)}" class="related-course-link" data-course-id="${escapeHTML(relatedCourse.id)}">${escapeHTML(relatedCourse.subject)}</a></li>`;
+        const strengthLabel = strength === 'strongly_recommended' ? '強く推奨' : '推奨';
+        const strengthClass = strength === 'strongly_recommended' ? 'strong' : 'recommended';
+        return `<li><a href="#course-${escapeHTML(relatedCourse.id)}" class="related-course-link" data-course-id="${escapeHTML(relatedCourse.id)}">${escapeHTML(relatedCourse.subject)}</a> <span class="relation-strength ${strengthClass}">${strengthLabel}</span></li>`;
       }).join('');
       const prerequisiteLinks = renderRelationLinks(relations?.prerequisites);
       const successorLinks = renderRelationLinks(relations?.successors);

@@ -1,6 +1,1612 @@
 [
   {
+    "prerequisiteId": "modern_society_math",
+    "successorId": "it_literacy",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "modern_society_math",
+    "successorId": "ai_practical_usage",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "modern_society_math",
+    "successorId": "data_science_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "modern_society_math",
+    "successorId": "mathematical_thinking",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "modern_society_math",
+    "successorId": "math_history",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "modern_society_math",
+    "successorId": "modern_society_science",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "modern_society_math",
+    "successorId": "methods_of_math",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "it_literacy",
+    "successorId": "info_security_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "it_literacy",
+    "successorId": "info_ethics_law",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "it_literacy",
+    "successorId": "data_science_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "it_literacy",
+    "successorId": "internet_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "it_literacy",
+    "successorId": "computer_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "digital_tools_usage",
+    "successorId": "info_security_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "digital_tools_usage",
+    "successorId": "info_ethics_law",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "digital_tools_usage",
+    "successorId": "data_science_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "digital_tools_usage",
+    "successorId": "multilingual_it_comm",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "digital_tools_usage",
+    "successorId": "video_creator_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "digital_tools_usage",
+    "successorId": "web_design_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "ai_practical_usage",
+    "successorId": "info_security_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "ai_practical_usage",
+    "successorId": "info_ethics_law",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "ai_practical_usage",
+    "successorId": "data_science_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "ai_practical_usage",
+    "successorId": "multilingual_it_comm",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "economics_intro",
+    "successorId": "business_mgmt",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "economics_intro",
+    "successorId": "regional_entrepreneurship",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "economics_intro",
+    "successorId": "regional_innovation",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "economics_intro",
+    "successorId": "macroeconomics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "economics_intro",
+    "successorId": "microeconomics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "data_science_intro",
+    "successorId": "intro_to_statistics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "data_science_intro",
+    "successorId": "machine_learning_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "mathematical_thinking",
+    "successorId": "linear_algebra_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "mathematical_thinking",
+    "successorId": "calculus_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "mathematical_thinking",
+    "successorId": "topological_spaces",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "math_history",
+    "successorId": "reverse_science_history",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "modern_society_science",
+    "successorId": "reverse_science_history",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "modern_society_science",
+    "successorId": "everyday_physics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "psychology",
+    "successorId": "cognitive_neuroscience",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "sociology_1",
+    "successorId": "sociology_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "law_1",
+    "successorId": "law_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "business_mgmt",
+    "successorId": "business_mgmt_accounting",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "business_mgmt",
+    "successorId": "business_mgmt_finance",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "regional_innovation",
+    "successorId": "smart_rural_living",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "regional_innovation",
+    "successorId": "agriculture_digital_tech",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "visual_programming",
+    "successorId": "python_programming",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "web_app_dev_1",
+    "successorId": "web_app_dev_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "web_app_dev_2",
+    "successorId": "web_app_dev_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_1",
+    "successorId": "intro_to_statistics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "intro_to_statistics",
+    "successorId": "machine_learning_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "intro_to_statistics",
+    "successorId": "r_programming",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "intro_to_statistics",
+    "successorId": "mathematical_statistics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "data_science_intro",
+    "successorId": "deep_learning_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "python_programming",
+    "successorId": "deep_learning_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_1",
+    "successorId": "deep_learning_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_1",
+    "successorId": "deep_learning_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "deep_learning_1",
+    "successorId": "deep_learning_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "methods_of_math",
+    "successorId": "linear_algebra_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "methods_of_math",
+    "successorId": "calculus_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "reverse_science_history",
+    "successorId": "math_history",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "reverse_science_history",
+    "successorId": "everyday_physics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "elementary_algebra",
+    "successorId": "group_theory",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_1",
+    "successorId": "math_science_advanced_exercise_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_1",
+    "successorId": "math_science_advanced_exercise_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_1",
+    "successorId": "mechanics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_2",
+    "successorId": "calculus_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_2",
+    "successorId": "math_science_advanced_exercise_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_2",
+    "successorId": "metric_spaces",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_2",
+    "successorId": "math_science_advanced_exercise_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "graph_theory",
+    "successorId": "combinatorics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "machine_translation_english",
+    "successorId": "machine_translation_law",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "machine_translation_english",
+    "successorId": "machine_translation_it",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "machine_translation_english",
+    "successorId": "machine_translation_cross_cultural",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "machine_translation_english",
+    "successorId": "machine_translation_natural_science",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "machine_translation_english",
+    "successorId": "machine_translation_japan_studies",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "narrative_theory",
+    "successorId": "seminar_narrative_structure",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "intro_to_philosophy",
+    "successorId": "philosophy_of_science",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "manga_storyboard_visuals",
+    "successorId": "web_comic_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "modern_contemporary_art_intro",
+    "successorId": "art_cultural_capital_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "decision_making_dev",
+    "successorId": "seminar_decision_making",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "decision_making_dev",
+    "successorId": "negotiation_consensus_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "decision_making_dev",
+    "successorId": "negotiation_consensus_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "marxian_economics",
+    "successorId": "modern_capitalism_theory",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "business_mgmt_accounting",
+    "successorId": "business_mgmt_finance",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "it_industry_history",
+    "successorId": "future_creation_via_media",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "manga_industry_history",
+    "successorId": "manga_planning_production",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "anime_industry_history",
+    "successorId": "anime_quality_mgmt",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "anime_industry_history",
+    "successorId": "seminar_anime_analysis",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "anime_industry_history",
+    "successorId": "anime_industry_jobs",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "japanese_game_industry_history",
+    "successorId": "game_production_theory_basic",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "japanese_game_industry_history",
+    "successorId": "game_production_theory_applied",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "career_design_1",
+    "successorId": "career_design_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "career_design_1",
+    "successorId": "career_design_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "english_comm_1",
+    "successorId": "english_comm_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "english_comm_1",
+    "successorId": "english_comm_4",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "english_comm_1",
+    "successorId": "english_comm_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "english_comm_2",
+    "successorId": "english_comm_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "english_comm_2",
+    "successorId": "english_comm_4",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "interpersonal_comm_theory",
+    "successorId": "creative_workplace_theory",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_2",
+    "successorId": "math_science_advanced_exercise_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_2",
+    "successorId": "math_science_advanced_exercise_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "iut_1",
+    "successorId": "iut_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "iut_1",
+    "successorId": "iut_4",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "iut_1",
+    "successorId": "iut_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "philosophy_beyond_politics_1",
+    "successorId": "philosophy_beyond_politics_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "project_management_intro",
+    "successorId": "project_management_applied",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "web_app_dev_3",
+    "successorId": "web_app_dev_4",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "web_app_dev_4",
+    "successorId": "linux_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "web_app_dev_4",
+    "successorId": "object_oriented_programming",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "object_oriented_programming",
+    "successorId": "functional_programming",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "it_literacy",
+    "successorId": "computer_science_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "python_programming",
+    "successorId": "computer_science_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "computer_science_intro",
+    "successorId": "automata_formal_languages",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "it_literacy",
+    "successorId": "info_processing_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "python_programming",
+    "successorId": "machine_learning_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "machine_learning_intro",
+    "successorId": "ai_algorithms_practice",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "r_programming",
+    "successorId": "probability_monte_carlo_experiments",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "methods_of_math",
+    "successorId": "probability_monte_carlo_experiments",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_1",
+    "successorId": "probability_monte_carlo_experiments",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "deep_learning_2",
+    "successorId": "deep_learning_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "data_science_intro",
+    "successorId": "big_data_analysis_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "big_data_analysis_intro",
+    "successorId": "big_data_analysis_practice",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "data_science_intro",
+    "successorId": "r_programming",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "mathematical_thinking",
+    "successorId": "math_structure_discovery",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "set_theory_logic",
+    "successorId": "math_structure_discovery",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "math_structure_discovery",
+    "successorId": "math_science_advanced_exercise_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "math_structure_discovery",
+    "successorId": "category_theory",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_2",
+    "successorId": "set_theory_logic",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "set_theory_logic",
+    "successorId": "symbolic_logic",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "set_theory_logic",
+    "successorId": "math_science_advanced_exercise_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "set_theory_logic",
+    "successorId": "topological_spaces",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_3",
+    "successorId": "complex_analysis",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_3",
+    "successorId": "electromagnetism",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "metric_spaces",
+    "successorId": "math_science_advanced_exercise_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "metric_spaces",
+    "successorId": "integration_measure",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "everyday_physics",
+    "successorId": "mechanics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "everyday_physics",
+    "successorId": "electromagnetism",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "multilingual_it_comm",
+    "successorId": "machine_translation_law",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "multilingual_it_comm",
+    "successorId": "machine_translation_it",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "multilingual_it_comm",
+    "successorId": "machine_translation_cross_cultural",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "machine_translation_cross_cultural",
+    "successorId": "cross_cultural_understanding",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "multilingual_it_comm",
+    "successorId": "machine_translation_natural_science",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "multilingual_it_comm",
+    "successorId": "machine_translation_japan_studies",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "machine_translation_japan_studies",
+    "successorId": "seminar_literary_criticism",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "philosophy_of_science",
+    "successorId": "philosophy_of_statistics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "philosophy_of_science",
+    "successorId": "science_philosophy_ai_age",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "art_cultural_capital_1",
+    "successorId": "art_cultural_capital_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "law_1",
+    "successorId": "internet_copyright",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "sociology_1",
+    "successorId": "gender_studies",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "sociology_1",
+    "successorId": "science_tech_society",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "postwar_japan_history_1",
+    "successorId": "postwar_japan_history_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "sociology_2",
+    "successorId": "sociology_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "macroeconomics",
+    "successorId": "macro_econ_analysis_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "macroeconomics",
+    "successorId": "seminar_econ_development",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "business_mgmt_finance",
+    "successorId": "financial_analysis_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "business_mgmt_finance",
+    "successorId": "enterprise_value_ma",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "business_mgmt",
+    "successorId": "startup",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "startup",
+    "successorId": "startup_practice",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "negotiation_consensus_intro",
+    "successorId": "negotiation_consensus_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "game_production_theory_basic",
+    "successorId": "game_production_theory_applied",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "career_design_2",
+    "successorId": "career_design_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "visual_programming",
+    "successorId": "generative_art_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "web_app_dev_1",
+    "successorId": "generative_art_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "web_app_dev_1",
+    "successorId": "java_programming_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "web_app_dev_3",
+    "successorId": "web_security_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "python_programming",
+    "successorId": "ai_algorithms_practice",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "ai_algorithms_practice",
+    "successorId": "marketing_data_science",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "ai_algorithms_practice",
+    "successorId": "data_science_practice_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "methods_of_math",
+    "successorId": "statistics_perspectives",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_1",
+    "successorId": "statistics_perspectives",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "statistics_perspectives",
+    "successorId": "data_science_practice_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "statistics_perspectives",
+    "successorId": "statistical_math_methods",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "data_science_intro",
+    "successorId": "marketing_data_science",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "intro_to_statistics",
+    "successorId": "marketing_data_science",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "marketing_data_science",
+    "successorId": "data_science_practice_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "marketing_data_science",
+    "successorId": "data_science_practice_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "iut_2",
+    "successorId": "iut_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "iut_2",
+    "successorId": "iut_4",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "iut_3",
+    "successorId": "iut_4",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "psychology",
+    "successorId": "psychology_experiments_exercise",
+    "strength": "recommended"
+  },
+  {
     "prerequisiteId": "psychology_experiments_exercise",
-    "successorId": "seminar_mind_science"
+    "successorId": "seminar_mind_science",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "psychology",
+    "successorId": "mental_health_dev",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "mental_health_dev",
+    "successorId": "seminar_mind_science",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "sociology_3",
+    "successorId": "seminar_sociology",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "sociology_2",
+    "successorId": "modern_social_theory",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "anthropocene_anthropology",
+    "successorId": "future_society_design",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "co_creation_earth",
+    "successorId": "future_society_design",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "anime_quality_mgmt",
+    "successorId": "seminar_anime_analysis",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "anime_quality_mgmt",
+    "successorId": "anime_industry_jobs",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "content_industry_theory",
+    "successorId": "cultural_resources_metaverse",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "cultural_resources_metaverse",
+    "successorId": "seminar_cultural_archives_metaverse",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "content_industry_theory",
+    "successorId": "cultural_resources_digital_archive",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "cultural_resources_digital_archive",
+    "successorId": "seminar_cultural_archives_metaverse",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "english_comm_3",
+    "successorId": "english_comm_4",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "web_app_dev_4",
+    "successorId": "cloud_computing_tech",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "functional_programming",
+    "successorId": "concurrent_programming",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "info_security_intro",
+    "successorId": "cryptography_apps",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "computer_science_intro",
+    "successorId": "image_processing_theory",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "computer_intro",
+    "successorId": "logic_circuits_intro",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "data_science_intro",
+    "successorId": "data_science_practice_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "intro_to_statistics",
+    "successorId": "data_science_practice_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "r_programming",
+    "successorId": "data_science_practice_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "data_science_practice_1",
+    "successorId": "nlp_methods",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "python_programming",
+    "successorId": "data_science_practice_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "machine_learning_intro",
+    "successorId": "data_science_practice_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_1",
+    "successorId": "data_science_practice_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_1",
+    "successorId": "data_science_practice_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "data_science_intro",
+    "successorId": "data_science_practice_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "intro_to_statistics",
+    "successorId": "data_science_practice_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "python_programming",
+    "successorId": "data_science_practice_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "machine_learning_intro",
+    "successorId": "data_science_practice_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_1",
+    "successorId": "data_science_practice_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_1",
+    "successorId": "data_science_practice_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "deep_learning_1",
+    "successorId": "deep_learning_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "data_science_intro",
+    "successorId": "big_data_analysis_practice",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_1",
+    "successorId": "group_theory",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_2",
+    "successorId": "group_theory",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "group_theory",
+    "successorId": "ring_theory",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "topological_spaces",
+    "successorId": "manifolds",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_2",
+    "successorId": "manifolds",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_3",
+    "successorId": "manifolds",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "manifolds",
+    "successorId": "seminar_math_science_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "manifolds",
+    "successorId": "seminar_math_science_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "manifolds",
+    "successorId": "seminar_physics_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "manifolds",
+    "successorId": "seminar_math_science_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "set_theory_logic",
+    "successorId": "category_theory",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "category_theory",
+    "successorId": "seminar_math_science_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "category_theory",
+    "successorId": "seminar_math_science_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "category_theory",
+    "successorId": "seminar_physics_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "category_theory",
+    "successorId": "seminar_math_science_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_2",
+    "successorId": "mathematical_statistics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_2",
+    "successorId": "mathematical_statistics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "mathematical_statistics",
+    "successorId": "probability_monte_carlo_experiments",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "mathematical_statistics",
+    "successorId": "seminar_math_science_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "mathematical_statistics",
+    "successorId": "seminar_math_science_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "mathematical_statistics",
+    "successorId": "seminar_physics_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "mathematical_statistics",
+    "successorId": "seminar_math_science_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "mathematical_statistics",
+    "successorId": "seminar_quantum_tech",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "electromagnetism",
+    "successorId": "quantum_mechanics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "electromagnetism",
+    "successorId": "statistical_mechanics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "quantum_mechanics",
+    "successorId": "quantum_computing_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "quantum_mechanics",
+    "successorId": "seminar_quantum_tech",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "statistical_mechanics",
+    "successorId": "seminar_quantum_tech",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "intro_to_statistics",
+    "successorId": "philosophy_of_statistics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "philosophy_of_statistics",
+    "successorId": "statistics_perspectives",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "philosophy_of_statistics",
+    "successorId": "science_philosophy_ai_age",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "law_2",
+    "successorId": "seminar_diverse_families",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "web_app_dev_4",
+    "successorId": "game_programming_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linux_intro",
+    "successorId": "team_programming_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "web_app_dev_4",
+    "successorId": "team_programming_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linux_intro",
+    "successorId": "web_app_dev_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "database_ops_practice",
+    "successorId": "web_app_dev_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "web_app_dev_4",
+    "successorId": "web_app_dev_exercise",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "digital_illustration_basic",
+    "successorId": "digital_illustration_advanced",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "probability_monte_carlo_experiments",
+    "successorId": "statistical_math_methods",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_1",
+    "successorId": "statistical_math_methods",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "methods_of_math",
+    "successorId": "statistical_math_methods",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_1",
+    "successorId": "statistical_math_methods",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_2",
+    "successorId": "statistical_math_methods",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "statistical_math_methods",
+    "successorId": "mathematical_statistics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "intro_to_statistics",
+    "successorId": "nlp_methods",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "deep_learning_1",
+    "successorId": "seminar_ai_ds_value_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "deep_learning_2",
+    "successorId": "seminar_ai_ds_value_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "deep_learning_3",
+    "successorId": "seminar_ai_ds_value_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_2",
+    "successorId": "combinatorics",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "set_theory_logic",
+    "successorId": "combinatorics",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "combinatorics",
+    "successorId": "seminar_math_science_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "combinatorics",
+    "successorId": "seminar_math_science_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "combinatorics",
+    "successorId": "seminar_physics_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "combinatorics",
+    "successorId": "seminar_math_science_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_2",
+    "successorId": "topology",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "calculus_2",
+    "successorId": "topology",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "set_theory_logic",
+    "successorId": "topology",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "group_theory",
+    "successorId": "topology",
+    "strength": "strongly_recommended"
+  },
+  {
+    "prerequisiteId": "topology",
+    "successorId": "seminar_math_science_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "topology",
+    "successorId": "seminar_math_science_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "topology",
+    "successorId": "seminar_physics_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "topology",
+    "successorId": "seminar_math_science_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "linear_algebra_2",
+    "successorId": "integration_measure",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "calculus_3",
+    "successorId": "integration_measure",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "topological_spaces",
+    "successorId": "integration_measure",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "integration_measure",
+    "successorId": "seminar_math_science_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "integration_measure",
+    "successorId": "seminar_math_science_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "integration_measure",
+    "successorId": "seminar_physics_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "integration_measure",
+    "successorId": "seminar_math_science_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "quantum_computing_exercise",
+    "successorId": "seminar_quantum_tech",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "japanese_literature_1",
+    "successorId": "japanese_literature_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "cultural_anthropology_1",
+    "successorId": "cultural_anthropology_3",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "science_philosophy_ai_age",
+    "successorId": "seminar_math_philosophy",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "business_mgmt",
+    "successorId": "leadership_reform",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "info_society_security",
+    "successorId": "democracy_theory",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "democracy_theory",
+    "successorId": "postwar_japan_history_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "democracy_theory",
+    "successorId": "postwar_japan_history_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "democracy_theory",
+    "successorId": "seminar_info_society_politics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "democracy_theory",
+    "successorId": "international_relations",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "law_1",
+    "successorId": "seminar_diverse_families",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "info_society_security",
+    "successorId": "seminar_info_society_politics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "international_relations",
+    "successorId": "seminar_info_society_politics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "macro_econ_analysis_exercise",
+    "successorId": "seminar_econ_development",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "economics_intro",
+    "successorId": "econometric_analysis_problem_solving",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "r_programming",
+    "successorId": "econometric_analysis_problem_solving",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "economics_intro",
+    "successorId": "statistics_from_cases",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "statistics_from_cases",
+    "successorId": "seminar_econometrics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "financial_analysis_exercise",
+    "successorId": "seminar_happiness_curve",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "enterprise_value_ma",
+    "successorId": "seminar_happiness_curve",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "negotiation_consensus_exercise",
+    "successorId": "seminar_decision_making",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "anime_industry_jobs",
+    "successorId": "seminar_anime_analysis",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "math_structure_discovery",
+    "successorId": "probability_theory_quantum",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "integration_measure",
+    "successorId": "probability_theory_quantum",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "japanese_literature_1",
+    "successorId": "seminar_literary_criticism",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "japanese_literature_3",
+    "successorId": "seminar_literary_criticism",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "cultural_anthropology_3",
+    "successorId": "seminar_fan_culture",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "set_theory_logic",
+    "successorId": "seminar_math_philosophy",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "intro_to_philosophy",
+    "successorId": "seminar_math_philosophy",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "philosophy_of_science",
+    "successorId": "seminar_math_philosophy",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "info_society_security",
+    "successorId": "international_relations",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "international_relations",
+    "successorId": "postwar_japan_history_1",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "international_relations",
+    "successorId": "postwar_japan_history_2",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "international_relations",
+    "successorId": "democracy_theory",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "sociology_2",
+    "successorId": "seminar_sociology",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "negotiation_consensus_intro",
+    "successorId": "seminar_decision_making",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "business_mgmt",
+    "successorId": "seminar_business_model_analysis",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "economics_intro",
+    "successorId": "seminar_econometrics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "microeconomics",
+    "successorId": "seminar_econometrics",
+    "strength": "recommended"
+  },
+  {
+    "prerequisiteId": "business_mgmt_finance",
+    "successorId": "seminar_happiness_curve",
+    "strength": "recommended"
   }
 ]
