@@ -629,6 +629,75 @@ body {
   background-color: #0056b3;
 }
 
+/*
+ * 中間幅では固定幅の2カラムと操作項目の横並びが同時に収まらないため、
+ * 検索を1段目、残りの操作項目を2段目へ分けて表示する。
+ * 1440px以上のデスクトップ表示と768px以下のモバイル表示は既存仕様を維持する。
+ */
+@media screen and (min-width: 769px) and (max-width: 1439px) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  .input-area {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  #search-bar {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .input-area select,
+  #analysis-btn {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    font-size: 0.9rem;
+  }
+
+  #analysis-btn {
+    padding-left: 8px;
+    padding-right: 8px;
+    white-space: nowrap;
+  }
+
+  .sort-control {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .sort-control select {
+    width: 100%;
+  }
+
+  .main-container {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+    gap: 24px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .left-column,
+  .right-column {
+    width: auto;
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
 @media (max-width: 768px) {
   *,
   *::before,
