@@ -323,6 +323,256 @@ body {
   box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 }
 
+.simulator-launch-btn {
+  margin: 0 0 14px;
+  padding: 9px 14px;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.simulator-launch-btn:hover {
+  background: #dbeafe;
+}
+
+.simulator-content {
+  width: min(1180px, 94vw);
+  max-width: 1180px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.simulator-note {
+  margin: 6px 0 14px;
+  color: #64748b;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+.simulator-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.simulator-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px;
+  border: 1px solid #dbeafe;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+.simulator-summary span {
+  font-weight: 700;
+}
+
+.simulator-picker,
+.sim-unplaced-section,
+.simulator-plan {
+  margin-top: 18px;
+}
+
+.simulator-picker h3,
+.sim-unplaced-section h3,
+.simulator-plan h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+#sim-course-search {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 2px solid #93c5fd;
+  border-radius: 6px;
+}
+
+.sim-course-results,
+.sim-unplaced-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sim-course-picker-item,
+.sim-unplaced-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.sim-course-picker-info,
+.sim-unplaced-item > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sim-course-picker-info span,
+.sim-unplaced-item small {
+  color: #64748b;
+  font-size: 0.8em;
+}
+
+.sim-year-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.sim-year-buttons button,
+.sim-card-actions button {
+  padding: 5px 8px;
+  border: 1px solid #2563eb;
+  border-radius: 4px;
+  background: #fff;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-size: 0.8em;
+}
+
+.sim-year-buttons button:hover,
+.sim-card-actions button:hover {
+  background: #dbeafe;
+}
+
+.simulator-empty {
+  margin: 8px 0;
+  color: #64748b;
+  font-size: 0.9em;
+}
+
+.simulator-year-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.simulator-year-row {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  gap: 8px;
+  align-items: stretch;
+}
+
+.simulator-year-label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 6px;
+  background: #1e3a8a;
+  color: #fff;
+  text-align: center;
+}
+
+.simulator-year-label span {
+  font-size: 0.8em;
+}
+
+.simulator-quarter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: minmax(78px, auto);
+  gap: 6px;
+  min-width: 0;
+}
+
+.simulator-quarter-cell {
+  grid-row: 1;
+  min-width: 0;
+  min-height: 78px;
+  padding: 7px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 5px;
+  background: #f8fafc;
+  color: #94a3b8;
+  font-size: 0.78em;
+}
+
+.sim-course-card {
+  z-index: 2;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border: 1px solid #60a5fa;
+  border-left: 4px solid #2563eb;
+  border-radius: 5px;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.12);
+  overflow-wrap: anywhere;
+  cursor: grab;
+}
+
+.sim-course-card:active {
+  cursor: grabbing;
+}
+
+.sim-course-quarter {
+  color: #475569;
+  font-size: 0.78em;
+}
+
+.sim-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: auto;
+}
+
+.sim-card-actions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #475569;
+  font-size: 0.78em;
+}
+
+.sim-card-actions select {
+  min-width: 48px;
+  padding: 3px;
+  border: 1px solid #cbd5e1;
+  border-radius: 3px;
+  background: #fff;
+}
+
+.simulator-warning {
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: #475569;
+  background: #f1f5f9;
+  font-size: 0.76em;
+  line-height: 1.35;
+}
+
+.simulator-warning.strong {
+  color: #92400e;
+  background: #fef3c7;
+  font-weight: 700;
+}
+
 .close-btn {
   position: absolute;
   top: 10px;
@@ -1131,5 +1381,53 @@ body {
   #back-to-top-btn:focus-visible {
     outline: 3px solid #93c5fd;
     outline-offset: 2px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .simulator-content {
+    width: calc(100% - 24px);
+    max-height: 88vh;
+    padding: 20px;
+  }
+
+  .simulator-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .simulator-year-row {
+    display: block;
+  }
+
+  .simulator-year-label {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    text-align: left;
+  }
+
+  .simulator-quarter-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: minmax(54px, auto);
+  }
+
+  .simulator-quarter-cell,
+  .sim-course-card {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+  }
+
+  .sim-course-picker-item,
+  .sim-unplaced-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sim-year-buttons {
+    width: 100%;
+  }
+
+  .sim-year-buttons button {
+    flex: 1 1 22%;
   }
 }

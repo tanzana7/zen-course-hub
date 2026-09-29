@@ -25,6 +25,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     REGISTERED: 'myClasses',
     COMPLETED: 'completedClasses'
   };
+  const SIMULATOR_STORAGE_KEY = 'fourYearSimulatorPlanV1';
+
+  const loadSimulatorPlan = () => {
+    try {
+      const raw = localStorage.getItem(SIMULATOR_STORAGE_KEY);
+      if (!raw) return { version: 1, placements: [] };
+      const parsed = JSON.parse(raw);
+      const placements = Array.isArray(parsed?.placements)
+        ? parsed.placements
+            .map((item) => ({ courseId: String(item?.courseId || ''), year: Number(item?.year) }))
+            .filter((item) => item.courseId && Number.isInteger(item.year) && item.year >= 1 && item.year <= 4)
+        : [];
+      return { version: 1, placements };
+    } catch (error) {
+      console.warn('シミュレーター計画を読み込めませんでした:', error);
+      return { version: 1, placements: [] };
+    }
+  };
 
   /**
    * クラスデータの正規化（不正な型や欠損を修整）
@@ -92,7 +110,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     filterSearch: '',
     difficultySort: 'default',
     difficultyMap: new Map(), // 科目IDをキーにした難易度目安データ
-    relationsMap: new Map() // 科目IDをキーにした前提・後継科目データ
+    relationsMap: new Map(), // 科目IDをキーにした前提・後継科目データ
+    simulatorPlan: loadSimulatorPlan()
   };
 
   /**
@@ -273,6 +292,262 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     localStorage.setItem(STORAGE_KEYS.REGISTERED, JSON.stringify(reg));
     localStorage.setItem(STORAGE_KEYS.COMPLETED, JSON.stringify(comp));
+  };
+
+  const saveSimulatorPlan = () => {
+    try {
+      localStorage.setItem(SIMULATOR_STORAGE_KEY, JSON.stringify(state.simulatorPlan));
+    } catch (error) {
+      console.warn('シミュレーター計画を保存できませんでした:', error);
+    }
+  };
+
+  const cleanupSimulatorPlan = () => {
+    const seen = new Set();
+    state.simulatorPlan.placements = state.simulatorPlan.placements.filter((placement) => {
+      if (seen.has(placement.courseId) || !state.coursesMap.has(placement.courseId)) return false;
+      seen.add(placement.courseId);
+      return true;
+    });
+    saveSimulatorPlan();
+  };
+
+  const getQuarterInfo = (course) => {
+    const label = String(course?.quarter || 'Q未定');
+    if (label.includes('通期')) {
+      return { label, quarters: [1, 2, 3, 4], start: 1, end: 4, contiguous: true };
+    }
+
+    const quarters = [...new Set((label.match(/[1-4]/g) || []).map(Number))].sort((a, b) => a - b);
+    if (!quarters.length) return { label, quarters: [], start: null, end: null, contiguous: false };
+    const contiguous = quarters.every((quarter, index) => index === 0 || quarter === quarters[index - 1] + 1);
+    return {
+      label,
+      quarters,
+      start: quarters[0],
+      end: quarters[quarters.length - 1],
+      contiguous
+    };
+  };
+
+  const getPlacementPeriod = (course, year) => {
+    const quarterInfo = getQuarterInfo(course);
+    // 離れたQ（例: 1Q, 3Q）は単一の期間へ安全に変換できないため、
+    // 配置順の警告では曖昧な判定を行わず、カード上のQ表記だけを残す。
+    if (!quarterInfo.contiguous || !quarterInfo.start || !quarterInfo.end) return null;
+    return {
+      start: (year - 1) * 4 + quarterInfo.start,
+      end: (year - 1) * 4 + quarterInfo.end
+    };
+  };
+
+  const getSimulatorPlacement = (courseId) => state.simulatorPlan.placements.find((placement) => placement.courseId === courseId);
+
+  const getSimulatorWarnings = (course, year) => {
+    const prerequisites = state.relationsMap.get(course.id)?.prerequisites || [];
+    const targetPeriod = getPlacementPeriod(course, year);
+
+    return prerequisites.map((relation) => {
+      const prerequisite = state.coursesMap.get(relation.id);
+      if (!prerequisite) return null;
+      const placement = getSimulatorPlacement(prerequisite.id);
+      const strengthLabel = relation.strength === 'strongly_recommended' ? '強く推奨' : '推奨';
+      const strengthClass = relation.strength === 'strongly_recommended' ? 'strong' : 'recommended';
+
+      if (!placement) {
+        return {
+          message: `前提科目「${prerequisite.subject}」が未配置です`,
+          strengthLabel,
+          strengthClass
+        };
+      }
+
+      const prerequisitePeriod = getPlacementPeriod(prerequisite, placement.year);
+      if (!targetPeriod || !prerequisitePeriod || prerequisitePeriod.end < targetPeriod.start) return null;
+      return {
+        message: `前提科目「${prerequisite.subject}」を先に配置してください`,
+        strengthLabel,
+        strengthClass
+      };
+    }).filter(Boolean);
+  };
+
+  const renderSimulatorCourseResults = () => {
+    const results = document.getElementById('sim-course-results');
+    const searchInput = document.getElementById('sim-course-search');
+    if (!results || !searchInput) return;
+
+    const query = searchInput.value.trim().toLowerCase();
+    if (!query) {
+      results.innerHTML = '<p class="simulator-empty">科目名や教員名を入力してください。</p>';
+      return;
+    }
+
+    const matches = state.predefinedData.filter((course) => {
+      const subject = String(course.subject || '').toLowerCase();
+      const teacher = String(course.teacher || '').toLowerCase();
+      return subject.includes(query) || teacher.includes(query);
+    }).slice(0, 20);
+
+    if (!matches.length) {
+      results.innerHTML = '<p class="simulator-empty">該当する科目がありません。</p>';
+      return;
+    }
+
+    results.innerHTML = matches.map((course) => {
+      const placement = getSimulatorPlacement(course.id);
+      const placementText = placement ? `配置済み：${placement.year}年` : '未配置';
+      return `
+        <div class="sim-course-picker-item" draggable="true" data-sim-drag-course="${escapeHTML(course.id)}">
+          <div class="sim-course-picker-info">
+            <strong>${escapeHTML(course.subject)}</strong>
+            <span>${escapeHTML(course.quarter || 'Q未定')} / ${placementText}</span>
+          </div>
+          <div class="sim-year-buttons" aria-label="${escapeHTML(course.subject)}の配置年">
+            ${[1, 2, 3, 4].map((year) => `<button type="button" data-sim-place-year="${year}" data-sim-course-id="${escapeHTML(course.id)}">${year}年</button>`).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    results.querySelectorAll('[data-sim-place-year]').forEach((button) => {
+      button.onclick = () => placeSimulatorCourse(button.dataset.simCourseId, Number(button.dataset.simPlaceYear));
+    });
+    results.querySelectorAll('[data-sim-drag-course]').forEach((item) => {
+      item.addEventListener('dragstart', (event) => {
+        event.dataTransfer?.setData('text/plain', item.dataset.simDragCourse);
+      });
+    });
+  };
+
+  const renderSimulator = () => {
+    const summary = document.getElementById('simulator-summary');
+    const unplacedList = document.getElementById('sim-unplaced-list');
+    const yearGrid = document.getElementById('simulator-year-grid');
+    if (!summary || !unplacedList || !yearGrid) return;
+
+    const years = [1, 2, 3, 4];
+    const getCourse = (id) => state.coursesMap.get(id);
+    const yearPlacements = new Map(years.map((year) => [year, []]));
+    state.simulatorPlan.placements.forEach((placement) => {
+      if (yearPlacements.has(placement.year) && getCourse(placement.courseId)) yearPlacements.get(placement.year).push(placement);
+    });
+
+    const totalCredits = state.simulatorPlan.placements
+      .map((placement) => getCourse(placement.courseId))
+      .filter(Boolean)
+      .reduce((sum, course) => sum + Number(course.credits || 0), 0);
+    summary.innerHTML = `
+      <div><strong>4年間の総予定単位</strong><span>${totalCredits}単位</span></div>
+      ${years.map((year) => `<div><strong>${year}年</strong><span>${yearPlacements.get(year).reduce((sum, placement) => sum + Number(getCourse(placement.courseId)?.credits || 0), 0)}単位</span></div>`).join('')}
+    `;
+
+    const registeredUnplaced = Array.from(state.registeredClasses)
+      .filter((courseId) => !getSimulatorPlacement(courseId))
+      .map(getCourse)
+      .filter(Boolean);
+    unplacedList.innerHTML = registeredUnplaced.length
+      ? registeredUnplaced.map((course) => `
+          <li class="sim-unplaced-item" draggable="true" data-sim-drag-course="${escapeHTML(course.id)}">
+            <span><strong>${escapeHTML(course.subject)}</strong><small>${escapeHTML(course.quarter || 'Q未定')} / ${course.credits}単位</small></span>
+            <div class="sim-year-buttons" aria-label="${escapeHTML(course.subject)}の配置年">
+              ${years.map((year) => `<button type="button" data-sim-place-year="${year}" data-sim-course-id="${escapeHTML(course.id)}">${year}年</button>`).join('')}
+            </div>
+          </li>
+        `).join('')
+      : '<li class="simulator-empty">未配置の履修予定はありません。</li>';
+
+    unplacedList.querySelectorAll('[data-sim-place-year]').forEach((button) => {
+      button.onclick = () => placeSimulatorCourse(button.dataset.simCourseId, Number(button.dataset.simPlaceYear));
+    });
+    unplacedList.querySelectorAll('[data-sim-drag-course]').forEach((item) => {
+      item.addEventListener('dragstart', (event) => {
+        event.dataTransfer?.setData('text/plain', item.dataset.simDragCourse);
+      });
+    });
+
+    yearGrid.innerHTML = years.map((year) => `
+      <div class="simulator-year-row" data-sim-drop-year="${year}">
+        <div class="simulator-year-label"><strong>${year}年</strong><span>${yearPlacements.get(year).reduce((sum, placement) => sum + Number(getCourse(placement.courseId)?.credits || 0), 0)}単位</span></div>
+        <div class="simulator-quarter-grid">
+          ${[1, 2, 3, 4].map((quarter) => `<div class="simulator-quarter-cell" data-quarter="${quarter}"><span>${quarter}Q</span></div>`).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    yearPlacements.forEach((placements, year) => {
+      const row = yearGrid.querySelector(`[data-sim-drop-year="${year}"]`);
+      const quarterGrid = row?.querySelector('.simulator-quarter-grid');
+      if (!quarterGrid) return;
+      const lanes = [];
+
+      placements.forEach((placement) => {
+        const course = getCourse(placement.courseId);
+        const quarterInfo = getQuarterInfo(course);
+        const start = quarterInfo.start || 1;
+        const span = quarterInfo.contiguous && quarterInfo.start ? quarterInfo.end - quarterInfo.start + 1 : 1;
+        let lane = 0;
+        while (lanes[lane]?.some((interval) => start <= interval.end && start + span - 1 >= interval.start)) lane += 1;
+        if (!lanes[lane]) lanes[lane] = [];
+        lanes[lane].push({ start, end: start + span - 1 });
+
+        const warnings = getSimulatorWarnings(course, year);
+        const card = document.createElement('article');
+        card.className = 'sim-course-card';
+        card.draggable = true;
+        card.dataset.simDragCourse = course.id;
+        card.style.gridColumn = `${start} / span ${span}`;
+        card.style.gridRow = String(lane + 1);
+        card.innerHTML = `
+          <strong>${escapeHTML(course.subject)}</strong>
+          <span class="sim-course-quarter">${escapeHTML(quarterInfo.label)} / ${course.credits}単位</span>
+          ${warnings.map((warning) => `<div class="simulator-warning ${warning.strengthClass}">${escapeHTML(warning.message)}（${warning.strengthLabel}）</div>`).join('')}
+          <div class="sim-card-actions">
+            <label>移動<select data-sim-move-course="${escapeHTML(course.id)}" aria-label="${escapeHTML(course.subject)}の移動先">
+              ${years.map((targetYear) => `<option value="${targetYear}" ${targetYear === year ? 'selected' : ''}>${targetYear}年</option>`).join('')}
+            </select></label>
+            <button type="button" data-sim-remove-course="${escapeHTML(course.id)}">削除</button>
+          </div>
+        `;
+        quarterGrid.appendChild(card);
+      });
+    });
+
+    yearGrid.querySelectorAll('[data-sim-drop-year]').forEach((target) => {
+      target.addEventListener('dragover', (event) => event.preventDefault());
+      target.addEventListener('drop', (event) => {
+        event.preventDefault();
+        const courseId = event.dataTransfer?.getData('text/plain');
+        if (courseId) placeSimulatorCourse(courseId, Number(target.dataset.simDropYear));
+      });
+    });
+    yearGrid.querySelectorAll('[data-sim-drag-course]').forEach((item) => {
+      item.addEventListener('dragstart', (event) => {
+        event.dataTransfer?.setData('text/plain', item.dataset.simDragCourse);
+      });
+    });
+    yearGrid.querySelectorAll('[data-sim-remove-course]').forEach((button) => {
+      button.onclick = () => removeSimulatorCourse(button.dataset.simRemoveCourse);
+    });
+    yearGrid.querySelectorAll('[data-sim-move-course]').forEach((select) => {
+      select.onchange = () => placeSimulatorCourse(select.dataset.simMoveCourse, Number(select.value));
+    });
+
+    renderSimulatorCourseResults();
+  };
+
+  const placeSimulatorCourse = (courseId, year) => {
+    if (!state.coursesMap.has(courseId) || !Number.isInteger(year) || year < 1 || year > 4) return;
+    state.simulatorPlan.placements = state.simulatorPlan.placements.filter((placement) => placement.courseId !== courseId);
+    state.simulatorPlan.placements.push({ courseId, year });
+    saveSimulatorPlan();
+    renderSimulator();
+  };
+
+  const removeSimulatorCourse = (courseId) => {
+    state.simulatorPlan.placements = state.simulatorPlan.placements.filter((placement) => placement.courseId !== courseId);
+    saveSimulatorPlan();
+    renderSimulator();
   };
 
 
@@ -886,6 +1161,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   };
 
+  const setupSimulatorModal = () => {
+    const modal = document.getElementById('simulator-modal');
+    const button = document.getElementById('simulator-btn');
+    const closeButton = document.getElementById('close-simulator');
+    const searchInput = document.getElementById('sim-course-search');
+    if (!modal || !button) return;
+
+    button.onclick = () => {
+      modal.style.display = 'block';
+      renderSimulator();
+    };
+    if (closeButton) {
+      closeButton.onclick = () => { modal.style.display = 'none'; };
+      closeButton.onkeydown = (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          modal.style.display = 'none';
+        }
+      };
+    }
+    modal.onclick = (event) => {
+      if (event.target === modal) modal.style.display = 'none';
+    };
+    if (searchInput) searchInput.addEventListener('input', renderSimulatorCourseResults);
+  };
+
   const setupAnalysisModal = () => {
     const modal = document.getElementById('analysis-modal');
     const btn = document.getElementById('analysis-btn');
@@ -995,6 +1296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // すべての関数(const)の定義が完了した後に、呼び出しを行います。
 
   setupFilters();
+  setupSimulatorModal();
   setupAnalysisModal();
   setupTutorialModal();
   setupBackToTopButton();
@@ -1039,6 +1341,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     state.predefinedData = normalizedData;
     state.coursesMap = new Map(normalizedData.map(item => [item.id, item]));
     state.relationsMap = buildRelationsMap(relationsData, state.coursesMap);
+    cleanupSimulatorPlan();
 
     // 3秒以内に読み込みが完了した場合は、もし予約されていたエラーアラートがあればキャンセルする
     if (loadErrorTimer) clearTimeout(loadErrorTimer);
@@ -1047,6 +1350,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       dataStatus.classList.remove('is-error');
     }
     renderAll(); // データロード後にクリーンアップを含めて再描画
+    renderSimulator();
   } catch (error) {
     console.error('データの読み込みに失敗しました:', error);
     if (dataStatus) {
