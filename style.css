@@ -623,27 +623,9 @@ body.simulator-view-active > #analysis-modal {
   color: #64748b;
 }
 
-.sim-year-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.sim-year-buttons button,
-.sim-card-actions button {
-  padding: 5px 8px;
-  border: 1px solid #2563eb;
-  border-radius: 4px;
-  background: #fff;
-  color: #1d4ed8;
-  cursor: pointer;
-  font-size: 0.8em;
-}
-
-.sim-year-buttons button:hover,
-.sim-card-actions button:hover {
-  background: #dbeafe;
+/* PCではQセルへのドラッグ操作を主導線にし、タップ用の配置ボタンはモバイルだけに表示する。 */
+.sim-mobile-place-controls {
+  display: none;
 }
 
 .simulator-empty {
@@ -706,9 +688,27 @@ body.simulator-view-active > #analysis-modal {
   background: #f8fafc;
   color: #94a3b8;
   font-size: 0.78em;
+  transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+
+.simulator-quarter-cell.is-drop-allowed {
+  border-color: #60a5fa;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.simulator-quarter-cell.is-drop-forbidden {
+  opacity: 0.55;
+}
+
+.simulator-quarter-cell.is-drop-active {
+  border-style: solid;
+  background: #dbeafe;
+  box-shadow: 0 0 0 2px #2563eb;
 }
 
 .sim-course-card {
+  position: relative;
   z-index: 2;
   display: flex;
   min-width: 0;
@@ -733,28 +733,25 @@ body.simulator-view-active > #analysis-modal {
   font-size: 0.78em;
 }
 
-.sim-card-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: auto;
-}
-
-.sim-card-actions label {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  color: #475569;
-  font-size: 0.78em;
-}
-
-.sim-card-actions select {
-  min-width: 48px;
-  padding: 3px;
+.sim-course-remove {
+  align-self: flex-end;
+  width: 28px;
+  height: 28px;
+  padding: 0;
   border: 1px solid #cbd5e1;
-  border-radius: 3px;
+  border-radius: 50%;
   background: #fff;
+  color: #475569;
+  cursor: pointer;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.sim-course-remove:hover,
+.sim-course-remove:focus-visible {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
 }
 
 .simulator-warning {
@@ -1645,14 +1642,12 @@ body.simulator-view-active > #analysis-modal {
   }
 
   .simulator-quarter-grid {
-    grid-template-columns: 1fr;
-    grid-auto-rows: minmax(54px, auto);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: minmax(72px, auto);
   }
 
-  .simulator-quarter-cell,
-  .sim-course-card {
-    grid-column: 1 / -1 !important;
-    grid-row: auto !important;
+  .simulator-quarter-cell {
+    grid-row: 1 !important;
   }
 
   .sim-course-picker-item,
@@ -1662,11 +1657,33 @@ body.simulator-view-active > #analysis-modal {
     flex-direction: column;
   }
 
-  .sim-year-buttons {
+  .sim-mobile-place-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
+    gap: 4px;
   }
 
-  .sim-year-buttons button {
-    flex: 1 1 22%;
+  .sim-mobile-place-button {
+    min-width: 0;
+    padding: 6px 7px;
+    border: 1px solid #2563eb;
+    border-radius: 4px;
+    background: #fff;
+    color: #1d4ed8;
+    cursor: pointer;
+    font-size: 0.78em;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
   }
+
+  .sim-mobile-place-button:hover,
+  .sim-mobile-place-button:focus-visible {
+    background: #dbeafe;
+  }
+
+  .sim-course-card {
+    min-width: 0;
+  }
+
 }

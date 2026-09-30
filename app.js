@@ -34,7 +34,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       const parsed = JSON.parse(raw);
       const placements = Array.isArray(parsed?.placements)
         ? parsed.placements
-            .map((item) => ({ courseId: String(item?.courseId || ''), year: Number(item?.year) }))
+            .map((item) => ({
+              courseId: String(item?.courseId || ''),
+              year: Number(item?.year),
+              selectedQuarter: Number(item?.selectedQuarter ?? item?.startQuarter)
+            }))
             .filter((item) => item.courseId && Number.isInteger(item.year) && item.year >= 1 && item.year <= 4)
         : [];
       return { version: 1, placements };
@@ -305,7 +309,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const cleanupSimulatorPlan = () => {
     const seen = new Set();
-    state.simulatorPlan.placements = state.simulatorPlan.placements.filter((placement) => {
+    state.simulatorPlan.placements = state.simulatorPlan.placements.map((placement) => {
+      const course = state.coursesMap.get(placement.courseId);
+      if (!course) return null;
+      const options = getQuarterInfo(course).options;
+      const selectedQuarter = options.some((option) => option.start === placement.selectedQuarter)
+        ? placement.selectedQuarter
+        : options[0]?.start;
+      if (!selectedQuarter) return null;
+      return { ...placement, selectedQuarter };
+    }).filter((placement) => {
+      if (!placement) return false;
       if (seen.has(placement.courseId) || !state.coursesMap.has(placement.courseId)) return false;
       seen.add(placement.courseId);
       return true;
@@ -316,41 +330,81 @@ document.addEventListener('DOMContentLoaded', async () => {
   const getQuarterInfo = (course) => {
     const label = String(course?.quarter || 'Q未定');
     if (label.includes('通期')) {
-      return { label, quarters: [1, 2, 3, 4], start: 1, end: 4, contiguous: true };
+      return {
+        label,
+        quarters: [1, 2, 3, 4],
+        options: [{ start: 1, end: 4, label: '1-4Q', contiguous: true }],
+        start: 1,
+        end: 4,
+        contiguous: true
+      };
     }
 
     const segments = label.split(/[,、]/).map((segment) => segment.trim()).filter(Boolean);
     const quarters = [...new Set((label.match(/[1-4]/g) || []).map(Number))].sort((a, b) => a - b);
-    if (!quarters.length) return { label, quarters: [], start: null, end: null, contiguous: false };
-    // カンマ区切りの複数開講パターン（例: 1-2Q, 3-4Q）は
-    // 1つの連続期間とはみなさず、先頭Qへの安全なフォールバックにする。
-    const contiguous = segments.length === 1
-      && quarters.every((quarter, index) => index === 0 || quarter === quarters[index - 1] + 1);
+    if (!quarters.length) return { label, quarters: [], options: [], start: null, end: null, contiguous: false };
+
+    const options = [];
+    segments.forEach((segment) => {
+      const segmentQuarters = [...new Set((segment.match(/[1-4]/g) || []).map(Number))].sort((a, b) => a - b);
+      if (!segmentQuarters.length) return;
+      const isContiguous = segmentQuarters.every((quarter, index) => index === 0 || quarter === segmentQuarters[index - 1] + 1);
+      if (isContiguous) {
+        options.push({
+          start: segmentQuarters[0],
+          end: segmentQuarters[segmentQuarters.length - 1],
+          label: segmentQuarters.length > 1
+            ? `${segmentQuarters[0]}-${segmentQuarters[segmentQuarters.length - 1]}Q`
+            : `${segmentQuarters[0]}Q`,
+          contiguous: true
+        });
+      } else {
+        // 1Q, 3Q のような非連続表記は、各Qを独立した配置候補として扱う。
+        segmentQuarters.forEach((quarter) => options.push({
+          start: quarter,
+          end: quarter,
+          label: `${quarter}Q`,
+          contiguous: false
+        }));
+      }
+    });
+
+    const uniqueOptions = options.filter((option, index, list) => list.findIndex((candidate) => candidate.start === option.start) === index);
+    const firstOption = uniqueOptions[0];
     return {
       label,
       quarters,
-      start: quarters[0],
-      end: quarters[quarters.length - 1],
-      contiguous
+      options: uniqueOptions,
+      start: firstOption?.start || null,
+      end: firstOption?.end || null,
+      contiguous: uniqueOptions.length === 1
     };
   };
 
-  const getPlacementPeriod = (course, year) => {
+  const getPlacementOption = (course, placement) => {
     const quarterInfo = getQuarterInfo(course);
-    // 離れたQ（例: 1Q, 3Q）は単一の期間へ安全に変換できないため、
-    // 配置順の警告では曖昧な判定を行わず、カード上のQ表記だけを残す。
-    if (!quarterInfo.contiguous || !quarterInfo.start || !quarterInfo.end) return null;
+    return quarterInfo.options.find((option) => option.start === placement?.selectedQuarter) || quarterInfo.options[0] || null;
+  };
+
+  const formatSimulatorPlacement = (course, placement) => {
+    const option = getPlacementOption(course, placement);
+    return option ? `${placement.year}年${option.label}` : `${placement.year}年`;
+  };
+
+  const getPlacementPeriod = (course, placement) => {
+    const option = getPlacementOption(course, placement);
+    if (!option || !Number.isInteger(placement?.year)) return null;
     return {
-      start: (year - 1) * 4 + quarterInfo.start,
-      end: (year - 1) * 4 + quarterInfo.end
+      start: (placement.year - 1) * 4 + option.start,
+      end: (placement.year - 1) * 4 + option.end
     };
   };
 
   const getSimulatorPlacement = (courseId) => state.simulatorPlan.placements.find((placement) => placement.courseId === courseId);
 
-  const getSimulatorWarnings = (course, year) => {
+  const getSimulatorWarnings = (course, placement) => {
     const prerequisites = state.relationsMap.get(course.id)?.prerequisites || [];
-    const targetPeriod = getPlacementPeriod(course, year);
+    const targetPeriod = getPlacementPeriod(course, placement);
 
     return prerequisites.map((relation) => {
       const prerequisite = state.coursesMap.get(relation.id);
@@ -367,7 +421,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
       }
 
-      const prerequisitePeriod = getPlacementPeriod(prerequisite, placement.year);
+      const prerequisitePeriod = getPlacementPeriod(prerequisite, placement);
       if (!targetPeriod || !prerequisitePeriod || prerequisitePeriod.end < targetPeriod.start) return null;
       return {
         message: `前提科目「${prerequisite.subject}」を先に配置してください`,
@@ -429,9 +483,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     results.innerHTML = matches.map((course) => {
       const placement = getSimulatorPlacement(course.id);
       const difficulty = state.difficultyMap.get(course.id);
-      const placementText = placement ? `✓ ${placement.year}年に配置済み` : '未配置';
+      const placementText = placement ? `✓ ${formatSimulatorPlacement(course, placement)}に配置済み` : '未配置';
       const difficultyText = difficulty ? `難易度 ${difficulty.average.toFixed(2)} / 10.0` : '難易度 未登録';
       const placedClass = placement ? ' is-placed' : '';
+      const quarterOptions = getQuarterInfo(course).options;
+      const mobilePlacementButtons = quarterOptions.flatMap((option) => [1, 2, 3, 4].map((year) => `
+        <button type="button" class="sim-mobile-place-button" data-sim-place-year="${year}" data-sim-place-quarter="${option.start}" data-sim-course-id="${escapeHTML(course.id)}">${year}年${option.label}</button>
+      `)).join('');
       return `
         <article class="sim-course-picker-item${placedClass}" draggable="${placement ? 'false' : 'true'}" data-sim-drag-course="${escapeHTML(course.id)}" aria-label="${escapeHTML(course.subject)}：${escapeHTML(placementText)}">
           <div class="sim-course-picker-info">
@@ -439,15 +497,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             <span>${escapeHTML(course.quarter || 'Q未定')} ｜ ${escapeHTML(String(course.credits || 0))}単位</span>
             <small>${escapeHTML(difficultyText)} ｜ ${escapeHTML(placementText)}</small>
           </div>
-          <div class="sim-year-buttons" aria-label="${escapeHTML(course.subject)}の配置年">
-            ${[1, 2, 3, 4].map((year) => `<button type="button" data-sim-place-year="${year}" data-sim-course-id="${escapeHTML(course.id)}">${year}年</button>`).join('')}
+          <div class="sim-mobile-place-controls" aria-label="${escapeHTML(course.subject)}の配置先">
+            ${mobilePlacementButtons}
           </div>
         </article>
       `;
     }).join('');
 
-    results.querySelectorAll('[data-sim-place-year]').forEach((button) => {
-      button.onclick = () => placeSimulatorCourse(button.dataset.simCourseId, Number(button.dataset.simPlaceYear));
+    results.querySelectorAll('[data-sim-place-year][data-sim-place-quarter]').forEach((button) => {
+      button.onclick = () => placeSimulatorCourse(
+        button.dataset.simCourseId,
+        Number(button.dataset.simPlaceYear),
+        Number(button.dataset.simPlaceQuarter)
+      );
     });
     results.querySelectorAll('[data-sim-drag-course]').forEach((item) => {
       item.addEventListener('dragstart', (event) => {
@@ -456,7 +518,26 @@ document.addEventListener('DOMContentLoaded', async () => {
           return;
         }
         event.dataTransfer?.setData('text/plain', item.dataset.simDragCourse);
+        highlightSimulatorDropCells(item.dataset.simDragCourse);
       });
+      item.addEventListener('dragend', clearSimulatorDropHighlights);
+    });
+  };
+
+  const clearSimulatorDropHighlights = () => {
+    document.querySelectorAll('#simulator-year-grid [data-sim-drop-quarter]').forEach((cell) => {
+      cell.classList.remove('is-drop-allowed', 'is-drop-forbidden', 'is-drop-active');
+    });
+  };
+
+  const highlightSimulatorDropCells = (courseId) => {
+    const course = state.coursesMap.get(courseId);
+    const options = course ? getQuarterInfo(course).options : [];
+    document.querySelectorAll('#simulator-year-grid [data-sim-drop-quarter]').forEach((cell) => {
+      const quarter = Number(cell.dataset.simDropQuarter);
+      const allowed = options.some((option) => option.start === quarter);
+      cell.classList.toggle('is-drop-allowed', allowed);
+      cell.classList.toggle('is-drop-forbidden', !allowed);
     });
   };
 
@@ -484,78 +565,78 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
 
     yearGrid.innerHTML = years.map((year) => `
-      <div class="simulator-year-row" data-sim-drop-year="${year}">
+      <div class="simulator-year-row" data-sim-year="${year}">
         <div class="simulator-year-label"><strong>${year}年</strong><span>${yearPlacements.get(year).reduce((sum, placement) => sum + Number(getCourse(placement.courseId)?.credits || 0), 0)}単位</span></div>
         <div class="simulator-quarter-grid">
-          ${[1, 2, 3, 4].map((quarter) => `<div class="simulator-quarter-cell" data-quarter="${quarter}"><span>${quarter}Q</span></div>`).join('')}
+          ${[1, 2, 3, 4].map((quarter) => `<div class="simulator-quarter-cell" data-sim-drop-year="${year}" data-sim-drop-quarter="${quarter}"><span>${quarter}Q</span></div>`).join('')}
         </div>
       </div>
     `).join('');
 
     yearPlacements.forEach((placements, year) => {
-      const row = yearGrid.querySelector(`[data-sim-drop-year="${year}"]`);
+      const row = yearGrid.querySelector(`[data-sim-year="${year}"]`);
       const quarterGrid = row?.querySelector('.simulator-quarter-grid');
       if (!quarterGrid) return;
       const lanes = [];
 
       placements.forEach((placement) => {
         const course = getCourse(placement.courseId);
-        const quarterInfo = getQuarterInfo(course);
-        const start = quarterInfo.start || 1;
-        const span = quarterInfo.contiguous && quarterInfo.start ? quarterInfo.end - quarterInfo.start + 1 : 1;
+        const option = getPlacementOption(course, placement);
+        if (!option) return;
+        const start = option.start;
+        const span = option.end - option.start + 1;
         let lane = 0;
         while (lanes[lane]?.some((interval) => start <= interval.end && start + span - 1 >= interval.start)) lane += 1;
         if (!lanes[lane]) lanes[lane] = [];
         lanes[lane].push({ start, end: start + span - 1 });
 
-        const warnings = getSimulatorWarnings(course, year);
+        const warnings = getSimulatorWarnings(course, placement);
         const card = document.createElement('article');
         card.className = 'sim-course-card';
         card.draggable = true;
         card.dataset.simDragCourse = course.id;
         card.style.gridColumn = `${start} / span ${span}`;
-        card.style.gridRow = String(lane + 1);
+        card.style.gridRow = String(lane + 2);
         card.innerHTML = `
           <strong>${escapeHTML(course.subject)}</strong>
-          <span class="sim-course-quarter">${escapeHTML(quarterInfo.label)} / ${course.credits}単位</span>
+          <span class="sim-course-quarter">${escapeHTML(option.label)} / ${course.credits}単位</span>
           ${warnings.map((warning) => `<div class="simulator-warning ${warning.strengthClass}">${escapeHTML(warning.message)}（${warning.strengthLabel}）</div>`).join('')}
-          <div class="sim-card-actions">
-            <label>移動<select data-sim-move-course="${escapeHTML(course.id)}" aria-label="${escapeHTML(course.subject)}の移動先">
-              ${years.map((targetYear) => `<option value="${targetYear}" ${targetYear === year ? 'selected' : ''}>${targetYear}年</option>`).join('')}
-            </select></label>
-            <button type="button" data-sim-remove-course="${escapeHTML(course.id)}">削除</button>
-          </div>
+          <button type="button" class="sim-course-remove" data-sim-remove-course="${escapeHTML(course.id)}" aria-label="${escapeHTML(course.subject)}を削除">×</button>
         `;
         quarterGrid.appendChild(card);
       });
     });
 
-    yearGrid.querySelectorAll('[data-sim-drop-year]').forEach((target) => {
-      target.addEventListener('dragenter', () => target.classList.add('is-drop-target'));
+    yearGrid.querySelectorAll('[data-sim-drop-quarter]').forEach((target) => {
+      target.addEventListener('dragenter', (event) => {
+        const courseId = event.dataTransfer?.getData('text/plain');
+        if (courseId && target.classList.contains('is-drop-allowed')) target.classList.add('is-drop-active');
+      });
       target.addEventListener('dragover', (event) => {
+        if (!target.classList.contains('is-drop-allowed')) return;
         event.preventDefault();
-        target.classList.add('is-drop-target');
+        target.classList.add('is-drop-active');
       });
       target.addEventListener('dragleave', (event) => {
-        if (!event.relatedTarget || !target.contains(event.relatedTarget)) target.classList.remove('is-drop-target');
+        if (!event.relatedTarget || !target.contains(event.relatedTarget)) target.classList.remove('is-drop-active');
       });
       target.addEventListener('drop', (event) => {
+        if (!target.classList.contains('is-drop-allowed')) return;
         event.preventDefault();
-        target.classList.remove('is-drop-target');
+        clearSimulatorDropHighlights();
         const courseId = event.dataTransfer?.getData('text/plain');
-        if (courseId) placeSimulatorCourse(courseId, Number(target.dataset.simDropYear));
+        if (courseId) placeSimulatorCourse(courseId, Number(target.dataset.simDropYear), Number(target.dataset.simDropQuarter));
       });
     });
     yearGrid.querySelectorAll('[data-sim-drag-course]').forEach((item) => {
       item.addEventListener('dragstart', (event) => {
         event.dataTransfer?.setData('text/plain', item.dataset.simDragCourse);
+        highlightSimulatorDropCells(item.dataset.simDragCourse);
       });
+      item.addEventListener('dragend', clearSimulatorDropHighlights);
     });
     yearGrid.querySelectorAll('[data-sim-remove-course]').forEach((button) => {
       button.onclick = () => removeSimulatorCourse(button.dataset.simRemoveCourse);
-    });
-    yearGrid.querySelectorAll('[data-sim-move-course]').forEach((select) => {
-      select.onchange = () => placeSimulatorCourse(select.dataset.simMoveCourse, Number(select.value));
     });
 
     const categoryFilter = document.getElementById('sim-course-category-filter');
@@ -571,10 +652,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderSimulatorCourseResults();
   };
 
-  const placeSimulatorCourse = (courseId, year) => {
-    if (!state.coursesMap.has(courseId) || !Number.isInteger(year) || year < 1 || year > 4) return;
+  const placeSimulatorCourse = (courseId, year, selectedQuarter) => {
+    const course = state.coursesMap.get(courseId);
+    if (!course || !Number.isInteger(year) || year < 1 || year > 4) return;
+    const option = getQuarterInfo(course).options.find((candidate) => candidate.start === selectedQuarter)
+      || getQuarterInfo(course).options[0];
+    if (!option) return;
     state.simulatorPlan.placements = state.simulatorPlan.placements.filter((placement) => placement.courseId !== courseId);
-    state.simulatorPlan.placements.push({ courseId, year });
+    state.simulatorPlan.placements.push({ courseId, year, selectedQuarter: option.start });
     saveSimulatorPlan();
     renderSimulator();
   };
