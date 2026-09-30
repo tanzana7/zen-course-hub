@@ -673,15 +673,14 @@ body.simulator-view-active > #analysis-modal {
 .simulator-quarter-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-template-rows: 30px repeat(10, minmax(28px, auto));
+  grid-template-rows: 30px;
   gap: 6px;
   min-width: 0;
 }
 
 .simulator-quarter-cell {
-  grid-row: 1 / span 11;
   min-width: 0;
-  min-height: 318px;
+  min-height: 0;
   padding: 0 4px 5px;
   border: 1px dashed #cbd5e1;
   border-radius: 5px;
@@ -1682,11 +1681,6 @@ body.simulator-view-active > #analysis-modal {
 
   .simulator-quarter-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-template-rows: 30px repeat(10, minmax(28px, auto));
-  }
-
-  .simulator-quarter-cell {
-    grid-row: 1 / span 11 !important;
   }
 
   .sim-course-picker-item,

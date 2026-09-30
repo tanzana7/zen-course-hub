@@ -554,31 +554,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (yearPlacements.has(placement.year) && getCourse(placement.courseId)) yearPlacements.get(placement.year).push(placement);
     });
 
-    const totalCredits = state.simulatorPlan.placements
-      .map((placement) => getCourse(placement.courseId))
-      .filter(Boolean)
-      .reduce((sum, course) => sum + Number(course.credits || 0), 0);
-    totalSummary.innerHTML = `<span>総予定単位</span><strong>${totalCredits}単位</strong>`;
-    summary.innerHTML = `
-      <div><strong>4年間の総予定単位</strong><span>${totalCredits}単位</span></div>
-      ${years.map((year) => `<div><strong>${year}年</strong><span>${yearPlacements.get(year).reduce((sum, placement) => sum + Number(getCourse(placement.courseId)?.credits || 0), 0)}単位</span></div>`).join('')}
-    `;
-
-    yearGrid.innerHTML = years.map((year) => `
-      <div class="simulator-year-row" data-sim-year="${year}">
-        <div class="simulator-year-label"><strong>${year}年</strong><span>${yearPlacements.get(year).reduce((sum, placement) => sum + Number(getCourse(placement.courseId)?.credits || 0), 0)}単位</span></div>
-        <div class="simulator-quarter-grid">
-          ${[1, 2, 3, 4].map((quarter) => `<div class="simulator-quarter-cell" style="grid-column: ${quarter};" data-sim-drop-year="${year}" data-sim-drop-quarter="${quarter}"><span class="simulator-quarter-header">${quarter}Q</span></div>`).join('')}
-        </div>
-      </div>
-    `).join('');
-
-    yearPlacements.forEach((placements, year) => {
-      const row = yearGrid.querySelector(`[data-sim-year="${year}"]`);
-      const quarterGrid = row?.querySelector('.simulator-quarter-grid');
-      if (!quarterGrid) return;
+    // span科目が占有するQ区間を先に割り当て、各年に必要な行数だけを確保する。
+    // これにより空の年はコンパクトなまま、科目が増えた年だけ4Qセル全体が伸びる。
+    const buildYearLaneData = (placements) => {
       const lanes = [];
-
+      const assignments = new Map();
       placements.forEach((placement) => {
         const course = getCourse(placement.courseId);
         const option = getPlacementOption(course, placement);
@@ -589,6 +569,47 @@ document.addEventListener('DOMContentLoaded', async () => {
         while (lanes[lane]?.some((interval) => start <= interval.end && start + span - 1 >= interval.start)) lane += 1;
         if (!lanes[lane]) lanes[lane] = [];
         lanes[lane].push({ start, end: start + span - 1 });
+        assignments.set(placement.courseId, { lane, start, span });
+      });
+      return { laneCount: lanes.length, assignments };
+    };
+    const laneDataByYear = new Map(years.map((year) => [year, buildYearLaneData(yearPlacements.get(year))]));
+
+    const totalCredits = state.simulatorPlan.placements
+      .map((placement) => getCourse(placement.courseId))
+      .filter(Boolean)
+      .reduce((sum, course) => sum + Number(course.credits || 0), 0);
+    totalSummary.innerHTML = `<span>総予定単位</span><strong>${totalCredits}単位</strong>`;
+    summary.innerHTML = `
+      <div><strong>4年間の総予定単位</strong><span>${totalCredits}単位</span></div>
+      ${years.map((year) => `<div><strong>${year}年</strong><span>${yearPlacements.get(year).reduce((sum, placement) => sum + Number(getCourse(placement.courseId)?.credits || 0), 0)}単位</span></div>`).join('')}
+    `;
+
+    yearGrid.innerHTML = years.map((year) => {
+      const laneCount = laneDataByYear.get(year).laneCount;
+      const rowTemplate = laneCount ? `30px repeat(${laneCount}, minmax(28px, auto))` : '30px';
+      return `
+      <div class="simulator-year-row" data-sim-year="${year}">
+        <div class="simulator-year-label"><strong>${year}年</strong><span>${yearPlacements.get(year).reduce((sum, placement) => sum + Number(getCourse(placement.courseId)?.credits || 0), 0)}単位</span></div>
+        <div class="simulator-quarter-grid" style="grid-template-rows: ${rowTemplate};">
+          ${[1, 2, 3, 4].map((quarter) => `<div class="simulator-quarter-cell" style="grid-column: ${quarter}; grid-row: 1 / span ${laneCount + 1};" data-sim-drop-year="${year}" data-sim-drop-quarter="${quarter}"><span class="simulator-quarter-header">${quarter}Q</span></div>`).join('')}
+        </div>
+      </div>
+    `;
+    }).join('');
+
+    yearPlacements.forEach((placements, year) => {
+      const row = yearGrid.querySelector(`[data-sim-year="${year}"]`);
+      const quarterGrid = row?.querySelector('.simulator-quarter-grid');
+      if (!quarterGrid) return;
+      const laneData = laneDataByYear.get(year);
+
+      placements.forEach((placement) => {
+        const course = getCourse(placement.courseId);
+        const option = getPlacementOption(course, placement);
+        if (!option) return;
+        const assignment = laneData.assignments.get(placement.courseId);
+        if (!assignment) return;
 
         const warnings = getSimulatorWarnings(course, placement);
         const warningTooltip = warnings
@@ -601,8 +622,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         card.className = 'sim-course-card';
         card.draggable = true;
         card.dataset.simDragCourse = course.id;
-        card.style.gridColumn = `${start} / span ${span}`;
-        card.style.gridRow = String(lane + 2);
+        card.style.gridColumn = `${assignment.start} / span ${assignment.span}`;
+        card.style.gridRow = String(assignment.lane + 2);
         card.title = warningTooltip || `${course.subject}（${course.credits}単位）`;
         card.setAttribute('aria-label', `${course.subject} ${course.credits}単位${warningTooltip ? `。${warningTooltip}` : ''}`);
         card.innerHTML = `
