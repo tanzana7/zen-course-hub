@@ -133,6 +133,10 @@
       <section class="simulator-plan-panel" aria-labelledby="simulator-plan-title">
         <p class="simulator-note">科目の開講Qをもとに年次のQセルへ配置します。通常の履修予定とは別に保存されます。</p>
         <div class="simulator-summary" id="simulator-summary"></div>
+        <details class="simulator-plan-check" id="simulator-plan-check">
+          <summary id="simulator-plan-check-summary" aria-live="polite">✓ 計画チェック</summary>
+          <div id="simulator-plan-check-details"></div>
+        </details>
 
         <section class="simulator-plan" aria-labelledby="simulator-plan-title">
           <h2 id="simulator-plan-title">4年間の計画</h2>
@@ -145,7 +149,7 @@
         <p class="simulator-note">科目をドラッグして配置先のQセルへ移動できます。スマートフォンでは配置先ボタンを使えます。</p>
         <div class="simulator-palette-tabs" role="tablist" aria-label="科目一覧の表示対象">
           <button type="button" class="is-active" id="sim-palette-all" data-sim-palette-mode="all" role="tab" aria-selected="true">すべて</button>
-          <button type="button" id="sim-palette-scheduled" data-sim-palette-mode="scheduled" role="tab" aria-selected="false">履修予定</button>
+          <button type="button" id="sim-palette-scheduled" data-sim-palette-mode="scheduled" role="tab" aria-selected="false">通常の履修予定</button>
         </div>
         <div class="simulator-palette-filters">
           <input id="sim-course-search" type="search" placeholder="科目名や教員名で検索..." aria-label="シミュレーター科目検索">
@@ -176,6 +180,13 @@
         </div>
         <div id="sim-course-results" class="sim-course-results simulator-palette-list" aria-live="polite"></div>
       </aside>
+    </div>
+    <div id="simulator-course-detail" class="simulator-course-detail" hidden role="dialog" aria-modal="true" aria-labelledby="simulator-course-detail-title">
+      <div class="simulator-course-detail-panel">
+        <button type="button" id="close-simulator-course-detail" class="simulator-course-detail-close" aria-label="科目詳細を閉じる">×</button>
+        <h2 id="simulator-course-detail-title">科目詳細</h2>
+        <div id="simulator-course-detail-content"></div>
+      </div>
     </div>
   </div>
 </div>

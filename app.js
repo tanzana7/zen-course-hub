@@ -413,6 +413,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const strengthLabel = relation.strength === 'strongly_recommended' ? '強く推奨' : '推奨';
       const strengthClass = relation.strength === 'strongly_recommended' ? 'strong' : 'recommended';
 
+      // 通常画面で履修済みにした科目は、シミュレーター上では既に完了した前提科目として扱う。
+      if (state.completedClasses.has(prerequisite.id)) return null;
+
       if (!placement) {
         return {
           message: `前提科目「${prerequisite.subject}」が未配置です`,
@@ -429,6 +432,73 @@ document.addEventListener('DOMContentLoaded', async () => {
         strengthClass
       };
     }).filter(Boolean);
+  };
+
+  const getSimulatorPlanWarnings = () => state.simulatorPlan.placements.flatMap((placement) => {
+    const course = state.coursesMap.get(placement.courseId);
+    if (!course) return [];
+    return getSimulatorWarnings(course, placement).map((warning) => ({
+      course,
+      placement,
+      ...warning
+    }));
+  });
+
+  const renderSimulatorPlanCheck = () => {
+    const summary = document.getElementById('simulator-plan-check-summary');
+    const details = document.getElementById('simulator-plan-check-details');
+    if (!summary || !details) return;
+
+    const warnings = getSimulatorPlanWarnings();
+    const strongCount = warnings.filter((warning) => warning.strengthClass === 'strong').length;
+    const recommendedCount = warnings.length - strongCount;
+    summary.textContent = warnings.length
+      ? `⚠ 計画チェック ${warnings.length}件（強く推奨 ${strongCount}・推奨 ${recommendedCount}）`
+      : '✓ 計画チェック';
+    details.innerHTML = warnings.length
+      ? `<ul>${warnings.map((warning) => `
+          <li data-sim-warning-course="${escapeHTML(warning.course.id)}">
+            <strong>${escapeHTML(warning.course.subject)}</strong>
+            <span>${escapeHTML(warning.message)}（${escapeHTML(warning.strengthLabel)}）</span>
+          </li>
+        `).join('')}</ul>`
+      : '<p>前提科目に関する注意はありません</p>';
+  };
+
+  const closeSimulatorCourseDetail = () => {
+    const modal = document.getElementById('simulator-course-detail');
+    if (!modal) return;
+    modal.classList.remove('is-active');
+    modal.hidden = true;
+  };
+
+  const openSimulatorCourseDetail = (courseId) => {
+    const course = state.coursesMap.get(courseId);
+    const placement = getSimulatorPlacement(courseId);
+    const option = course && placement ? getPlacementOption(course, placement) : null;
+    const modal = document.getElementById('simulator-course-detail');
+    const content = document.getElementById('simulator-course-detail-content');
+    const title = document.getElementById('simulator-course-detail-title');
+    if (!course || !placement || !option || !modal || !content || !title) return;
+
+    const warnings = getSimulatorWarnings(course, placement);
+    title.textContent = course.subject;
+    content.innerHTML = `
+      <dl class="simulator-course-detail-list">
+        <div><dt>開講Q</dt><dd>${escapeHTML(course.quarter || 'Q未定')}</dd></div>
+        <div><dt>選択Q</dt><dd>${escapeHTML(formatSimulatorPlacement(course, placement))}</dd></div>
+        <div><dt>単位</dt><dd>${escapeHTML(String(course.credits || 0))}単位</dd></div>
+      </dl>
+      <section class="simulator-course-detail-warnings" aria-labelledby="simulator-course-detail-warning-title">
+        <h3 id="simulator-course-detail-warning-title">前提科目</h3>
+        ${warnings.length
+          ? `<ul>${warnings.map((warning) => `<li class="simulator-warning ${warning.strengthClass === 'strong' ? 'strong' : ''}">${escapeHTML(warning.message)}（${escapeHTML(warning.strengthLabel)}）</li>`).join('')}</ul>`
+          : '<p>前提科目に関する注意はありません</p>'}
+      </section>
+    `;
+    modal.hidden = false;
+    modal.classList.add('is-active');
+    document.getElementById('close-simulator-course-detail')?.focus();
   };
 
   const renderSimulatorCourseResults = () => {
@@ -574,6 +644,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       return { laneCount: lanes.length, assignments };
     };
     const laneDataByYear = new Map(years.map((year) => [year, buildYearLaneData(yearPlacements.get(year))]));
+    const quarterCreditsByYear = new Map(years.map((year) => [year, new Map([[1, 0], [2, 0], [3, 0], [4, 0]])]));
+    state.simulatorPlan.placements.forEach((placement) => {
+      const course = getCourse(placement.courseId);
+      const option = course ? getPlacementOption(course, placement) : null;
+      const quarterCredits = quarterCreditsByYear.get(placement.year);
+      if (!course || !option || !quarterCredits) return;
+      // Span科目の単位は開始Qに一度だけ集計し、Q合計の二重計上を避ける。
+      quarterCredits.set(option.start, quarterCredits.get(option.start) + Number(course.credits || 0));
+    });
 
     const totalCredits = state.simulatorPlan.placements
       .map((placement) => getCourse(placement.courseId))
@@ -592,7 +671,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="simulator-year-row" data-sim-year="${year}">
         <div class="simulator-year-label"><strong>${year}年</strong><span>${yearPlacements.get(year).reduce((sum, placement) => sum + Number(getCourse(placement.courseId)?.credits || 0), 0)}単位</span></div>
         <div class="simulator-quarter-grid" style="grid-template-rows: ${rowTemplate};">
-          ${[1, 2, 3, 4].map((quarter) => `<div class="simulator-quarter-cell" style="grid-column: ${quarter}; grid-row: 1 / span ${laneCount + 1};" data-sim-drop-year="${year}" data-sim-drop-quarter="${quarter}"><span class="simulator-quarter-header">${quarter}Q</span></div>`).join('')}
+          ${[1, 2, 3, 4].map((quarter) => `<div class="simulator-quarter-cell" style="grid-column: ${quarter}; grid-row: 1 / span ${laneCount + 1};" data-sim-drop-year="${year}" data-sim-drop-quarter="${quarter}"><span class="simulator-quarter-header"><strong>${quarter}Q</strong><small>${quarterCreditsByYear.get(year).get(quarter)}単位</small></span></div>`).join('')}
         </div>
       </div>
     `;
@@ -626,10 +705,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         card.style.gridRow = String(assignment.lane + 2);
         card.title = warningTooltip || `${course.subject}（${course.credits}単位）`;
         card.setAttribute('aria-label', `${course.subject} ${course.credits}単位${warningTooltip ? `。${warningTooltip}` : ''}`);
+        card.dataset.simDetailCourse = course.id;
         card.innerHTML = `
           <strong>${escapeHTML(course.subject)}</strong>
           <span class="sim-course-credits">${escapeHTML(String(course.credits || 0))}単位</span>
-          ${warnings.length ? `<span class="sim-warning-badge${warningClass}" aria-label="${escapeHTML(warningTooltip)}">⚠</span>` : ''}
+          ${warnings.length ? `<button type="button" class="sim-warning-badge${warningClass}" data-sim-warning-course="${escapeHTML(course.id)}" aria-label="前提科目の注意を確認">⚠</button>` : ''}
           <button type="button" class="sim-course-remove" data-sim-remove-course="${escapeHTML(course.id)}" aria-label="${escapeHTML(course.subject)}を削除">×</button>
         `;
         quarterGrid.appendChild(card);
@@ -667,6 +747,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     yearGrid.querySelectorAll('[data-sim-remove-course]').forEach((button) => {
       button.onclick = () => removeSimulatorCourse(button.dataset.simRemoveCourse);
     });
+    yearGrid.querySelectorAll('[data-sim-detail-course]').forEach((card) => {
+      card.addEventListener('click', (event) => {
+        if (event.target.closest('button')) return;
+        openSimulatorCourseDetail(card.dataset.simDetailCourse);
+      });
+    });
+    yearGrid.querySelectorAll('[data-sim-warning-course]').forEach((button) => {
+      button.onclick = (event) => {
+        event.stopPropagation();
+        openSimulatorCourseDetail(button.dataset.simWarningCourse);
+      };
+    });
 
     const categoryFilter = document.getElementById('sim-course-category-filter');
     if (categoryFilter) {
@@ -679,6 +771,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     renderSimulatorCourseResults();
+    renderSimulatorPlanCheck();
   };
 
   const placeSimulatorCourse = (courseId, year, selectedQuarter) => {
@@ -1312,12 +1405,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const setupSimulatorModal = () => {
     const modal = document.getElementById('simulator-modal');
+    const detailModal = document.getElementById('simulator-course-detail');
+    const detailCloseButton = document.getElementById('close-simulator-course-detail');
     const button = document.getElementById('simulator-btn');
     const closeButton = document.getElementById('close-simulator');
     const searchInput = document.getElementById('sim-course-search');
     if (!modal || !button) return;
 
     const closeSimulator = () => {
+      closeSimulatorCourseDetail();
       modal.classList.remove('is-active');
       modal.hidden = true;
       document.body.classList.remove('simulator-view-active');
@@ -1333,8 +1429,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (closeButton) {
       closeButton.onclick = closeSimulator;
     }
+    if (detailCloseButton) {
+      detailCloseButton.onclick = closeSimulatorCourseDetail;
+    }
+    if (detailModal) {
+      detailModal.addEventListener('click', (event) => {
+        if (event.target === detailModal) closeSimulatorCourseDetail();
+      });
+    }
     window.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && modal.classList.contains('is-active')) closeSimulator();
+      if (event.key !== 'Escape' || !modal.classList.contains('is-active')) return;
+      if (detailModal?.classList.contains('is-active')) {
+        closeSimulatorCourseDetail();
+        return;
+      }
+      closeSimulator();
     });
     if (searchInput) searchInput.addEventListener('input', renderSimulatorCourseResults);
     ['sim-course-year-filter', 'sim-course-quarter-filter', 'sim-course-category-filter', 'sim-course-sort']
