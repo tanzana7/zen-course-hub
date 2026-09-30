@@ -134,12 +134,6 @@
         <p class="simulator-note">科目の開講Qをもとに年次へ配置します。通常の履修予定とは別に保存されます。</p>
         <div class="simulator-summary" id="simulator-summary"></div>
 
-        <section class="simulator-picker" aria-labelledby="simulator-picker-title">
-          <h2 id="simulator-picker-title">シミュレーターに科目を追加</h2>
-          <input id="sim-course-search" type="search" placeholder="科目名や教員名で検索..." aria-label="シミュレーター科目検索">
-          <div id="sim-course-results" class="sim-course-results"></div>
-        </section>
-
         <section class="simulator-plan" aria-labelledby="simulator-plan-title">
           <h2 id="simulator-plan-title">4年間の計画</h2>
           <div id="simulator-year-grid" class="simulator-year-grid"></div>
@@ -147,9 +141,40 @@
       </section>
 
       <aside class="simulator-scheduled-panel" aria-labelledby="sim-scheduled-title">
-        <h2 id="sim-scheduled-title">履修予定の科目</h2>
-        <p class="simulator-note">通常画面の「履修予定」に登録した科目を、すべてここから年次へ配置できます。</p>
-        <ul id="sim-scheduled-list" class="sim-scheduled-list"></ul>
+        <h2 id="sim-scheduled-title">科目一覧</h2>
+        <p class="simulator-note">科目をドラッグして年次へ配置できます。スマートフォンでは年次ボタンを使えます。</p>
+        <div class="simulator-palette-tabs" role="tablist" aria-label="科目一覧の表示対象">
+          <button type="button" class="is-active" id="sim-palette-all" data-sim-palette-mode="all" role="tab" aria-selected="true">すべて</button>
+          <button type="button" id="sim-palette-scheduled" data-sim-palette-mode="scheduled" role="tab" aria-selected="false">履修予定</button>
+        </div>
+        <div class="simulator-palette-filters">
+          <input id="sim-course-search" type="search" placeholder="科目名や教員名で検索..." aria-label="シミュレーター科目検索">
+          <div class="simulator-palette-filter-grid">
+            <select id="sim-course-year-filter" aria-label="シミュレーター学年フィルター">
+              <option value="すべて表示">学年</option>
+              <option value="1年次">1年次</option>
+              <option value="2年次">2年次</option>
+              <option value="3年次">3年次</option>
+              <option value="4年次">4年次</option>
+            </select>
+            <select id="sim-course-quarter-filter" aria-label="シミュレーター学期フィルター">
+              <option value="すべて表示">学期</option>
+              <option value="1Q">1Q</option>
+              <option value="2Q">2Q</option>
+              <option value="3Q">3Q</option>
+              <option value="4Q">4Q</option>
+            </select>
+            <select id="sim-course-category-filter" aria-label="シミュレーター分野フィルター">
+              <option value="すべて表示">分野</option>
+            </select>
+            <select id="sim-course-sort" aria-label="シミュレーター難易度順">
+              <option value="default">標準</option>
+              <option value="difficulty-asc">難易度：低い順</option>
+              <option value="difficulty-desc">難易度：高い順</option>
+            </select>
+          </div>
+        </div>
+        <div id="sim-course-results" class="sim-course-results simulator-palette-list" aria-live="polite"></div>
       </aside>
     </div>
   </div>

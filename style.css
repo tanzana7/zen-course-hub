@@ -439,6 +439,8 @@ body.simulator-view-active > #analysis-modal {
 .simulator-scheduled-panel {
   position: sticky;
   top: 18px;
+  max-height: calc(100vh - 36px);
+  overflow: hidden;
 }
 
 .simulator-scheduled-panel h2,
@@ -483,6 +485,50 @@ body.simulator-view-active > #analysis-modal {
   margin-top: 18px;
 }
 
+.simulator-palette-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 12px 0 10px;
+}
+
+.simulator-palette-tabs button {
+  flex: 1 1 0;
+  padding: 7px 9px;
+  border: 1px solid #bfdbfe;
+  border-radius: 5px;
+  background: #fff;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.simulator-palette-tabs button.is-active,
+.simulator-palette-tabs button:hover {
+  background: #dbeafe;
+}
+
+.simulator-palette-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.simulator-palette-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.simulator-palette-filter-grid select {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  background: #fff;
+}
+
 .simulator-picker h2,
 .simulator-plan h2 {
   margin: 0 0 8px;
@@ -508,6 +554,12 @@ body.simulator-view-active > #analysis-modal {
   list-style: none;
 }
 
+.simulator-palette-list {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
 .sim-course-picker-item,
 .sim-unplaced-item,
 .sim-scheduled-item {
@@ -519,6 +571,21 @@ body.simulator-view-active > #analysis-modal {
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   background: #f8fafc;
+}
+
+.sim-course-picker-item {
+  cursor: grab;
+}
+
+.sim-course-picker-item:active {
+  cursor: grabbing;
+}
+
+.sim-course-picker-item.is-placed {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+  opacity: 0.76;
+  cursor: default;
 }
 
 .sim-course-picker-info,
@@ -535,6 +602,11 @@ body.simulator-view-active > #analysis-modal {
 .sim-scheduled-info > span {
   color: #64748b;
   font-size: 0.8em;
+}
+
+.sim-course-picker-info small {
+  color: #475569;
+  font-size: 0.78em;
 }
 
 .sim-placement-status {
@@ -591,6 +663,13 @@ body.simulator-view-active > #analysis-modal {
   grid-template-columns: 70px minmax(0, 1fr);
   gap: 8px;
   align-items: stretch;
+  border-radius: 7px;
+  transition: box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.simulator-year-row.is-drop-target {
+  background: #eff6ff;
+  box-shadow: 0 0 0 2px #60a5fa;
 }
 
 .simulator-year-label {
@@ -1545,6 +1624,13 @@ body.simulator-view-active > #analysis-modal {
   .simulator-scheduled-panel {
     position: static;
     margin-top: 0;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .simulator-palette-list {
+    max-height: none;
+    overflow: visible;
   }
 
   .simulator-year-row {
