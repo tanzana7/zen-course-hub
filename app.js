@@ -739,17 +739,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     yearGrid.querySelectorAll('[data-sim-drag-course]').forEach((item) => {
       item.addEventListener('dragstart', (event) => {
+        item.dataset.simDragging = 'true';
         event.dataTransfer?.setData('text/plain', item.dataset.simDragCourse);
         highlightSimulatorDropCells(item.dataset.simDragCourse);
       });
-      item.addEventListener('dragend', clearSimulatorDropHighlights);
+      item.addEventListener('dragend', () => {
+        delete item.dataset.simDragging;
+        item.dataset.simSkipClick = 'true';
+        window.setTimeout(() => delete item.dataset.simSkipClick, 0);
+        clearSimulatorDropHighlights();
+      });
     });
     yearGrid.querySelectorAll('[data-sim-remove-course]').forEach((button) => {
       button.onclick = () => removeSimulatorCourse(button.dataset.simRemoveCourse);
     });
     yearGrid.querySelectorAll('[data-sim-detail-course]').forEach((card) => {
       card.addEventListener('click', (event) => {
-        if (event.target.closest('button')) return;
+        if (event.target.closest('button') || card.dataset.simDragging === 'true' || card.dataset.simSkipClick === 'true') return;
         openSimulatorCourseDetail(card.dataset.simDetailCourse);
       });
     });
