@@ -568,7 +568,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       <div class="simulator-year-row" data-sim-year="${year}">
         <div class="simulator-year-label"><strong>${year}年</strong><span>${yearPlacements.get(year).reduce((sum, placement) => sum + Number(getCourse(placement.courseId)?.credits || 0), 0)}単位</span></div>
         <div class="simulator-quarter-grid">
-          ${[1, 2, 3, 4].map((quarter) => `<div class="simulator-quarter-cell" data-sim-drop-year="${year}" data-sim-drop-quarter="${quarter}"><span>${quarter}Q</span></div>`).join('')}
+          ${[1, 2, 3, 4].map((quarter) => `<div class="simulator-quarter-cell" style="grid-column: ${quarter};" data-sim-drop-year="${year}" data-sim-drop-quarter="${quarter}"><span class="simulator-quarter-header">${quarter}Q</span></div>`).join('')}
         </div>
       </div>
     `).join('');
@@ -591,16 +591,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         lanes[lane].push({ start, end: start + span - 1 });
 
         const warnings = getSimulatorWarnings(course, placement);
+        const warningTooltip = warnings
+          .map((warning) => `${warning.message}（${warning.strengthLabel}）`)
+          .join(' / ');
+        const warningClass = warnings.some((warning) => warning.strengthClass === 'strong')
+          ? ' is-strong'
+          : '';
         const card = document.createElement('article');
         card.className = 'sim-course-card';
         card.draggable = true;
         card.dataset.simDragCourse = course.id;
         card.style.gridColumn = `${start} / span ${span}`;
         card.style.gridRow = String(lane + 2);
+        card.title = warningTooltip || `${course.subject}（${course.credits}単位）`;
+        card.setAttribute('aria-label', `${course.subject} ${course.credits}単位${warningTooltip ? `。${warningTooltip}` : ''}`);
         card.innerHTML = `
           <strong>${escapeHTML(course.subject)}</strong>
-          <span class="sim-course-quarter">${escapeHTML(option.label)} / ${course.credits}単位</span>
-          ${warnings.map((warning) => `<div class="simulator-warning ${warning.strengthClass}">${escapeHTML(warning.message)}（${warning.strengthLabel}）</div>`).join('')}
+          <span class="sim-course-credits">${escapeHTML(String(course.credits || 0))}単位</span>
+          ${warnings.length ? `<span class="sim-warning-badge${warningClass}" aria-label="${escapeHTML(warningTooltip)}">⚠</span>` : ''}
           <button type="button" class="sim-course-remove" data-sim-remove-course="${escapeHTML(course.id)}" aria-label="${escapeHTML(course.subject)}を削除">×</button>
         `;
         quarterGrid.appendChild(card);
