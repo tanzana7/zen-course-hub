@@ -910,7 +910,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       cls.subject === '多言語ITコミュニケーション'
     ));
     const globalStudiesCredits = sumCredits(allSelected.filter(cls => cls.globalStudiesRequirement === true));
-    const historyCount = allSelected.filter(cls => cls.digitalIndustryHistoryRequirement === true).length;
+    // 産業史系は「対象科目数」ではなく卒業要件に算入する単位数を表示する。
+    // 例えば2単位の産業史を1科目履修した場合も、進捗は1/2ではなく2/2となる。
+    const historyCredits = sumCredits(allSelected.filter(cls => cls.digitalIndustryHistoryRequirement === true));
 
     const advancedCredits = sumCredits(allSelected.filter(cls => cls.advancedRequirement === true));
     const advancedTarget = 74;
@@ -1103,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <a href="https://img.zen-univ.jp/studentBook/curriculumtree2026_260310.pdf" target="_blank" rel="noopener noreferrer" style="color:#007bff; font-size: 0.85em;">
                   カリキュラムツリーで対象科目を確認
                 </a>
-                <span style="font-size: 0.85em; color: #666; margin-left: 8px;">（産業史系 ${historyCount}/2）</span>
+                <span style="font-size: 0.85em; color: #666; margin-left: 8px;">（産業史系 ${historyCredits}/2）</span>
               </div>
             </details>
           </p>
