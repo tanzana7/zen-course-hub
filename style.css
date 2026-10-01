@@ -556,6 +556,102 @@ body {
   color: #666;
   margin: -10px 0 15px 5px; /* 見出しとのバランス調整 */
 }
+
+.section-heading-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-heading-row h2 {
+  margin-bottom: 8px;
+}
+
+.course-list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.clear-filter-btn,
+.empty-reset-btn {
+  border: 1px solid #93c5fd;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.clear-filter-btn:hover,
+.empty-reset-btn:hover {
+  background: #dbeafe;
+}
+
+.mobile-section-jump {
+  display: none;
+  color: #1d4ed8;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.enrollment-empty-state,
+.course-empty-state {
+  list-style: none;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #64748b;
+  padding: 16px;
+  text-align: center;
+}
+
+.course-empty-state p {
+  margin: 0 0 10px;
+}
+
+.difficulty-badge {
+  background: #fff7ed;
+  color: #9a3412;
+  border-color: #fed7aa;
+}
+
+.requirement-progress {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.requirement-met {
+  color: #15803d;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.requirement-remaining {
+  color: #6b7280;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+.close-btn {
+  border: 0;
+  background: transparent;
+  padding: 4px 8px;
+  line-height: 1;
+}
+
+.class-item.added .current-state {
+  opacity: 1;
+}
 .data-status {
   margin: 12px 0 16px;
   padding: 12px 14px;
@@ -1131,5 +1227,42 @@ body {
   #back-to-top-btn:focus-visible {
     outline: 3px solid #93c5fd;
     outline-offset: 2px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .section-heading-row {
+    align-items: center;
+  }
+
+  .mobile-section-jump {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 6px 2px;
+  }
+
+  .course-list-toolbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .search-count {
+    margin-bottom: 8px;
+  }
+
+  .clear-filter-btn,
+  .empty-reset-btn {
+    min-height: 40px;
+  }
+
+  .right-column,
+  .left-column {
+    scroll-margin-top: 12px;
+  }
+
+  .actions button,
+  .delete-btn {
+    min-height: 42px;
   }
 }

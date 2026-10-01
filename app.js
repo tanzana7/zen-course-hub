@@ -372,6 +372,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const compObjects = Array.from(state.completedClasses).map(id => state.coursesMap.get(id)).filter(Boolean);
     const allSelected = [...regObjects, ...compObjects];
 
+    // 空の一覧でも次の操作が分かるように、データがない状態を明示する。
+    if (!regObjects.length) {
+      list.innerHTML = '<li class="enrollment-empty-state">履修予定はありません。授業を探して追加できます。</li>';
+    }
+    if (!compObjects.length) {
+      completedList.innerHTML = '<li class="enrollment-empty-state">履修済みの科目はありません。</li>';
+    }
+
     const stats = calculateCredits(state);
     const regCredits = sumCredits(regObjects);
     const earnedCredits = sumCredits(compObjects);
@@ -421,7 +429,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const min = 2;
       const isMet = current >= min;
       const statusIcon = isMet ? '<span style="color: green;">✔</span>' : '<span style="color: red;">✖</span>';
-      const remainingText = isMet ? '' : `<span style="font-size: 0.85em; color: #888;">（あと${min - current}単位）</span>`;
+      const remainingText = isMet
+        ? '<span class="requirement-met">✓ 達成</span>'
+        : `<span class="requirement-remaining">（残り${Math.max(0, min - current)}単位）</span>`;
 
       // 対象科目欄: 追加UI（select/ボタン）を消して、科目名だけ表示する
       // 多言語ITコミュニケーション（対象科目の表示自体を不要とする）
@@ -492,18 +502,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const analysisResult = document.getElementById('analysis-result');
     if (analysisResult) {
-      const formatRatio = (current, target) => {
-        const safeCurrent = Number(current) || 0;
-        const safeTarget = Number(target) || 0;
+      const formatRatio = (current, target, unit = '単位') => {
+        const safeCurrent = Math.max(0, Number(current) || 0);
+        const safeTarget = Math.max(0, Number(target) || 0);
         const isMet = safeCurrent >= safeTarget;
+        const remaining = Math.max(0, safeTarget - safeCurrent);
+        const status = isMet
+          ? '<span class="requirement-met">✓ 達成</span>'
+          : `<span class="requirement-remaining">（残り${remaining}${unit}）</span>`;
         const color = isMet ? 'green' : 'red';
-        return `<span style="color: ${color}; font-weight: bold;">${safeCurrent} / ${safeTarget}</span>`;
+        return `<span class="requirement-progress"><span class="requirement-ratio" style="color: ${color}; font-weight: bold;">${safeCurrent} / ${safeTarget}</span> ${status}</span>`;
       };
 
       analysisResult.innerHTML = `
         <div class="analysis-box" style="border:2px solid #007bff; border-radius:10px; padding:12px 14px; background:#f0f7ff;">
           <p style="font-size: 1.1em; margin-bottom: 10px;">
-            <strong>総単位：</strong> ${formatRatio(stats.totalCredits, 124)} 単位（卒業要件）
+            <strong>総単位：</strong> ${formatRatio(stats.totalCredits, 124)}（卒業要件）
             ${stats.socialCredits > 10 ? '<span style="color: #ff9900; font-weight: bold; margin-left: 8px;">！</span>' : ''}
             <span style="font-size: 0.9em; margin-left: 10px; color: #666;">
               <details style="display: inline-block; margin-left: 6px;">
@@ -580,7 +594,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <a href="https://img.zen-univ.jp/studentBook/curriculumtree2026_260310.pdf" target="_blank" rel="noopener noreferrer" style="color:#007bff; font-size: 0.85em;">
                   カリキュラムツリーで対象科目を確認
                 </a>
-                <span style="font-size: 0.85em; color: #666; margin-left: 8px;">（産業史系 ${historyCount}/2）</span>
+                <span style="font-size: 0.85em; color: #666; margin-left: 8px;">（産業史系 ${formatRatio(historyCount, 2, '科目')}）</span>
               </div>
             </details>
           </p>
@@ -596,6 +610,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       `;
     }
+  };
+
+  const clearCourseFilters = () => {
+    state.filterYear = 'すべて表示';
+    state.filterQuarter = 'すべて表示';
+    state.filterCategory = '分野';
+    state.filterRequirement = 'すべて表示';
+    state.filterIntro = 'すべて表示';
+    state.filterSearch = '';
+    state.difficultySort = 'default';
+
+    const values = {
+      'year-filter': state.filterYear,
+      'quarter-filter': state.filterQuarter,
+      'category-filter': state.filterCategory,
+      'requirement-filter': state.filterRequirement,
+      'intro-filter': state.filterIntro,
+      'sort-filter': state.difficultySort
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) element.value = value;
+    });
+    const searchBar = document.getElementById('search-bar');
+    if (searchBar) searchBar.value = '';
+    renderPredefinedList();
   };
 
   /**
@@ -677,10 +717,34 @@ document.addEventListener('DOMContentLoaded', async () => {
           })
           .map(({ item }) => item);
 
-    // 検索結果件数の表示更新
+    const hasActiveFilters = Boolean(
+      state.filterSearch.trim() ||
+      state.filterYear !== 'すべて表示' ||
+      state.filterQuarter !== 'すべて表示' ||
+      state.filterCategory !== '分野' ||
+      state.filterRequirement !== 'すべて表示' ||
+      state.filterIntro !== 'すべて表示' ||
+      state.difficultySort !== 'default'
+    );
+
+    // 検索結果件数と条件解除ボタンを同期する。
     const searchCountEl = document.getElementById('search-count');
     if (searchCountEl) {
       searchCountEl.textContent = `表示中：${sorted.length}科目`;
+    }
+    const clearFiltersButton = document.getElementById('clear-course-filters');
+    if (clearFiltersButton) clearFiltersButton.hidden = !hasActiveFilters;
+
+    if (!sorted.length) {
+      const emptyItem = document.createElement('li');
+      emptyItem.className = 'course-empty-state';
+      emptyItem.innerHTML = `
+        <p>該当する科目がありません。</p>
+        ${hasActiveFilters ? '<button type="button" class="empty-reset-btn">条件をすべて解除</button>' : ''}
+      `;
+      emptyItem.querySelector('.empty-reset-btn')?.addEventListener('click', clearCourseFilters);
+      predefinedList.appendChild(emptyItem);
+      return;
     }
 
 
@@ -755,6 +819,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               ${(data.category === '必修' || data.category === '選択必修') ? `<span class="badge required">${data.category}</span>` : ''}
               ${data.year ? `<span class="badge">${data.year}</span>` : ''}
               ${data.quarter ? data.quarter.replace(/\s*([〜～ー－–—\-])\s*/g, '$1').split(/[・,、，\s]+/).filter(Boolean).map(q => `<span class="badge">${q}</span>`).join('') : ''}
+              ${difficulty ? `<span class="badge difficulty-badge">難易度 ${difficulty.average.toFixed(1)}</span>` : ''}
             </div>
           </div>
           <div class="actions">
@@ -796,6 +861,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (!relatedItem) return;
 
           event.preventDefault();
+          // 関連科目へ移動する際は、元の詳細を閉じて画面上の文脈を一つに保つ。
+          predefinedList.querySelectorAll('.class-detail.open').forEach((detail) => detail.classList.remove('open'));
           relatedItem.querySelector('.class-detail')?.classList.add('open');
           relatedItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
@@ -884,20 +951,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       state.filterSearch = e.target.value;
       renderPredefinedList();
     });
+
+    const clearFiltersButton = document.getElementById('clear-course-filters');
+    if (clearFiltersButton) clearFiltersButton.addEventListener('click', clearCourseFilters);
   };
 
   const setupAnalysisModal = () => {
     const modal = document.getElementById('analysis-modal');
     const btn = document.getElementById('analysis-btn');
-    const closeSpan = document.getElementById('close-modal');
+    const closeButton = document.getElementById('close-modal');
 
-    if (modal && closeSpan) {
+    if (modal && closeButton) {
       // ×ボタンをモーダルの右上に常に固定し、コンテンツが伸びても隠れないように設定
-      closeSpan.style.position = 'sticky';
-      closeSpan.style.top = '0';
-      closeSpan.style.float = 'right';
-      closeSpan.style.zIndex = '1000';
-      closeSpan.style.backgroundColor = 'inherit'; // モーダルの背景色を継承して背後の文字を隠す
+      closeButton.style.position = 'sticky';
+      closeButton.style.top = '0';
+      closeButton.style.float = 'right';
+      closeButton.style.zIndex = '1000';
+      closeButton.style.backgroundColor = 'inherit'; // モーダルの背景色を継承して背後の文字を隠す
 
       const modalContent = modal.querySelector('.modal-content');
       if (modalContent) {
@@ -907,12 +977,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (btn && modal) {
-      btn.onclick = () => (modal.style.display = 'block');
-      if (closeSpan) closeSpan.onclick = () => (modal.style.display = 'none');
+      const closeModal = () => {
+        modal.style.display = 'none';
+        btn.focus();
+      };
+      btn.onclick = () => {
+        modal.style.display = 'block';
+        closeButton?.focus();
+      };
+      if (closeButton) closeButton.onclick = closeModal;
 
       modal.onclick = (event) => {
-        if (event.target === modal) modal.style.display = 'none';
+        if (event.target === modal) closeModal();
       };
+
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && modal.style.display === 'block') closeModal();
+      });
     }
   };
 
@@ -922,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const setupTutorialModal = async () => {
     const modal = document.getElementById('tutorial-modal');
     const btn = document.getElementById('tutorial-btn');
-    const closeSpan = document.getElementById('close-tutorial');
+    const closeButton = document.getElementById('close-tutorial');
     const body = document.getElementById('tutorial-body');
 
     if (btn && modal && body) {
@@ -955,24 +1036,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         body.innerHTML = '<p>使い方の読み込みに失敗しました。</p>';
       }
 
-      btn.onclick = () => (modal.style.display = 'block');
-      
+      const closeTutorial = () => {
+        modal.style.display = 'none';
+        btn.focus();
+      };
+
+      btn.onclick = () => {
+        modal.style.display = 'block';
+        closeButton?.focus();
+      };
+
       // ×ボタンのイベント
-      if (closeSpan) {
-        closeSpan.onclick = () => {
-          modal.style.display = 'none';
-        };
-      }
+      if (closeButton) closeButton.onclick = closeTutorial;
 
       // モーダル外クリックで閉じる
       modal.onclick = (event) => {
-        if (event.target === modal) modal.style.display = 'none';
+        if (event.target === modal) closeTutorial();
       };
 
       // Escキーで閉じる（アクセシビリティ対応）
       window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modal.style.display === 'block') {
-          modal.style.display = 'none';
+          closeTutorial();
         }
       });
     }
