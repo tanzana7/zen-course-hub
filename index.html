@@ -121,7 +121,7 @@
 </div>
 
 <!-- 4年間履修シミュレーター（全画面ビュー） -->
-<div id="simulator-modal" class="simulator-view" hidden aria-labelledby="simulator-modal-title">
+<div id="simulator-modal" class="simulator-view" hidden aria-labelledby="simulator-modal-title" data-simulator-title="4年間履修シミュレーター v2">
   <div class="simulator-shell">
     <header class="simulator-toolbar">
       <button id="close-simulator" class="simulator-back" type="button">← 履修管理に戻る</button>
@@ -170,6 +170,11 @@
             </select>
             <select id="sim-course-category-filter" aria-label="シミュレーター分野フィルター">
               <option value="すべて表示">分野</option>
+            </select>
+            <select id="sim-course-placement-filter" aria-label="シミュレーター配置状態フィルター">
+              <option value="all">配置状態</option>
+              <option value="unplaced">未配置</option>
+              <option value="placed">配置済み</option>
             </select>
             <select id="sim-course-sort" aria-label="シミュレーター難易度順">
               <option value="default">標準</option>

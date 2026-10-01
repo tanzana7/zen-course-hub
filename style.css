@@ -936,6 +936,23 @@ body.simulator-view-active > #analysis-modal {
   overflow-wrap: anywhere;
 }
 
+.simulator-course-detail-description {
+  margin: 0 0 18px;
+}
+
+.simulator-course-detail-description h3 {
+  margin: 0 0 6px;
+  color: #1e3a8a;
+  font-size: 0.95rem;
+}
+
+.simulator-course-detail-description p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.88em;
+  line-height: 1.55;
+}
+
 .simulator-course-detail-warnings h3 {
   margin: 0 0 7px;
   color: #1e3a8a;
@@ -954,6 +971,57 @@ body.simulator-view-active > #analysis-modal {
   margin: 0;
   color: #64748b;
   font-size: 0.86em;
+}
+
+.simulator-course-detail-relations {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #eef2f7;
+}
+
+.simulator-course-detail-relations h3 {
+  margin: 0 0 8px;
+  color: #1e3a8a;
+  font-size: 0.95rem;
+}
+
+.simulator-course-detail-relations > div + div {
+  margin-top: 10px;
+}
+
+.simulator-course-detail-relations ul {
+  display: grid;
+  gap: 5px;
+  margin: 5px 0 0;
+  padding-left: 1.1em;
+}
+
+.simulator-related-course {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1d4ed8;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.simulator-course-detail-remove {
+  width: 100%;
+  margin-top: 18px;
+  padding: 9px 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 5px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.simulator-course-detail-remove:hover,
+.simulator-course-detail-remove:focus-visible {
+  border-color: #2563eb;
+  background: #dbeafe;
 }
 
 .simulator-warning {
