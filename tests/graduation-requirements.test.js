@@ -30,3 +30,12 @@ test('単位数要件は対象科目のcredits合計を使い、重複IDは1回�
   assert.equal(sumCredits(selectedWithDuplicate), 2);
   assert.match(appSource, /const (literacyCredits|multilingualInfoCredits|globalStudiesCredits|advancedCredits) = sumCredits\(/);
 });
+
+test('卒業プロジェクトはcourses.jsonのgraduationRequirement定義を単位集計へ反映する', () => {
+  const project = courses.find((course) => course.subject === 'プロジェクト実践');
+
+  assert.ok(project, 'プロジェクト実践がcourses.jsonに存在すること');
+  assert.equal(project.graduationRequirement, true);
+  assert.equal(project.credits, 4);
+  assert.match(appSource, /cls\.graduationRequirement === true/);
+});

@@ -1112,7 +1112,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           <p style="margin-bottom: 5px;">
             <strong>卒業プロジェクト科目：</strong>
             ${(() => {
-              const projectCredits = sumCredits(allSelected.filter(cls => cls.projectPracticeRequirement === true || cls.projectPractice === true || cls.projectPracticeRequirement === 'true'));
+              const projectCredits = sumCredits(allSelected.filter(cls =>
+                cls.graduationRequirement === true ||
+                cls.projectPracticeRequirement === true ||
+                cls.projectPractice === true ||
+                cls.projectPracticeRequirement === 'true'
+              ));
               const projectTarget = 4;
               return formatRatio(projectCredits, projectTarget);
             })()}
