@@ -1191,6 +1191,195 @@ body {
   }
 }
 
+/* 絞り込み・並び替えを一つの入口へまとめるための共通レイアウト。 */
+.input-area {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.input-area #search-bar {
+  grid-column: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+.filter-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, auto);
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.filter-options-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 16px;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  background: #fff;
+  color: #1d4ed8;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.filter-options-toggle:focus-visible,
+.filter-checkbox input:focus-visible,
+.filter-options-panel select:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.filter-active-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5em;
+  height: 1.5em;
+  padding: 0 0.35em;
+  border-radius: 999px;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 0.85em;
+  line-height: 1;
+}
+
+.filter-options-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(240px, 1fr);
+  gap: 18px;
+  width: 100%;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.filter-options-panel[hidden] {
+  display: none !important;
+}
+
+.filter-options-section {
+  min-width: 0;
+}
+
+.filter-options-section h2 {
+  margin: 0 0 10px;
+  color: #1e3a8a;
+  font-size: 1rem;
+}
+
+.filter-options-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.filter-options-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  color: #374151;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.filter-options-grid select,
+.filter-options-panel .sort-control select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.filter-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  margin-top: 12px;
+  color: #374151;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.filter-checkbox input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.sort-options-section {
+  padding-left: 18px;
+  border-left: 1px solid #e5e7eb;
+}
+
+.filter-options-panel .sort-control {
+  width: 100%;
+}
+
+.filter-options-panel .clear-filter-btn {
+  grid-column: 1 / -1;
+  justify-self: start;
+  min-height: 40px;
+}
+
+@media screen and (min-width: 769px) and (max-width: 1100px) {
+  .filter-options-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .sort-options-section {
+    padding-top: 14px;
+    padding-left: 0;
+    border-top: 1px solid #e5e7eb;
+    border-left: 0;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .filter-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filter-actions #analysis-btn,
+  .filter-actions .filter-options-toggle {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .filter-options-panel {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 12px;
+  }
+
+  .filter-options-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sort-options-section {
+    padding-top: 12px;
+    padding-left: 0;
+    border-top: 1px solid #e5e7eb;
+    border-left: 0;
+  }
+
+  .filter-options-panel .clear-filter-btn {
+    width: 100%;
+  }
+}
+
 @media screen and (max-width: 420px) {
   .input-area {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -1264,5 +1453,36 @@ body {
   .actions button,
   .delete-btn {
     min-height: 42px;
+  }
+}
+
+/* 既存の狭幅用input-area指定より後に置き、検索欄とpanel入口を常に1列へ固定する。 */
+@media screen and (max-width: 768px) {
+  .input-area {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .input-area #search-bar,
+  .input-area .filter-actions {
+    grid-column: 1 !important;
+  }
+}
+
+/* hidden属性は既存のinline-flex指定より優先して、未適用時のバッジを確実に隠す。 */
+.filter-active-count[hidden] {
+  display: none !important;
+}
+
+@media screen and (max-width: 768px) {
+  .filter-actions {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  }
+
+  .filter-options-toggle {
+    white-space: nowrap;
+    font-size: 0.9rem;
+    gap: 5px;
+    padding-left: 8px;
+    padding-right: 8px;
   }
 }

@@ -23,7 +23,8 @@ document.addEventListener('DOMContentLoaded', async () => {
    */
   const STORAGE_KEYS = {
     REGISTERED: 'myClasses',
-    COMPLETED: 'completedClasses'
+    COMPLETED: 'completedClasses',
+    FILTER_PREFERENCES: 'courseFilterPreferences'
   };
 
   /**
@@ -91,9 +92,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     filterIntro: 'すべて表示',
     filterSearch: '',
     difficultySort: 'default',
+    excludePixiv: false,
     difficultyMap: new Map(), // 科目IDをキーにした難易度目安データ
     relationsMap: new Map() // 科目IDをキーにした前提・後継科目データ
   };
+
+  // 探索一覧の表示設定だけを独立保存し、履修データのlocalStorage形式へ混ぜない。
+  const loadFilterPreferences = () => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.FILTER_PREFERENCES);
+      if (!raw) return { excludePixiv: false };
+      const parsed = JSON.parse(raw);
+      return { excludePixiv: parsed?.excludePixiv === true };
+    } catch (error) {
+      console.warn('授業検索設定の復元に失敗しました。初期値を使用します。', error);
+      return { excludePixiv: false };
+    }
+  };
+
+  const saveFilterPreferences = (preferences) => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.FILTER_PREFERENCES, JSON.stringify({
+        excludePixiv: preferences.excludePixiv === true
+      }));
+    } catch (error) {
+      console.warn('授業検索設定の保存に失敗しました。', error);
+    }
+  };
+
+  const filterPreferences = loadFilterPreferences();
+  state.excludePixiv = filterPreferences.excludePixiv;
 
   /**
    * 難易度データを検証し、表示に利用できる形式へ正規化する
@@ -627,6 +655,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     state.filterIntro = 'すべて表示';
     state.filterSearch = '';
     state.difficultySort = 'default';
+    state.excludePixiv = false;
+    saveFilterPreferences({ excludePixiv: false });
 
     const values = {
       'year-filter': state.filterYear,
@@ -642,6 +672,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     const searchBar = document.getElementById('search-bar');
     if (searchBar) searchBar.value = '';
+    const excludePixiv = document.getElementById('exclude-pixiv-filter');
+    if (excludePixiv) excludePixiv.checked = false;
     renderPredefinedList();
   };
 
@@ -705,7 +737,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         item.teacher.toLowerCase().includes(searchLower) ||
         (item.tag && item.tag.toLowerCase().includes(searchLower.replace('#', '')));
 
-      return matchYear && matchQuarter && matchRequirement && matchIntro && matchCategory && matchSearch;
+      const matchProvider = !state.excludePixiv || item.provider !== 'pixiv';
+
+      return matchYear && matchQuarter && matchRequirement && matchIntro && matchCategory && matchSearch && matchProvider;
     });
 
     const sorted = state.difficultySort === 'default'
@@ -731,8 +765,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       state.filterCategory !== '分野' ||
       state.filterRequirement !== 'すべて表示' ||
       state.filterIntro !== 'すべて表示' ||
-      state.difficultySort !== 'default'
+      state.difficultySort !== 'default' ||
+      state.excludePixiv
     );
+
+    const activeConditionCount = [
+      state.filterYear !== 'すべて表示',
+      state.filterQuarter !== 'すべて表示',
+      state.filterCategory !== '分野',
+      state.filterRequirement !== 'すべて表示',
+      state.excludePixiv,
+      state.difficultySort !== 'default'
+    ].filter(Boolean).length;
+
+    const activeCountElement = document.getElementById('filter-active-count');
+    if (activeCountElement) {
+      activeCountElement.hidden = activeConditionCount === 0;
+      activeCountElement.textContent = activeConditionCount > 0 ? String(activeConditionCount) : '';
+    }
 
     // 検索結果件数と条件解除ボタンを同期する。
     const searchCountEl = document.getElementById('search-count');
@@ -958,6 +1008,42 @@ document.addEventListener('DOMContentLoaded', async () => {
       state.filterSearch = e.target.value;
       renderPredefinedList();
     });
+
+    const excludePixiv = document.getElementById('exclude-pixiv-filter');
+    if (excludePixiv) {
+      excludePixiv.checked = state.excludePixiv;
+      excludePixiv.addEventListener('change', (event) => {
+        state.excludePixiv = event.target.checked;
+        saveFilterPreferences({ excludePixiv: state.excludePixiv });
+        renderPredefinedList();
+      });
+    }
+
+    const filterToggle = document.getElementById('filter-options-toggle');
+    const filterPanel = document.getElementById('filter-options-panel');
+    if (filterToggle && filterPanel) {
+      const setFilterPanelOpen = (isOpen, returnFocus = false) => {
+        filterPanel.hidden = !isOpen;
+        filterToggle.setAttribute('aria-expanded', String(isOpen));
+        if (!isOpen && returnFocus) filterToggle.focus();
+      };
+
+      filterToggle.addEventListener('click', () => {
+        setFilterPanelOpen(filterPanel.hidden);
+      });
+
+      document.addEventListener('click', (event) => {
+        if (!filterPanel.hidden && !event.target.closest('.input-area')) {
+          setFilterPanelOpen(false);
+        }
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !filterPanel.hidden) {
+          setFilterPanelOpen(false, true);
+        }
+      });
+    }
 
     const clearFiltersButton = document.getElementById('clear-course-filters');
     if (clearFiltersButton) clearFiltersButton.addEventListener('click', clearCourseFilters);

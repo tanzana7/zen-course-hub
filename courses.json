@@ -4166,6 +4166,7 @@
   },
   {
     "id": "digital_image_tech_1",
+    "provider": "pixiv",
     "subject": "デジタル画像技法論Ⅰ（デジタルイラストツール基礎）",
     "teacher": "ディープブリザード",
     "credits": 1,
@@ -4181,6 +4182,7 @@
   },
   {
     "id": "digital_image_tech_2",
+    "provider": "pixiv",
     "subject": "デジタル画像技法論Ⅱ（クロッキーとスケッチ）",
     "teacher": "下田 スケッチ",
     "credits": 1,
@@ -4196,6 +4198,7 @@
   },
   {
     "id": "digital_image_tech_3",
+    "provider": "pixiv",
     "subject": "デジタル画像技法論Ⅲ（マンガ概論）",
     "teacher": "赤坂 アカ",
     "credits": 1,
@@ -4286,6 +4289,7 @@
   },
   {
     "id": "digital_image_creation_1",
+    "provider": "pixiv",
     "subject": "デジタル画像創作論Ⅰ（メディアデザイン概論）",
     "teacher": "有馬 トモユキ",
     "credits": 1,
@@ -4301,6 +4305,7 @@
   },
   {
     "id": "digital_image_creation_2",
+    "provider": "pixiv",
     "subject": "デジタル画像創作論Ⅱ（キャラクターデザイン）",
     "teacher": "順次公開予定",
     "credits": 1,
@@ -4316,6 +4321,7 @@
   },
   {
     "id": "digital_image_creation_3",
+    "provider": "pixiv",
     "subject": "デジタル画像創作論Ⅲ（イラスト制作基礎　人物画）",
     "teacher": "ディープブリザード",
     "credits": 1,
@@ -4376,6 +4382,7 @@
   },
   {
     "id": "digital_image_apps_1",
+    "provider": "pixiv",
     "subject": "デジタル画像活用Ⅰ（イラスト制作基礎　写真模写）",
     "teacher": "下田 スケッチ",
     "credits": 1,
@@ -4391,6 +4398,7 @@
   },
   {
     "id": "digital_image_apps_2",
+    "provider": "pixiv",
     "subject": "デジタル画像活用Ⅱ（イラストディレクション講座）",
     "teacher": "大塚 勇",
     "credits": 1,
@@ -4406,6 +4414,7 @@
   },
   {
     "id": "illustration_entertainment_a",
+    "provider": "pixiv",
     "subject": "イラストとエンタテインメントA（イラスト制作基礎　模写制作）",
     "teacher": "たいら あきら",
     "credits": 1,
@@ -4421,6 +4430,7 @@
   },
   {
     "id": "illustration_entertainment_b",
+    "provider": "pixiv",
     "subject": "イラストとエンタテインメントB（イラスト制作基礎　構図/構成）",
     "teacher": "六番",
     "credits": 1,
@@ -4436,6 +4446,7 @@
   },
   {
     "id": "illustration_entertainment_c",
+    "provider": "pixiv",
     "subject": "イラストとエンタテインメントC（色彩表現概論）",
     "teacher": "早川 涼太",
     "credits": 1,
@@ -4451,6 +4462,7 @@
   },
   {
     "id": "illustration_entertainment_d",
+    "provider": "pixiv",
     "subject": "イラストとエンタテインメントD（キービジュアル）",
     "teacher": "たいら あきら",
     "credits": 1,
@@ -4466,6 +4478,7 @@
   },
   {
     "id": "illustration_design_a",
+    "provider": "pixiv",
     "subject": "イラストとデザインA（イラスト解剖学）",
     "teacher": "ふるり",
     "credits": 1,
@@ -4481,6 +4494,7 @@
   },
   {
     "id": "illustration_design_b",
+    "provider": "pixiv",
     "subject": "イラストとデザインB（陰影から学ぶライティング講座）",
     "teacher": "早川 涼太",
     "credits": 1,
@@ -4496,6 +4510,7 @@
   },
   {
     "id": "illustration_design_c",
+    "provider": "pixiv",
     "subject": "イラストとデザインC（業界別ポートフォリオ基礎）",
     "teacher": "早川 涼太",
     "credits": 1,
@@ -4511,6 +4526,7 @@
   },
   {
     "id": "illustration_design_d",
+    "provider": "pixiv",
     "subject": "イラストとデザインD（デッサン）",
     "teacher": "ふるり",
     "credits": 1,
@@ -4526,6 +4542,7 @@
   },
   {
     "id": "illustration_apps_a",
+    "provider": "pixiv",
     "subject": "イラストとその活用A（イラストコンセプト特論）",
     "teacher": "早川 涼太",
     "credits": 1,
@@ -4541,6 +4558,7 @@
   },
   {
     "id": "illustration_apps_b",
+    "provider": "pixiv",
     "subject": "イラストとその活用B（業界研究）",
     "teacher": "たいら あきら",
     "credits": 1,
@@ -4556,6 +4574,7 @@
   },
   {
     "id": "illustration_apps_c",
+    "provider": "pixiv",
     "subject": "イラストとその活用C（背景イラスト概論）",
     "teacher": "六番",
     "credits": 1,
@@ -4571,6 +4590,7 @@
   },
   {
     "id": "illustration_apps_d",
+    "provider": "pixiv",
     "subject": "イラストとその活用D（アニメーション概論）",
     "teacher": "浅川 りか",
     "credits": 1,
