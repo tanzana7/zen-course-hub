@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const list = document.getElementById('list');
   const completedList = document.getElementById('completed-list');
   const predefinedList = document.getElementById('predefined-classes-list');
+  const relatedCourseDetailHost = document.getElementById('related-course-detail-host');
   const dataStatus = document.getElementById('data-status');
 
   // 卒業要件分析（導入科目）の判定に使用するリストを復活
@@ -23,7 +24,8 @@ document.addEventListener('DOMContentLoaded', async () => {
    */
   const STORAGE_KEYS = {
     REGISTERED: 'myClasses',
-    COMPLETED: 'completedClasses'
+    COMPLETED: 'completedClasses',
+    FILTER_PREFERENCES: 'courseFilterPreferences'
   };
 
   /**
@@ -91,9 +93,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     filterIntro: 'すべて表示',
     filterSearch: '',
     difficultySort: 'default',
+    excludePixiv: false,
     difficultyMap: new Map(), // 科目IDをキーにした難易度目安データ
     relationsMap: new Map() // 科目IDをキーにした前提・後継科目データ
   };
+
+  // 探索一覧の表示設定だけを独立保存し、履修データのlocalStorage形式へ混ぜない。
+  const loadFilterPreferences = () => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.FILTER_PREFERENCES);
+      if (!raw) return { excludePixiv: false };
+      const parsed = JSON.parse(raw);
+      return { excludePixiv: parsed?.excludePixiv === true };
+    } catch (error) {
+      console.warn('授業検索設定の復元に失敗しました。初期値を使用します。', error);
+      return { excludePixiv: false };
+    }
+  };
+
+  const saveFilterPreferences = (preferences) => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.FILTER_PREFERENCES, JSON.stringify({
+        excludePixiv: preferences.excludePixiv === true
+      }));
+    } catch (error) {
+      console.warn('授業検索設定の保存に失敗しました。', error);
+    }
+  };
+
+  const filterPreferences = loadFilterPreferences();
+  state.excludePixiv = filterPreferences.excludePixiv;
 
   /**
    * 難易度データを検証し、表示に利用できる形式へ正規化する
@@ -372,6 +401,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const compObjects = Array.from(state.completedClasses).map(id => state.coursesMap.get(id)).filter(Boolean);
     const allSelected = [...regObjects, ...compObjects];
 
+    // 空の一覧でも次の操作が分かるように、データがない状態を明示する。
+    if (!regObjects.length) {
+      list.innerHTML = '<li class="enrollment-empty-state">履修予定はありません。授業を探して追加できます。</li>';
+    }
+    if (!compObjects.length) {
+      completedList.innerHTML = '<li class="enrollment-empty-state">履修済みの科目はありません。</li>';
+    }
+
     const stats = calculateCredits(state);
     const regCredits = sumCredits(regObjects);
     const earnedCredits = sumCredits(compObjects);
@@ -387,7 +424,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       cls.subject === '多言語ITコミュニケーション'
     ));
     const globalStudiesCredits = sumCredits(allSelected.filter(cls => cls.globalStudiesRequirement === true));
-    const historyCount = allSelected.filter(cls => cls.digitalIndustryHistoryRequirement === true).length;
+    // 産業史系は「対象科目数」ではなく卒業要件に算入する単位数を表示する。
+    // 例えば2単位の産業史を1科目履修した場合も、進捗は1/2ではなく2/2となる。
+    const historyCredits = sumCredits(allSelected.filter(cls => cls.digitalIndustryHistoryRequirement === true));
 
     const advancedCredits = sumCredits(allSelected.filter(cls => cls.advancedRequirement === true));
     const advancedTarget = 74;
@@ -421,7 +460,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const min = 2;
       const isMet = current >= min;
       const statusIcon = isMet ? '<span style="color: green;">✔</span>' : '<span style="color: red;">✖</span>';
-      const remainingText = isMet ? '' : `<span style="font-size: 0.85em; color: #888;">（あと${min - current}単位）</span>`;
+      const remainingText = isMet
+        ? '<span class="requirement-met">✓ 達成</span>'
+        : `<span class="requirement-remaining">（残り${Math.max(0, min - current)}単位）</span>`;
 
       // 対象科目欄: 追加UI（select/ボタン）を消して、科目名だけ表示する
       // 多言語ITコミュニケーション（対象科目の表示自体を不要とする）
@@ -492,18 +533,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const analysisResult = document.getElementById('analysis-result');
     if (analysisResult) {
-      const formatRatio = (current, target) => {
-        const safeCurrent = Number(current) || 0;
-        const safeTarget = Number(target) || 0;
+      const formatRatio = (current, target, unit = '単位') => {
+        const safeCurrent = Math.max(0, Number(current) || 0);
+        const safeTarget = Math.max(0, Number(target) || 0);
         const isMet = safeCurrent >= safeTarget;
+        const remaining = Math.max(0, safeTarget - safeCurrent);
+        const status = isMet
+          ? '<span class="requirement-met">✓ 達成</span>'
+          : `<span class="requirement-remaining">（残り${remaining}${unit}）</span>`;
         const color = isMet ? 'green' : 'red';
-        return `<span style="color: ${color}; font-weight: bold;">${safeCurrent} / ${safeTarget}</span>`;
+        return `<span class="requirement-progress"><span class="requirement-ratio" style="color: ${color}; font-weight: bold;">${safeCurrent} / ${safeTarget}</span> ${status}</span>`;
       };
 
       analysisResult.innerHTML = `
         <div class="analysis-box" style="border:2px solid #007bff; border-radius:10px; padding:12px 14px; background:#f0f7ff;">
           <p style="font-size: 1.1em; margin-bottom: 10px;">
-            <strong>総単位：</strong> ${formatRatio(stats.totalCredits, 124)} 単位（卒業要件）
+            <strong>総単位：</strong> ${formatRatio(stats.totalCredits, 124)}（卒業要件）
             ${stats.socialCredits > 10 ? '<span style="color: #ff9900; font-weight: bold; margin-left: 8px;">！</span>' : ''}
             <span style="font-size: 0.9em; margin-left: 10px; color: #666;">
               <details style="display: inline-block; margin-left: 6px;">
@@ -580,14 +625,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <a href="https://img.zen-univ.jp/studentBook/curriculumtree2026_260310.pdf" target="_blank" rel="noopener noreferrer" style="color:#007bff; font-size: 0.85em;">
                   カリキュラムツリーで対象科目を確認
                 </a>
-                <span style="font-size: 0.85em; color: #666; margin-left: 8px;">（産業史系 ${historyCount}/2）</span>
+                <span style="font-size: 0.85em; color: #666; margin-left: 8px;">（産業史系 ${formatRatio(historyCredits, 2)}）</span>
               </div>
             </details>
           </p>
           <p style="margin-bottom: 5px;">
             <strong>卒業プロジェクト科目：</strong>
             ${(() => {
-              const projectCredits = sumCredits(allSelected.filter(cls => cls.projectPracticeRequirement === true || cls.projectPractice === true || cls.projectPracticeRequirement === 'true'));
+              const projectCredits = sumCredits(allSelected.filter(cls =>
+                cls.graduationRequirement === true ||
+                cls.projectPracticeRequirement === true ||
+                cls.projectPractice === true ||
+                cls.projectPracticeRequirement === 'true'
+              ));
               const projectTarget = 4;
               return formatRatio(projectCredits, projectTarget);
             })()}
@@ -597,6 +647,154 @@ document.addEventListener('DOMContentLoaded', async () => {
       `;
     }
   };
+
+  const clearCourseFilters = () => {
+    state.filterYear = 'すべて表示';
+    state.filterQuarter = 'すべて表示';
+    state.filterCategory = '分野';
+    state.filterRequirement = 'すべて表示';
+    state.filterIntro = 'すべて表示';
+    state.filterSearch = '';
+    state.difficultySort = 'default';
+    state.excludePixiv = false;
+    saveFilterPreferences({ excludePixiv: false });
+
+    const values = {
+      'year-filter': state.filterYear,
+      'quarter-filter': state.filterQuarter,
+      'category-filter': state.filterCategory,
+      'requirement-filter': state.filterRequirement,
+      'intro-filter': state.filterIntro,
+      'sort-filter': state.difficultySort
+    };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) element.value = value;
+    });
+    const searchBar = document.getElementById('search-bar');
+    if (searchBar) searchBar.value = '';
+    const excludePixiv = document.getElementById('exclude-pixiv-filter');
+    if (excludePixiv) excludePixiv.checked = false;
+    renderPredefinedList();
+  };
+
+  let relatedDetailReturnFocus = null;
+
+  const renderRelationLinks = (relationItems) => (relationItems || []).map((relation) => {
+    const relatedId = typeof relation === 'string' ? relation : relation.id;
+    const strength = typeof relation === 'string' ? 'recommended' : relation.strength;
+    const relatedCourse = state.coursesMap.get(relatedId);
+    if (!relatedCourse) return '';
+    const strengthLabel = strength === 'strongly_recommended' ? '強く推奨' : '推奨';
+    const strengthClass = strength === 'strongly_recommended' ? 'strong' : 'recommended';
+    return `<li><a href="#course-${escapeHTML(relatedCourse.id)}" class="related-course-link" data-course-id="${escapeHTML(relatedCourse.id)}">${escapeHTML(relatedCourse.subject)}</a> <span class="relation-strength ${strengthClass}">${strengthLabel}</span></li>`;
+  }).join('');
+
+  const renderCourseDetailMarkup = (data) => {
+    if (!data || typeof data.id !== 'string' || !data.id) return '';
+
+    const difficulty = state.difficultyMap.get(data.id);
+    const difficultyHtml = difficulty ? `
+      <section class="difficulty-section" aria-label="授業難易度">
+        <h5 class="difficulty-title">📊 授業難易度</h5>
+        <p><strong>難易度目安：</strong>${difficulty.average.toFixed(2)} / 10.0</p>
+        <p><strong>投票数：</strong>${difficulty.votes}票</p>
+        <p class="difficulty-source-row">
+          <strong>出典：</strong><a href="${escapeHTML(difficulty.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="difficulty-source">${escapeHTML(difficulty.sourceLabel)}</a>
+        </p>
+      </section>
+    ` : '';
+
+    const relations = state.relationsMap.get(data.id);
+    const prerequisiteLinks = renderRelationLinks(relations?.prerequisites);
+    const successorLinks = renderRelationLinks(relations?.successors);
+    const relationsHtml = (prerequisiteLinks || successorLinks) ? `
+      <section class="course-relations" aria-label="関連科目">
+        <h5 class="course-relations-title">関連科目</h5>
+        ${prerequisiteLinks ? `<div class="course-relation-group"><strong>前提科目</strong><ul>${prerequisiteLinks}</ul></div>` : ''}
+        ${successorLinks ? `<div class="course-relation-group"><strong>後継科目</strong><ul>${successorLinks}</ul></div>` : ''}
+      </section>
+    ` : '';
+
+    const teacherParts = data.teacher.split(', ');
+    const displayTeacher = teacherParts.length > 1
+      ? `${teacherParts[0]} 他${teacherParts.length - 1}名`
+      : data.teacher;
+
+    return `
+      <h4 class="detail-subject" tabindex="-1">${data.subject}</h4>
+      <div class="detail-badges">
+        <span class="badge-cat ${data.category === '必修' || data.category === '選択必修' ? 'important' : ''}">${data.category}</span>
+        <span class="badge-item">${data.credits}単位</span>
+        <span class="badge-item">${data.year}</span>
+        <span class="badge-item">${data.quarter}</span>
+      </div>
+      <div class="detail-sections">
+        <p><strong>科目区分:</strong> ${data.method || '-'} ${data.remarks ? `(${data.remarks})` : ''}</p>
+        <p><strong>タグ:</strong> ${data.tag ? `#${data.tag}` : '-'}</p>
+        <p><strong>教員情報:</strong> ${displayTeacher}</p>
+        <p class="evaluation"><strong>評価方法:</strong> ${data.evaluation}</p>
+        ${data.url ? `<p><a href="${data.url}" target="_blank" rel="noopener noreferrer" class="syllabus-link" title="ZEN大学シラバスサイトの該当ページを開きます">ZEN大学シラバスで詳細を確認</a></p>` : ''}
+        <p class="description"><strong>授業概要:</strong> ${data.description}</p>
+        ${difficultyHtml}
+        ${relationsHtml}
+      </div>
+    `;
+  };
+
+  const bindRelatedCourseLinks = (container) => {
+    container.querySelectorAll('.related-course-link').forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        const courseId = link.dataset.courseId;
+        if (typeof courseId !== 'string' || !state.coursesMap.has(courseId)) return;
+
+        if (relatedCourseDetailHost && relatedCourseDetailHost.hidden) {
+          const sourceItem = link.closest('.predefined-item');
+          relatedDetailReturnFocus = sourceItem?.querySelector('.detail-btn') || document.activeElement;
+        }
+
+        openCourseDetail(courseId);
+      });
+    });
+  };
+
+  const closeRelatedCourseDetail = (returnFocus = true) => {
+    if (!relatedCourseDetailHost) return;
+    relatedCourseDetailHost.hidden = true;
+    relatedCourseDetailHost.replaceChildren();
+    if (returnFocus && relatedDetailReturnFocus?.isConnected) relatedDetailReturnFocus.focus();
+    relatedDetailReturnFocus = null;
+  };
+
+  const openCourseDetail = (courseId) => {
+    const course = state.coursesMap.get(courseId);
+    if (!course || !relatedCourseDetailHost) return;
+
+    // 関連詳細は探索リスト外の独立領域で描画し、現在の検索・フィルター結果を変更しない。
+    predefinedList.querySelectorAll('.class-detail.open').forEach((detail) => {
+      detail.classList.remove('open');
+      detail.closest('.predefined-item')?.querySelector('.detail-btn')?.setAttribute('aria-expanded', 'false');
+    });
+
+    relatedCourseDetailHost.innerHTML = `
+      <div class="related-course-detail-shell">
+        <button class="related-detail-close" type="button" aria-label="関連科目の詳細を閉じる">×</button>
+        <div class="class-detail open">${renderCourseDetailMarkup(course)}</div>
+      </div>
+    `;
+    relatedCourseDetailHost.hidden = false;
+    relatedCourseDetailHost.querySelector('.related-detail-close')?.addEventListener('click', () => closeRelatedCourseDetail());
+    bindRelatedCourseLinks(relatedCourseDetailHost);
+    relatedCourseDetailHost.querySelector('.detail-subject')?.focus({ preventScroll: true });
+    relatedCourseDetailHost.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && relatedCourseDetailHost && !relatedCourseDetailHost.hidden) {
+      closeRelatedCourseDetail();
+    }
+  });
 
   /**
    * 既定の授業リスト（左カラム）を画面に描画する関数
@@ -658,7 +856,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         item.teacher.toLowerCase().includes(searchLower) ||
         (item.tag && item.tag.toLowerCase().includes(searchLower.replace('#', '')));
 
-      return matchYear && matchQuarter && matchRequirement && matchIntro && matchCategory && matchSearch;
+      const matchProvider = !state.excludePixiv || item.provider !== 'pixiv';
+
+      return matchYear && matchQuarter && matchRequirement && matchIntro && matchCategory && matchSearch && matchProvider;
     });
 
     const sorted = state.difficultySort === 'default'
@@ -677,10 +877,50 @@ document.addEventListener('DOMContentLoaded', async () => {
           })
           .map(({ item }) => item);
 
-    // 検索結果件数の表示更新
+    const hasActiveFilters = Boolean(
+      state.filterSearch.trim() ||
+      state.filterYear !== 'すべて表示' ||
+      state.filterQuarter !== 'すべて表示' ||
+      state.filterCategory !== '分野' ||
+      state.filterRequirement !== 'すべて表示' ||
+      state.filterIntro !== 'すべて表示' ||
+      state.difficultySort !== 'default' ||
+      state.excludePixiv
+    );
+
+    const activeConditionCount = [
+      state.filterYear !== 'すべて表示',
+      state.filterQuarter !== 'すべて表示',
+      state.filterCategory !== '分野',
+      state.filterRequirement !== 'すべて表示',
+      state.excludePixiv,
+      state.difficultySort !== 'default'
+    ].filter(Boolean).length;
+
+    const activeCountElement = document.getElementById('filter-active-count');
+    if (activeCountElement) {
+      activeCountElement.hidden = activeConditionCount === 0;
+      activeCountElement.textContent = activeConditionCount > 0 ? String(activeConditionCount) : '';
+    }
+
+    // 検索結果件数と条件解除ボタンを同期する。
     const searchCountEl = document.getElementById('search-count');
     if (searchCountEl) {
       searchCountEl.textContent = `表示中：${sorted.length}科目`;
+    }
+    const clearFiltersButton = document.getElementById('clear-course-filters');
+    if (clearFiltersButton) clearFiltersButton.hidden = !hasActiveFilters;
+
+    if (!sorted.length) {
+      const emptyItem = document.createElement('li');
+      emptyItem.className = 'course-empty-state';
+      emptyItem.innerHTML = `
+        <p>該当する科目がありません。</p>
+        ${hasActiveFilters ? '<button type="button" class="empty-reset-btn">条件をすべて解除</button>' : ''}
+      `;
+      emptyItem.querySelector('.empty-reset-btn')?.addEventListener('click', clearCourseFilters);
+      predefinedList.appendChild(emptyItem);
+      return;
     }
 
 
@@ -690,44 +930,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       // UI上の背景色などは「どちらかに入っている」場合に適用
       const isHandled = isRegistered || isCompleted; 
 
-      const teacherParts = data.teacher.split(', ');
-      const displayTeacher = teacherParts.length > 1
-        ? `${teacherParts[0]} 他${teacherParts.length - 1}名`
-        : data.teacher;
-
       // 難易度データが登録されている科目に限り、詳細欄へ表示する
       const difficulty = state.difficultyMap.get(data.id);
-      const difficultyHtml = difficulty ? `
-        <section class="difficulty-section" aria-label="授業難易度">
-          <h5 class="difficulty-title">📊 授業難易度</h5>
-          <p><strong>難易度目安：</strong>${difficulty.average.toFixed(2)} / 10.0</p>
-          <p><strong>投票数：</strong>${difficulty.votes}票</p>
-          <p class="difficulty-source-row">
-            <strong>出典：</strong><a href="${escapeHTML(difficulty.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="difficulty-source">${escapeHTML(difficulty.sourceLabel)}</a>
-          </p>
-        </section>
-      ` : '';
-
-      const relations = state.relationsMap.get(data.id);
-      const renderRelationLinks = (relationItems) => (relationItems || []).map((relation) => {
-        const relatedId = typeof relation === 'string' ? relation : relation.id;
-        const strength = typeof relation === 'string' ? 'recommended' : relation.strength;
-        const relatedCourse = state.coursesMap.get(relatedId);
-        if (!relatedCourse) return '';
-        const strengthLabel = strength === 'strongly_recommended' ? '強く推奨' : '推奨';
-        const strengthClass = strength === 'strongly_recommended' ? 'strong' : 'recommended';
-        return `<li><a href="#course-${escapeHTML(relatedCourse.id)}" class="related-course-link" data-course-id="${escapeHTML(relatedCourse.id)}">${escapeHTML(relatedCourse.subject)}</a> <span class="relation-strength ${strengthClass}">${strengthLabel}</span></li>`;
-      }).join('');
-      const prerequisiteLinks = renderRelationLinks(relations?.prerequisites);
-      const successorLinks = renderRelationLinks(relations?.successors);
-      const relationsHtml = (prerequisiteLinks || successorLinks) ? `
-        <section class="course-relations" aria-label="関連科目">
-          <h5 class="course-relations-title">関連科目</h5>
-          ${prerequisiteLinks ? `<div class="course-relation-group"><strong>前提科目</strong><ul>${prerequisiteLinks}</ul></div>` : ''}
-          ${successorLinks ? `<div class="course-relation-group"><strong>後継科目</strong><ul>${successorLinks}</ul></div>` : ''}
-        </section>
-      ` : '';
-
       const li = document.createElement('li');
 
       const addButton = isRegistered
@@ -755,51 +959,25 @@ document.addEventListener('DOMContentLoaded', async () => {
               ${(data.category === '必修' || data.category === '選択必修') ? `<span class="badge required">${data.category}</span>` : ''}
               ${data.year ? `<span class="badge">${data.year}</span>` : ''}
               ${data.quarter ? data.quarter.replace(/\s*([〜～ー－–—\-])\s*/g, '$1').split(/[・,、，\s]+/).filter(Boolean).map(q => `<span class="badge">${q}</span>`).join('') : ''}
+              ${difficulty ? `<span class="badge difficulty-badge">難易度 ${difficulty.average.toFixed(1)}</span>` : ''}
             </div>
           </div>
           <div class="actions">
-            <button class="detail-btn">詳細</button>
+            <button class="detail-btn" type="button" aria-expanded="false">詳細</button>
             ${addButton}
             ${completeButton}
           </div>
         </div>
-        <div class="class-detail">
-          <h4 class="detail-subject">${data.subject}</h4>
-          <div class="detail-badges">
-            <span class="badge-cat ${data.category === '必修' || data.category === '選択必修' ? 'important' : ''}">${data.category}</span>
-            <span class="badge-item">${data.credits}単位</span>
-            <span class="badge-item">${data.year}</span>
-            <span class="badge-item">${data.quarter}</span>
-          </div>
-          <div class="detail-sections">
-            <p><strong>科目区分:</strong> ${data.method || '-'} ${data.remarks ? `(${data.remarks})` : ''}</p>
-            <p><strong>タグ:</strong> ${data.tag ? `#${data.tag}` : '-'}</p>
-            <p><strong>教員情報:</strong> ${displayTeacher}</p>
-            <p class="evaluation"><strong>評価方法:</strong> ${data.evaluation}</p>
-            ${data.url ? `<p><a href="${data.url}" target="_blank" rel="noopener noreferrer" class="syllabus-link" title="ZEN大学シラバスサイトの該当ページを開きます">ZEN大学シラバスで詳細を確認</a></p>` : ''}
-            <p class="description"><strong>授業概要:</strong> ${data.description}</p>
-            ${difficultyHtml}
-            ${relationsHtml}
-          </div>
-        </div>
+        <div class="class-detail">${renderCourseDetailMarkup(data)}</div>
       `;
 
       const detailBtn = li.querySelector('.detail-btn');
       const detailDiv = li.querySelector('.class-detail');
-      detailBtn.onclick = () => detailDiv.classList.toggle('open');
-
-      li.querySelectorAll('.related-course-link').forEach((link) => {
-        link.addEventListener('click', (event) => {
-          const relatedId = link.dataset.courseId;
-          const relatedItem = Array.from(predefinedList.querySelectorAll('.predefined-item'))
-            .find((item) => item.dataset.courseId === relatedId);
-          if (!relatedItem) return;
-
-          event.preventDefault();
-          relatedItem.querySelector('.class-detail')?.classList.add('open');
-          relatedItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
-      });
+      detailBtn.onclick = () => {
+        const isOpen = detailDiv.classList.toggle('open');
+        detailBtn.setAttribute('aria-expanded', String(isOpen));
+      };
+      bindRelatedCourseLinks(li);
 
       li.querySelector('.add-predefined').onclick = () => {
         // 排他的な追加（登録予定へ）
@@ -884,20 +1062,65 @@ document.addEventListener('DOMContentLoaded', async () => {
       state.filterSearch = e.target.value;
       renderPredefinedList();
     });
+
+    const excludePixiv = document.getElementById('exclude-pixiv-filter');
+    if (excludePixiv) {
+      excludePixiv.checked = state.excludePixiv;
+      excludePixiv.addEventListener('change', (event) => {
+        state.excludePixiv = event.target.checked;
+        saveFilterPreferences({ excludePixiv: state.excludePixiv });
+        renderPredefinedList();
+      });
+    }
+
+    const filterToggle = document.getElementById('filter-options-toggle');
+    const filterPanel = document.getElementById('filter-options-panel');
+    if (filterToggle && filterPanel) {
+      const setFilterPanelOpen = (isOpen, returnFocus = false) => {
+        filterPanel.hidden = !isOpen;
+        filterToggle.setAttribute('aria-expanded', String(isOpen));
+        if (!isOpen && returnFocus) filterToggle.focus();
+      };
+
+      filterToggle.addEventListener('click', () => {
+        setFilterPanelOpen(filterPanel.hidden);
+      });
+
+      document.addEventListener('click', (event) => {
+        if (
+          !filterPanel.hidden &&
+          !event.target.closest('.input-area') &&
+          !event.target.closest('.related-course-link') &&
+          !event.target.closest('.related-course-detail-host') &&
+          !event.target.matches('.related-detail-close')
+        ) {
+          setFilterPanelOpen(false);
+        }
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !filterPanel.hidden) {
+          setFilterPanelOpen(false, true);
+        }
+      });
+    }
+
+    const clearFiltersButton = document.getElementById('clear-course-filters');
+    if (clearFiltersButton) clearFiltersButton.addEventListener('click', clearCourseFilters);
   };
 
   const setupAnalysisModal = () => {
     const modal = document.getElementById('analysis-modal');
     const btn = document.getElementById('analysis-btn');
-    const closeSpan = document.getElementById('close-modal');
+    const closeButton = document.getElementById('close-modal');
 
-    if (modal && closeSpan) {
+    if (modal && closeButton) {
       // ×ボタンをモーダルの右上に常に固定し、コンテンツが伸びても隠れないように設定
-      closeSpan.style.position = 'sticky';
-      closeSpan.style.top = '0';
-      closeSpan.style.float = 'right';
-      closeSpan.style.zIndex = '1000';
-      closeSpan.style.backgroundColor = 'inherit'; // モーダルの背景色を継承して背後の文字を隠す
+      closeButton.style.position = 'sticky';
+      closeButton.style.top = '0';
+      closeButton.style.float = 'right';
+      closeButton.style.zIndex = '1000';
+      closeButton.style.backgroundColor = 'inherit'; // モーダルの背景色を継承して背後の文字を隠す
 
       const modalContent = modal.querySelector('.modal-content');
       if (modalContent) {
@@ -907,12 +1130,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (btn && modal) {
-      btn.onclick = () => (modal.style.display = 'block');
-      if (closeSpan) closeSpan.onclick = () => (modal.style.display = 'none');
+      const closeModal = () => {
+        modal.style.display = 'none';
+        btn.focus();
+      };
+      btn.onclick = () => {
+        modal.style.display = 'block';
+        closeButton?.focus();
+      };
+      if (closeButton) closeButton.onclick = closeModal;
 
       modal.onclick = (event) => {
-        if (event.target === modal) modal.style.display = 'none';
+        if (event.target === modal) closeModal();
       };
+
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && modal.style.display === 'block') closeModal();
+      });
     }
   };
 
@@ -922,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const setupTutorialModal = async () => {
     const modal = document.getElementById('tutorial-modal');
     const btn = document.getElementById('tutorial-btn');
-    const closeSpan = document.getElementById('close-tutorial');
+    const closeButton = document.getElementById('close-tutorial');
     const body = document.getElementById('tutorial-body');
 
     if (btn && modal && body) {
@@ -955,24 +1189,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         body.innerHTML = '<p>使い方の読み込みに失敗しました。</p>';
       }
 
-      btn.onclick = () => (modal.style.display = 'block');
-      
+      const closeTutorial = () => {
+        modal.style.display = 'none';
+        btn.focus();
+      };
+
+      btn.onclick = () => {
+        modal.style.display = 'block';
+        closeButton?.focus();
+      };
+
       // ×ボタンのイベント
-      if (closeSpan) {
-        closeSpan.onclick = () => {
-          modal.style.display = 'none';
-        };
-      }
+      if (closeButton) closeButton.onclick = closeTutorial;
 
       // モーダル外クリックで閉じる
       modal.onclick = (event) => {
-        if (event.target === modal) modal.style.display = 'none';
+        if (event.target === modal) closeTutorial();
       };
 
       // Escキーで閉じる（アクセシビリティ対応）
       window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && modal.style.display === 'block') {
-          modal.style.display = 'none';
+          closeTutorial();
         }
       });
     }
