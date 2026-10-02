@@ -158,11 +158,11 @@
 </div>
 
 <!-- 4年間履修シミュレーター（全画面ビュー） -->
-<div id="simulator-modal" class="simulator-view" hidden aria-labelledby="simulator-modal-title" data-simulator-title="4年間履修シミュレーター v2">
+<div id="simulator-modal" class="simulator-view" hidden role="dialog" aria-modal="true" aria-labelledby="simulator-modal-title" tabindex="-1" data-simulator-title="4年間履修シミュレーター v2">
   <div class="simulator-shell">
     <header class="simulator-toolbar">
       <button id="close-simulator" class="simulator-back" type="button">← 履修管理に戻る</button>
-      <h1 id="simulator-modal-title">4年間履修シミュレーター</h1>
+      <h1 id="simulator-modal-title" tabindex="-1">4年間履修シミュレーター</h1>
       <div id="simulator-total-summary" class="simulator-total-summary" aria-live="polite"></div>
     </header>
 
@@ -183,7 +183,7 @@
 
       <aside class="simulator-scheduled-panel" aria-labelledby="sim-scheduled-title">
         <h2 id="sim-scheduled-title">科目一覧</h2>
-        <p class="simulator-note">科目をドラッグして配置先のQセルへ移動できます。スマートフォンでは配置先ボタンを使えます。</p>
+        <p class="simulator-note">科目をドラッグするか「配置」から配置先を選べます。</p>
         <div class="simulator-palette-tabs" role="tablist" aria-label="科目一覧の表示対象">
           <button type="button" class="is-active" id="sim-palette-all" data-sim-palette-mode="all" role="tab" aria-selected="true">すべて</button>
           <button type="button" id="sim-palette-scheduled" data-sim-palette-mode="scheduled" role="tab" aria-selected="false">通常の履修予定</button>
@@ -226,10 +226,18 @@
     <div id="simulator-course-detail" class="simulator-course-detail" hidden role="dialog" aria-modal="true" aria-labelledby="simulator-course-detail-title">
       <div class="simulator-course-detail-panel">
         <button type="button" id="close-simulator-course-detail" class="simulator-course-detail-close" aria-label="科目詳細を閉じる">×</button>
-        <h2 id="simulator-course-detail-title">科目詳細</h2>
+        <h2 id="simulator-course-detail-title" tabindex="-1">科目詳細</h2>
         <div id="simulator-course-detail-content"></div>
       </div>
     </div>
+    <dialog id="simulator-placement-dialog" class="simulator-placement-dialog" aria-labelledby="simulator-placement-title" aria-describedby="simulator-placement-course-info">
+      <div class="simulator-placement-heading">
+        <h2 id="simulator-placement-title">配置先を選択</h2>
+        <button type="button" id="close-simulator-placement" class="simulator-placement-close" aria-label="配置先選択を閉じる">×</button>
+      </div>
+      <p id="simulator-placement-course-info"></p>
+      <div id="simulator-placement-options" class="simulator-placement-options"></div>
+    </dialog>
   </div>
 </div>
 

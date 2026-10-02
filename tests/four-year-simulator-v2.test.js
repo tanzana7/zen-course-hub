@@ -22,11 +22,32 @@ test('palette has independent placement-state filtering', () => {
   assert.match(app, /selectedPlacement === 'unplaced'/);
 });
 
-test('palette cards open details while drag end suppresses the click', () => {
+test('palette exposes separate detail and placement controls while retaining drag', () => {
   assert.match(app, /data-sim-detail-course/);
-  assert.match(app, /openSimulatorCourseDetail\(item\.dataset\.simDetailCourse\)/);
+  assert.match(app, /openSimulatorCourseDetail\(detailButton\.dataset\.simDetailCourse\)/);
+  assert.match(app, /data-sim-placement-course/);
+  assert.match(app, /openSimulatorPlacementPicker\(placementButton\.dataset\.simPlacementCourse, placementButton\)/);
   assert.match(app, /item\.dataset\.simSkipClick = 'true'/);
-  assert.match(app, /item\.dataset\.simDragging === 'true'/);
+  assert.match(app, /card\?\.dataset\.simDragging === 'true'/);
+  assert.doesNotMatch(app, /sim-mobile-place-button/);
+});
+
+test('placement destinations are created on demand in an accessible native dialog', () => {
+  assert.match(index, /<dialog id="simulator-placement-dialog"/);
+  assert.match(index, /aria-labelledby="simulator-placement-title"/);
+  assert.match(app, /optionsContainer\.innerHTML = \[1, 2, 3, 4\]/);
+  assert.match(app, /dialog\.showModal\(\)/);
+  assert.match(app, /addEventListener\('cancel'/);
+  assert.match(app, /closeSimulatorPlacementPicker\(\{ courseId \}\)/);
+});
+
+test('simulator and course detail expose dialog semantics and focus restoration', () => {
+  assert.match(index, /id="simulator-modal"[^>]*role="dialog" aria-modal="true"/);
+  assert.match(index, /id="simulator-course-detail"[^>]*role="dialog" aria-modal="true"/);
+  assert.match(app, /simulatorTriggerElement = button/);
+  assert.match(app, /title\?\.focus\(\)/);
+  assert.match(app, /focusElement\(simulatorTriggerElement \|\| button\)/);
+  assert.match(app, /trapDialogTab\(event/);
 });
 
 test('detail deletion only calls simulator placement removal', () => {

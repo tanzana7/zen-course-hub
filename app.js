@@ -496,11 +496,96 @@ document.addEventListener('DOMContentLoaded', async () => {
       : '<p>前提科目に関する注意はありません</p>';
   };
 
-  const closeSimulatorCourseDetail = () => {
+  let simulatorTriggerElement = null;
+  let simulatorDetailTriggerElement = null;
+  let simulatorPlacementTriggerElement = null;
+
+  const focusElement = (element) => {
+    if (element?.isConnected && typeof element.focus === 'function') element.focus();
+  };
+
+  const focusPalettePlacementButton = (courseId) => {
+    const button = [...document.querySelectorAll('[data-sim-placement-course]')]
+      .find((item) => item.dataset.simPlacementCourse === courseId);
+    focusElement(button || document.getElementById('sim-course-search'));
+  };
+
+  const closeSimulatorPlacementPicker = ({ restoreFocus = true, courseId = null } = {}) => {
+    const dialog = document.getElementById('simulator-placement-dialog');
+    if (dialog?.open) dialog.close();
+    const trigger = simulatorPlacementTriggerElement;
+    simulatorPlacementTriggerElement = null;
+    if (restoreFocus) {
+      if (trigger?.isConnected) focusElement(trigger);
+      else if (courseId) focusPalettePlacementButton(courseId);
+    }
+  };
+
+  const openSimulatorPlacementPicker = (courseId, trigger) => {
+    const course = state.coursesMap.get(courseId);
+    const dialog = document.getElementById('simulator-placement-dialog');
+    const info = document.getElementById('simulator-placement-course-info');
+    const optionsContainer = document.getElementById('simulator-placement-options');
+    if (!course || !dialog || !info || !optionsContainer) return;
+
+    const existingPlacement = getSimulatorPlacement(courseId);
+    const quarterOptions = getQuarterInfo(course).options;
+    info.textContent = `${course.subject} · 開講Q: ${course.quarter || '未定'} · ${course.credits || 0}単位${existingPlacement ? ` · 現在: ${formatSimulatorPlacement(course, existingPlacement)}` : ''}`;
+    // Materialize destinations only for the selected course; keeping choices out
+    // of every palette card avoids multiplying the 275-course view by year/Q slots.
+    optionsContainer.innerHTML = [1, 2, 3, 4].map((year) => `
+      <section class="simulator-placement-year" aria-label="${year}年">
+        <h3>${year}年</h3>
+        <div>${quarterOptions.map((option) => `
+          <button type="button" class="simulator-placement-option" data-sim-place-year="${year}" data-sim-place-quarter="${option.start}">
+            ${year}年 ${escapeHTML(option.label)}
+          </button>
+        `).join('')}</div>
+      </section>
+    `).join('');
+    simulatorPlacementTriggerElement = trigger;
+    try {
+      dialog.showModal();
+      optionsContainer.querySelector('button')?.focus();
+    } catch (error) {
+      simulatorPlacementTriggerElement = null;
+      console.error('シミュレーターの配置先選択を開けませんでした。', error);
+      focusElement(trigger);
+    }
+  };
+
+  const trapDialogTab = (event, dialog) => {
+    if (event.key !== 'Tab' || !dialog) return;
+    const items = [...dialog.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), [href], [tabindex]:not([tabindex="-1"])')]
+      .filter((item) => !item.hidden && item.getClientRects().length > 0);
+    if (!items.length) {
+      event.preventDefault();
+      dialog.focus();
+      return;
+    }
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  const closeSimulatorCourseDetail = ({ restoreFocus = true } = {}) => {
     const modal = document.getElementById('simulator-course-detail');
     if (!modal) return;
     modal.classList.remove('is-active');
     modal.hidden = true;
+    const trigger = simulatorDetailTriggerElement;
+    simulatorDetailTriggerElement = null;
+    if (restoreFocus) {
+      if (trigger?.isConnected) focusElement(trigger);
+      else if (trigger?.dataset?.simDetailCourse) focusPalettePlacementButton(trigger.dataset.simDetailCourse);
+      else focusElement(document.getElementById('simulator-modal-title'));
+    }
   };
 
   const openSimulatorCourseDetail = (courseId) => {
@@ -511,6 +596,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const content = document.getElementById('simulator-course-detail-content');
     const title = document.getElementById('simulator-course-detail-title');
     if (!course || !modal || !content || !title) return;
+
+    if (!modal.classList.contains('is-active')) simulatorDetailTriggerElement = document.activeElement;
 
     const warnings = placement ? getSimulatorWarnings(course, placement) : [];
     const difficulty = state.difficultyMap.get(course.id);
@@ -561,7 +648,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     content.querySelectorAll('[data-sim-related-course]').forEach((button) => {
       button.addEventListener('click', () => openSimulatorCourseDetail(button.dataset.simRelatedCourse));
     });
-    document.getElementById('close-simulator-course-detail')?.focus();
+    title.focus();
   };
 
   const renderSimulatorCourseResults = () => {
@@ -624,58 +711,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       const placementText = placement ? `✓ ${formatSimulatorPlacement(course, placement)}に配置済み` : '未配置';
       const difficultyText = difficulty ? `難易度 ${difficulty.average.toFixed(2)} / 10.0` : '難易度 未登録';
       const placedClass = placement ? ' is-placed' : '';
-      const quarterOptions = getQuarterInfo(course).options;
-      const mobilePlacementButtons = quarterOptions.flatMap((option) => [1, 2, 3, 4].map((year) => `
-        <button type="button" class="sim-mobile-place-button" data-sim-place-year="${year}" data-sim-place-quarter="${option.start}" data-sim-course-id="${escapeHTML(course.id)}">${year}年${option.label}</button>
-      `)).join('');
       return `
-        <article class="sim-course-picker-item${placedClass}" draggable="${placement ? 'false' : 'true'}" data-sim-drag-course="${escapeHTML(course.id)}" data-sim-detail-course="${escapeHTML(course.id)}" role="button" tabindex="0" aria-label="${escapeHTML(course.subject)}：${escapeHTML(placementText)}。選択で詳細を表示">
+        <article class="sim-course-picker-item${placedClass}" draggable="${placement ? 'false' : 'true'}" data-sim-drag-course="${escapeHTML(course.id)}">
           <div class="sim-course-picker-info">
-            <strong>${escapeHTML(course.subject)}</strong>
+            <button type="button" class="sim-course-detail-trigger" data-sim-detail-course="${escapeHTML(course.id)}">${escapeHTML(course.subject)}</button>
             <span>${escapeHTML(course.quarter || 'Q未定')} ｜ ${escapeHTML(String(course.credits || 0))}単位</span>
             <small>${escapeHTML(difficultyText)} ｜ ${escapeHTML(placementText)}</small>
           </div>
-          <div class="sim-mobile-place-controls" aria-label="${escapeHTML(course.subject)}の配置先">
-            ${mobilePlacementButtons}
+          <div class="sim-course-placement-controls">
+            <button type="button" class="sim-course-placement-open" data-sim-placement-course="${escapeHTML(course.id)}" aria-label="${escapeHTML(course.subject)}を${placement ? '別の場所へ移動' : '配置'}">${placement ? '配置先を変更' : '配置'}</button>
           </div>
         </article>
       `;
     }).join('');
-
-    results.querySelectorAll('[data-sim-place-year][data-sim-place-quarter]').forEach((button) => {
-      button.onclick = () => placeSimulatorCourse(
-        button.dataset.simCourseId,
-        Number(button.dataset.simPlaceYear),
-        Number(button.dataset.simPlaceQuarter)
-      );
-    });
-    results.querySelectorAll('[data-sim-drag-course]').forEach((item) => {
-      item.addEventListener('dragstart', (event) => {
-        item.dataset.simDragging = 'true';
-        if (item.classList.contains('is-placed')) {
-          event.preventDefault();
-          return;
-        }
-        event.dataTransfer?.setData('text/plain', item.dataset.simDragCourse);
-        highlightSimulatorDropCells(item.dataset.simDragCourse);
-      });
-      item.addEventListener('dragend', () => {
-        delete item.dataset.simDragging;
-        item.dataset.simSkipClick = 'true';
-        window.setTimeout(() => delete item.dataset.simSkipClick, 0);
-        clearSimulatorDropHighlights();
-      });
-      item.addEventListener('click', (event) => {
-        if (event.target.closest('button') || item.dataset.simDragging === 'true' || item.dataset.simSkipClick === 'true') return;
-        openSimulatorCourseDetail(item.dataset.simDetailCourse);
-      });
-      item.addEventListener('keydown', (event) => {
-        if ((event.key === 'Enter' || event.key === ' ') && !event.target.closest('button')) {
-          event.preventDefault();
-          openSimulatorCourseDetail(item.dataset.simDetailCourse);
-        }
-      });
-    });
   };
 
   const clearSimulatorDropHighlights = () => {
@@ -788,66 +836,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         card.style.gridColumn = `${assignment.start} / span ${assignment.span}`;
         card.style.gridRow = String(assignment.lane + 2);
         card.title = warningTooltip || `${course.subject}（${course.credits}単位）`;
-        card.setAttribute('aria-label', `${course.subject} ${course.credits}単位${warningTooltip ? `。${warningTooltip}` : ''}`);
-        card.dataset.simDetailCourse = course.id;
         card.innerHTML = `
-          <strong>${escapeHTML(course.subject)}</strong>
+          <button type="button" class="sim-course-card-title" data-sim-detail-course="${escapeHTML(course.id)}">${escapeHTML(course.subject)}</button>
           <span class="sim-course-credits">${escapeHTML(String(course.credits || 0))}単位</span>
-          ${warnings.length ? `<button type="button" class="sim-warning-badge${warningClass}" data-sim-warning-course="${escapeHTML(course.id)}" aria-label="前提科目の注意を確認">⚠</button>` : ''}
-          <button type="button" class="sim-course-remove" data-sim-remove-course="${escapeHTML(course.id)}" aria-label="${escapeHTML(course.subject)}を削除">×</button>
+          <div class="sim-course-card-actions">
+            ${warnings.length ? `<button type="button" class="sim-warning-badge${warningClass}" data-sim-warning-course="${escapeHTML(course.id)}" aria-label="前提科目の注意を確認">⚠</button>` : ''}
+            <button type="button" class="sim-course-remove" data-sim-remove-course="${escapeHTML(course.id)}" aria-label="${escapeHTML(course.subject)}を削除">×</button>
+          </div>
         `;
         quarterGrid.appendChild(card);
       });
-    });
-
-    yearGrid.querySelectorAll('[data-sim-drop-quarter]').forEach((target) => {
-      target.addEventListener('dragenter', (event) => {
-        const courseId = event.dataTransfer?.getData('text/plain');
-        if (courseId && target.classList.contains('is-drop-allowed')) target.classList.add('is-drop-active');
-      });
-      target.addEventListener('dragover', (event) => {
-        if (!target.classList.contains('is-drop-allowed')) return;
-        event.preventDefault();
-        target.classList.add('is-drop-active');
-      });
-      target.addEventListener('dragleave', (event) => {
-        if (!event.relatedTarget || !target.contains(event.relatedTarget)) target.classList.remove('is-drop-active');
-      });
-      target.addEventListener('drop', (event) => {
-        if (!target.classList.contains('is-drop-allowed')) return;
-        event.preventDefault();
-        clearSimulatorDropHighlights();
-        const courseId = event.dataTransfer?.getData('text/plain');
-        if (courseId) placeSimulatorCourse(courseId, Number(target.dataset.simDropYear), Number(target.dataset.simDropQuarter));
-      });
-    });
-    yearGrid.querySelectorAll('[data-sim-drag-course]').forEach((item) => {
-      item.addEventListener('dragstart', (event) => {
-        item.dataset.simDragging = 'true';
-        event.dataTransfer?.setData('text/plain', item.dataset.simDragCourse);
-        highlightSimulatorDropCells(item.dataset.simDragCourse);
-      });
-      item.addEventListener('dragend', () => {
-        delete item.dataset.simDragging;
-        item.dataset.simSkipClick = 'true';
-        window.setTimeout(() => delete item.dataset.simSkipClick, 0);
-        clearSimulatorDropHighlights();
-      });
-    });
-    yearGrid.querySelectorAll('[data-sim-remove-course]').forEach((button) => {
-      button.onclick = () => removeSimulatorCourse(button.dataset.simRemoveCourse);
-    });
-    yearGrid.querySelectorAll('[data-sim-detail-course]').forEach((card) => {
-      card.addEventListener('click', (event) => {
-        if (event.target.closest('button') || card.dataset.simDragging === 'true' || card.dataset.simSkipClick === 'true') return;
-        openSimulatorCourseDetail(card.dataset.simDetailCourse);
-      });
-    });
-    yearGrid.querySelectorAll('[data-sim-warning-course]').forEach((button) => {
-      button.onclick = (event) => {
-        event.stopPropagation();
-        openSimulatorCourseDetail(button.dataset.simWarningCourse);
-      };
     });
 
     const categoryFilter = document.getElementById('sim-course-category-filter');
@@ -1691,6 +1689,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modal = document.getElementById('simulator-modal');
     const detailModal = document.getElementById('simulator-course-detail');
     const detailCloseButton = document.getElementById('close-simulator-course-detail');
+    const placementDialog = document.getElementById('simulator-placement-dialog');
+    const placementOptions = document.getElementById('simulator-placement-options');
+    const closePlacementButton = document.getElementById('close-simulator-placement');
+    const paletteResults = document.getElementById('sim-course-results');
+    const yearGrid = document.getElementById('simulator-year-grid');
     const button = document.getElementById('simulator-btn');
     const closeButton = document.getElementById('close-simulator');
     const searchInput = document.getElementById('sim-course-search');
@@ -1701,18 +1704,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (title) title.textContent = simulatorTitle;
 
     const closeSimulator = () => {
-      closeSimulatorCourseDetail();
+      closeSimulatorPlacementPicker({ restoreFocus: false });
+      closeSimulatorCourseDetail({ restoreFocus: false });
       modal.classList.remove('is-active');
       modal.hidden = true;
       document.body.classList.remove('simulator-view-active');
-      button.focus();
+      focusElement(simulatorTriggerElement || button);
+      simulatorTriggerElement = null;
     };
 
     button.onclick = () => {
+      simulatorTriggerElement = button;
       modal.hidden = false;
       modal.classList.add('is-active');
       document.body.classList.add('simulator-view-active');
       renderSimulator();
+      title?.focus();
     };
     if (closeButton) {
       closeButton.onclick = closeSimulator;
@@ -1725,8 +1732,116 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (event.target === detailModal) closeSimulatorCourseDetail();
       });
     }
+    closePlacementButton?.addEventListener('click', () => closeSimulatorPlacementPicker());
+    placementDialog?.addEventListener('cancel', (event) => {
+      event.preventDefault();
+      closeSimulatorPlacementPicker();
+    });
+    placementOptions?.addEventListener('click', (event) => {
+      const optionButton = event.target.closest('[data-sim-place-year][data-sim-place-quarter]');
+      const courseId = simulatorPlacementTriggerElement?.dataset.simPlacementCourse;
+      if (!optionButton || !courseId) return;
+      placeSimulatorCourse(courseId, Number(optionButton.dataset.simPlaceYear), Number(optionButton.dataset.simPlaceQuarter));
+      closeSimulatorPlacementPicker({ courseId });
+    });
+    // Search/filter/sort replaces palette children; delegated handlers keep listener
+    // count independent of course count instead of binding to every card and button.
+    paletteResults?.addEventListener('click', (event) => {
+      const placementButton = event.target.closest('[data-sim-placement-course]');
+      if (placementButton) {
+        openSimulatorPlacementPicker(placementButton.dataset.simPlacementCourse, placementButton);
+        return;
+      }
+      const detailButton = event.target.closest('[data-sim-detail-course]');
+      if (!detailButton) return;
+      const card = detailButton.closest('[data-sim-drag-course]');
+      if (card?.dataset.simSkipClick === 'true' || card?.dataset.simDragging === 'true') return;
+      openSimulatorCourseDetail(detailButton.dataset.simDetailCourse);
+    });
+    paletteResults?.addEventListener('dragstart', (event) => {
+      const item = event.target.closest('[data-sim-drag-course]');
+      if (!item) return;
+      item.dataset.simDragging = 'true';
+      if (item.classList.contains('is-placed')) {
+        event.preventDefault();
+        return;
+      }
+      event.dataTransfer?.setData('text/plain', item.dataset.simDragCourse);
+      highlightSimulatorDropCells(item.dataset.simDragCourse);
+    });
+    paletteResults?.addEventListener('dragend', (event) => {
+      const item = event.target.closest('[data-sim-drag-course]');
+      if (!item) return;
+      delete item.dataset.simDragging;
+      item.dataset.simSkipClick = 'true';
+      window.setTimeout(() => delete item.dataset.simSkipClick, 0);
+      clearSimulatorDropHighlights();
+    });
+    yearGrid?.addEventListener('dragenter', (event) => {
+      const target = event.target.closest('[data-sim-drop-quarter]');
+      const courseId = event.dataTransfer?.getData('text/plain');
+      if (target && courseId && target.classList.contains('is-drop-allowed')) target.classList.add('is-drop-active');
+    });
+    yearGrid?.addEventListener('dragover', (event) => {
+      const target = event.target.closest('[data-sim-drop-quarter]');
+      if (!target || !target.classList.contains('is-drop-allowed')) return;
+      event.preventDefault();
+      target.classList.add('is-drop-active');
+    });
+    yearGrid?.addEventListener('dragleave', (event) => {
+      const target = event.target.closest('[data-sim-drop-quarter]');
+      if (target && (!event.relatedTarget || !target.contains(event.relatedTarget))) target.classList.remove('is-drop-active');
+    });
+    yearGrid?.addEventListener('drop', (event) => {
+      const target = event.target.closest('[data-sim-drop-quarter]');
+      if (!target || !target.classList.contains('is-drop-allowed')) return;
+      event.preventDefault();
+      clearSimulatorDropHighlights();
+      const courseId = event.dataTransfer?.getData('text/plain');
+      if (courseId) placeSimulatorCourse(courseId, Number(target.dataset.simDropYear), Number(target.dataset.simDropQuarter));
+    });
+    yearGrid?.addEventListener('dragstart', (event) => {
+      const item = event.target.closest('[data-sim-drag-course]');
+      if (!item) return;
+      item.dataset.simDragging = 'true';
+      event.dataTransfer?.setData('text/plain', item.dataset.simDragCourse);
+      highlightSimulatorDropCells(item.dataset.simDragCourse);
+    });
+    yearGrid?.addEventListener('dragend', (event) => {
+      const item = event.target.closest('[data-sim-drag-course]');
+      if (!item) return;
+      delete item.dataset.simDragging;
+      item.dataset.simSkipClick = 'true';
+      window.setTimeout(() => delete item.dataset.simSkipClick, 0);
+      clearSimulatorDropHighlights();
+    });
+    yearGrid?.addEventListener('click', (event) => {
+      const removeButton = event.target.closest('[data-sim-remove-course]');
+      if (removeButton) {
+        removeSimulatorCourse(removeButton.dataset.simRemoveCourse);
+        return;
+      }
+      const warningButton = event.target.closest('[data-sim-warning-course]');
+      if (warningButton) {
+        openSimulatorCourseDetail(warningButton.dataset.simWarningCourse);
+        return;
+      }
+      const detailButton = event.target.closest('[data-sim-detail-course]');
+      if (!detailButton) return;
+      const card = detailButton.closest('[data-sim-drag-course]');
+      if (card?.dataset.simSkipClick === 'true' || card?.dataset.simDragging === 'true') return;
+      openSimulatorCourseDetail(detailButton.dataset.simDetailCourse);
+    });
     window.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape' || !modal.classList.contains('is-active')) return;
+      if (!modal.classList.contains('is-active')) return;
+      // The fullscreen view and detail layer are div-based dialogs, so contain Tab
+      // in the active layer. The placement picker is native <dialog> and traps focus itself.
+      if (placementDialog?.open) return;
+      if (event.key === 'Tab') {
+        trapDialogTab(event, detailModal?.classList.contains('is-active') ? detailModal : modal);
+        return;
+      }
+      if (event.key !== 'Escape') return;
       if (detailModal?.classList.contains('is-active')) {
         closeSimulatorCourseDetail();
         return;
