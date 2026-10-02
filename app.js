@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const list = document.getElementById('list');
   const completedList = document.getElementById('completed-list');
   const predefinedList = document.getElementById('predefined-classes-list');
+  const relatedCourseDetailHost = document.getElementById('related-course-detail-host');
   const dataStatus = document.getElementById('data-status');
 
   // 卒業要件分析（導入科目）の判定に使用するリストを復活
@@ -677,6 +678,124 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderPredefinedList();
   };
 
+  let relatedDetailReturnFocus = null;
+
+  const renderRelationLinks = (relationItems) => (relationItems || []).map((relation) => {
+    const relatedId = typeof relation === 'string' ? relation : relation.id;
+    const strength = typeof relation === 'string' ? 'recommended' : relation.strength;
+    const relatedCourse = state.coursesMap.get(relatedId);
+    if (!relatedCourse) return '';
+    const strengthLabel = strength === 'strongly_recommended' ? '強く推奨' : '推奨';
+    const strengthClass = strength === 'strongly_recommended' ? 'strong' : 'recommended';
+    return `<li><a href="#course-${escapeHTML(relatedCourse.id)}" class="related-course-link" data-course-id="${escapeHTML(relatedCourse.id)}">${escapeHTML(relatedCourse.subject)}</a> <span class="relation-strength ${strengthClass}">${strengthLabel}</span></li>`;
+  }).join('');
+
+  const renderCourseDetailMarkup = (data) => {
+    if (!data || typeof data.id !== 'string' || !data.id) return '';
+
+    const difficulty = state.difficultyMap.get(data.id);
+    const difficultyHtml = difficulty ? `
+      <section class="difficulty-section" aria-label="授業難易度">
+        <h5 class="difficulty-title">📊 授業難易度</h5>
+        <p><strong>難易度目安：</strong>${difficulty.average.toFixed(2)} / 10.0</p>
+        <p><strong>投票数：</strong>${difficulty.votes}票</p>
+        <p class="difficulty-source-row">
+          <strong>出典：</strong><a href="${escapeHTML(difficulty.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="difficulty-source">${escapeHTML(difficulty.sourceLabel)}</a>
+        </p>
+      </section>
+    ` : '';
+
+    const relations = state.relationsMap.get(data.id);
+    const prerequisiteLinks = renderRelationLinks(relations?.prerequisites);
+    const successorLinks = renderRelationLinks(relations?.successors);
+    const relationsHtml = (prerequisiteLinks || successorLinks) ? `
+      <section class="course-relations" aria-label="関連科目">
+        <h5 class="course-relations-title">関連科目</h5>
+        ${prerequisiteLinks ? `<div class="course-relation-group"><strong>前提科目</strong><ul>${prerequisiteLinks}</ul></div>` : ''}
+        ${successorLinks ? `<div class="course-relation-group"><strong>後継科目</strong><ul>${successorLinks}</ul></div>` : ''}
+      </section>
+    ` : '';
+
+    const teacherParts = data.teacher.split(', ');
+    const displayTeacher = teacherParts.length > 1
+      ? `${teacherParts[0]} 他${teacherParts.length - 1}名`
+      : data.teacher;
+
+    return `
+      <h4 class="detail-subject" tabindex="-1">${data.subject}</h4>
+      <div class="detail-badges">
+        <span class="badge-cat ${data.category === '必修' || data.category === '選択必修' ? 'important' : ''}">${data.category}</span>
+        <span class="badge-item">${data.credits}単位</span>
+        <span class="badge-item">${data.year}</span>
+        <span class="badge-item">${data.quarter}</span>
+      </div>
+      <div class="detail-sections">
+        <p><strong>科目区分:</strong> ${data.method || '-'} ${data.remarks ? `(${data.remarks})` : ''}</p>
+        <p><strong>タグ:</strong> ${data.tag ? `#${data.tag}` : '-'}</p>
+        <p><strong>教員情報:</strong> ${displayTeacher}</p>
+        <p class="evaluation"><strong>評価方法:</strong> ${data.evaluation}</p>
+        ${data.url ? `<p><a href="${data.url}" target="_blank" rel="noopener noreferrer" class="syllabus-link" title="ZEN大学シラバスサイトの該当ページを開きます">ZEN大学シラバスで詳細を確認</a></p>` : ''}
+        <p class="description"><strong>授業概要:</strong> ${data.description}</p>
+        ${difficultyHtml}
+        ${relationsHtml}
+      </div>
+    `;
+  };
+
+  const bindRelatedCourseLinks = (container) => {
+    container.querySelectorAll('.related-course-link').forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        const courseId = link.dataset.courseId;
+        if (typeof courseId !== 'string' || !state.coursesMap.has(courseId)) return;
+
+        if (relatedCourseDetailHost && relatedCourseDetailHost.hidden) {
+          const sourceItem = link.closest('.predefined-item');
+          relatedDetailReturnFocus = sourceItem?.querySelector('.detail-btn') || document.activeElement;
+        }
+
+        openCourseDetail(courseId);
+      });
+    });
+  };
+
+  const closeRelatedCourseDetail = (returnFocus = true) => {
+    if (!relatedCourseDetailHost) return;
+    relatedCourseDetailHost.hidden = true;
+    relatedCourseDetailHost.replaceChildren();
+    if (returnFocus && relatedDetailReturnFocus?.isConnected) relatedDetailReturnFocus.focus();
+    relatedDetailReturnFocus = null;
+  };
+
+  const openCourseDetail = (courseId) => {
+    const course = state.coursesMap.get(courseId);
+    if (!course || !relatedCourseDetailHost) return;
+
+    // 関連詳細は探索リスト外の独立領域で描画し、現在の検索・フィルター結果を変更しない。
+    predefinedList.querySelectorAll('.class-detail.open').forEach((detail) => {
+      detail.classList.remove('open');
+      detail.closest('.predefined-item')?.querySelector('.detail-btn')?.setAttribute('aria-expanded', 'false');
+    });
+
+    relatedCourseDetailHost.innerHTML = `
+      <div class="related-course-detail-shell">
+        <button class="related-detail-close" type="button" aria-label="関連科目の詳細を閉じる">×</button>
+        <div class="class-detail open">${renderCourseDetailMarkup(course)}</div>
+      </div>
+    `;
+    relatedCourseDetailHost.hidden = false;
+    relatedCourseDetailHost.querySelector('.related-detail-close')?.addEventListener('click', () => closeRelatedCourseDetail());
+    bindRelatedCourseLinks(relatedCourseDetailHost);
+    relatedCourseDetailHost.querySelector('.detail-subject')?.focus({ preventScroll: true });
+    relatedCourseDetailHost.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && relatedCourseDetailHost && !relatedCourseDetailHost.hidden) {
+      closeRelatedCourseDetail();
+    }
+  });
+
   /**
    * 既定の授業リスト（左カラム）を画面に描画する関数
    * renderAll() 内で呼び出されるため、初期化エラー（ReferenceError）を避けるために
@@ -811,44 +930,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       // UI上の背景色などは「どちらかに入っている」場合に適用
       const isHandled = isRegistered || isCompleted; 
 
-      const teacherParts = data.teacher.split(', ');
-      const displayTeacher = teacherParts.length > 1
-        ? `${teacherParts[0]} 他${teacherParts.length - 1}名`
-        : data.teacher;
-
       // 難易度データが登録されている科目に限り、詳細欄へ表示する
       const difficulty = state.difficultyMap.get(data.id);
-      const difficultyHtml = difficulty ? `
-        <section class="difficulty-section" aria-label="授業難易度">
-          <h5 class="difficulty-title">📊 授業難易度</h5>
-          <p><strong>難易度目安：</strong>${difficulty.average.toFixed(2)} / 10.0</p>
-          <p><strong>投票数：</strong>${difficulty.votes}票</p>
-          <p class="difficulty-source-row">
-            <strong>出典：</strong><a href="${escapeHTML(difficulty.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="difficulty-source">${escapeHTML(difficulty.sourceLabel)}</a>
-          </p>
-        </section>
-      ` : '';
-
-      const relations = state.relationsMap.get(data.id);
-      const renderRelationLinks = (relationItems) => (relationItems || []).map((relation) => {
-        const relatedId = typeof relation === 'string' ? relation : relation.id;
-        const strength = typeof relation === 'string' ? 'recommended' : relation.strength;
-        const relatedCourse = state.coursesMap.get(relatedId);
-        if (!relatedCourse) return '';
-        const strengthLabel = strength === 'strongly_recommended' ? '強く推奨' : '推奨';
-        const strengthClass = strength === 'strongly_recommended' ? 'strong' : 'recommended';
-        return `<li><a href="#course-${escapeHTML(relatedCourse.id)}" class="related-course-link" data-course-id="${escapeHTML(relatedCourse.id)}">${escapeHTML(relatedCourse.subject)}</a> <span class="relation-strength ${strengthClass}">${strengthLabel}</span></li>`;
-      }).join('');
-      const prerequisiteLinks = renderRelationLinks(relations?.prerequisites);
-      const successorLinks = renderRelationLinks(relations?.successors);
-      const relationsHtml = (prerequisiteLinks || successorLinks) ? `
-        <section class="course-relations" aria-label="関連科目">
-          <h5 class="course-relations-title">関連科目</h5>
-          ${prerequisiteLinks ? `<div class="course-relation-group"><strong>前提科目</strong><ul>${prerequisiteLinks}</ul></div>` : ''}
-          ${successorLinks ? `<div class="course-relation-group"><strong>後継科目</strong><ul>${successorLinks}</ul></div>` : ''}
-        </section>
-      ` : '';
-
       const li = document.createElement('li');
 
       const addButton = isRegistered
@@ -880,50 +963,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
           </div>
           <div class="actions">
-            <button class="detail-btn">詳細</button>
+            <button class="detail-btn" type="button" aria-expanded="false">詳細</button>
             ${addButton}
             ${completeButton}
           </div>
         </div>
-        <div class="class-detail">
-          <h4 class="detail-subject">${data.subject}</h4>
-          <div class="detail-badges">
-            <span class="badge-cat ${data.category === '必修' || data.category === '選択必修' ? 'important' : ''}">${data.category}</span>
-            <span class="badge-item">${data.credits}単位</span>
-            <span class="badge-item">${data.year}</span>
-            <span class="badge-item">${data.quarter}</span>
-          </div>
-          <div class="detail-sections">
-            <p><strong>科目区分:</strong> ${data.method || '-'} ${data.remarks ? `(${data.remarks})` : ''}</p>
-            <p><strong>タグ:</strong> ${data.tag ? `#${data.tag}` : '-'}</p>
-            <p><strong>教員情報:</strong> ${displayTeacher}</p>
-            <p class="evaluation"><strong>評価方法:</strong> ${data.evaluation}</p>
-            ${data.url ? `<p><a href="${data.url}" target="_blank" rel="noopener noreferrer" class="syllabus-link" title="ZEN大学シラバスサイトの該当ページを開きます">ZEN大学シラバスで詳細を確認</a></p>` : ''}
-            <p class="description"><strong>授業概要:</strong> ${data.description}</p>
-            ${difficultyHtml}
-            ${relationsHtml}
-          </div>
-        </div>
+        <div class="class-detail">${renderCourseDetailMarkup(data)}</div>
       `;
 
       const detailBtn = li.querySelector('.detail-btn');
       const detailDiv = li.querySelector('.class-detail');
-      detailBtn.onclick = () => detailDiv.classList.toggle('open');
-
-      li.querySelectorAll('.related-course-link').forEach((link) => {
-        link.addEventListener('click', (event) => {
-          const relatedId = link.dataset.courseId;
-          const relatedItem = Array.from(predefinedList.querySelectorAll('.predefined-item'))
-            .find((item) => item.dataset.courseId === relatedId);
-          if (!relatedItem) return;
-
-          event.preventDefault();
-          // 関連科目へ移動する際は、元の詳細を閉じて画面上の文脈を一つに保つ。
-          predefinedList.querySelectorAll('.class-detail.open').forEach((detail) => detail.classList.remove('open'));
-          relatedItem.querySelector('.class-detail')?.classList.add('open');
-          relatedItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
-      });
+      detailBtn.onclick = () => {
+        const isOpen = detailDiv.classList.toggle('open');
+        detailBtn.setAttribute('aria-expanded', String(isOpen));
+      };
+      bindRelatedCourseLinks(li);
 
       li.querySelector('.add-predefined').onclick = () => {
         // 排他的な追加（登録予定へ）
@@ -1033,7 +1087,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
 
       document.addEventListener('click', (event) => {
-        if (!filterPanel.hidden && !event.target.closest('.input-area')) {
+        if (
+          !filterPanel.hidden &&
+          !event.target.closest('.input-area') &&
+          !event.target.closest('.related-course-link') &&
+          !event.target.closest('.related-course-detail-host') &&
+          !event.target.matches('.related-detail-close')
+        ) {
           setFilterPanelOpen(false);
         }
       });

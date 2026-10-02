@@ -858,8 +858,7 @@ body {
     box-sizing: border-box;
   }
 
-  #search-bar,
-  #analysis-btn {
+  #search-bar {
     grid-column: 1 / -1;
   }
 
@@ -869,11 +868,14 @@ body {
   }
 
   #search-bar,
-  .input-area select,
-  #analysis-btn {
+  .input-area select {
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
+  }
+
+  .input-area > #analysis-btn {
+    grid-column: 1 / -1;
   }
 
   .main-container {
@@ -1116,8 +1118,14 @@ body {
     margin: 0 0 18px !important;
   }
 
-  #search-bar,
-  #analysis-btn {
+  #search-bar {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .input-area > #analysis-btn {
     grid-column: 1 / -1 !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -1269,6 +1277,44 @@ body {
   display: none !important;
 }
 
+.related-course-detail-host {
+  margin: 0 0 16px;
+}
+
+.related-course-detail-shell {
+  position: relative;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.related-course-detail-shell .class-detail.open {
+  max-height: none;
+  padding: 18px;
+  border: 0;
+}
+
+.related-detail-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.related-detail-close:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
 .filter-options-section {
   min-width: 0;
 }
@@ -1356,6 +1402,7 @@ body {
   .filter-actions .filter-options-toggle {
     width: 100%;
     min-width: 0;
+    min-height: 48px;
   }
 
   .filter-options-panel {
