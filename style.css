@@ -1272,6 +1272,102 @@ body.simulator-view-active > #analysis-modal {
   color: #666;
   margin: -10px 0 15px 5px; /* 見出しとのバランス調整 */
 }
+
+.section-heading-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-heading-row h2 {
+  margin-bottom: 8px;
+}
+
+.course-list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.clear-filter-btn,
+.empty-reset-btn {
+  border: 1px solid #93c5fd;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.clear-filter-btn:hover,
+.empty-reset-btn:hover {
+  background: #dbeafe;
+}
+
+.mobile-section-jump {
+  display: none;
+  color: #1d4ed8;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.enrollment-empty-state,
+.course-empty-state {
+  list-style: none;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #64748b;
+  padding: 16px;
+  text-align: center;
+}
+
+.course-empty-state p {
+  margin: 0 0 10px;
+}
+
+.difficulty-badge {
+  background: #fff7ed;
+  color: #9a3412;
+  border-color: #fed7aa;
+}
+
+.requirement-progress {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.requirement-met {
+  color: #15803d;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.requirement-remaining {
+  color: #6b7280;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+.close-btn {
+  border: 0;
+  background: transparent;
+  padding: 4px 8px;
+  line-height: 1;
+}
+
+.class-item.added .current-state {
+  opacity: 1;
+}
 .data-status {
   margin: 12px 0 16px;
   padding: 12px 14px;
@@ -1478,8 +1574,7 @@ body.simulator-view-active > #analysis-modal {
     box-sizing: border-box;
   }
 
-  #search-bar,
-  #analysis-btn {
+  #search-bar {
     grid-column: 1 / -1;
   }
 
@@ -1489,11 +1584,14 @@ body.simulator-view-active > #analysis-modal {
   }
 
   #search-bar,
-  .input-area select,
-  #analysis-btn {
+  .input-area select {
     width: 100%;
     min-width: 0;
     box-sizing: border-box;
+  }
+
+  .input-area > #analysis-btn {
+    grid-column: 1 / -1;
   }
 
   .main-container {
@@ -1736,8 +1834,14 @@ body.simulator-view-active > #analysis-modal {
     margin: 0 0 18px !important;
   }
 
-  #search-bar,
-  #analysis-btn {
+  #search-bar {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .input-area > #analysis-btn {
     grid-column: 1 / -1 !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -1808,6 +1912,234 @@ body.simulator-view-active > #analysis-modal {
   .difficulty-section {
     overflow-wrap: anywhere;
     word-break: break-word;
+  }
+}
+
+/* 絞り込み・並び替えを一つの入口へまとめるための共通レイアウト。 */
+.input-area {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.input-area #search-bar {
+  grid-column: 1;
+  width: 100%;
+  min-width: 0;
+}
+
+.filter-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, auto);
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.filter-options-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 16px;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  background: #fff;
+  color: #1d4ed8;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.filter-options-toggle:focus-visible,
+.filter-checkbox input:focus-visible,
+.filter-options-panel select:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.filter-active-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5em;
+  height: 1.5em;
+  padding: 0 0.35em;
+  border-radius: 999px;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 0.85em;
+  line-height: 1;
+}
+
+.filter-options-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(240px, 1fr);
+  gap: 18px;
+  width: 100%;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.filter-options-panel[hidden] {
+  display: none !important;
+}
+
+.related-course-detail-host {
+  margin: 0 0 16px;
+}
+
+.related-course-detail-shell {
+  position: relative;
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.related-course-detail-shell .class-detail.open {
+  max-height: none;
+  padding: 18px;
+  border: 0;
+}
+
+.related-detail-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.related-detail-close:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.filter-options-section {
+  min-width: 0;
+}
+
+.filter-options-section h2 {
+  margin: 0 0 10px;
+  color: #1e3a8a;
+  font-size: 1rem;
+}
+
+.filter-options-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.filter-options-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  color: #374151;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.filter-options-grid select,
+.filter-options-panel .sort-control select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.filter-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  margin-top: 12px;
+  color: #374151;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.filter-checkbox input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.sort-options-section {
+  padding-left: 18px;
+  border-left: 1px solid #e5e7eb;
+}
+
+.filter-options-panel .sort-control {
+  width: 100%;
+}
+
+.filter-options-panel .clear-filter-btn {
+  grid-column: 1 / -1;
+  justify-self: start;
+  min-height: 40px;
+}
+
+@media screen and (min-width: 769px) and (max-width: 1100px) {
+  .filter-options-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .sort-options-section {
+    padding-top: 14px;
+    padding-left: 0;
+    border-top: 1px solid #e5e7eb;
+    border-left: 0;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .filter-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filter-actions #analysis-btn,
+  .filter-actions .filter-options-toggle {
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+  }
+
+  .filter-options-panel {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 12px;
+  }
+
+  .filter-options-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sort-options-section {
+    padding-top: 12px;
+    padding-left: 0;
+    border-top: 1px solid #e5e7eb;
+    border-left: 0;
+  }
+
+  .filter-options-panel .clear-filter-btn {
+    width: 100%;
   }
 }
 
@@ -1963,4 +2295,69 @@ body.simulator-view-active > #analysis-modal {
     border-radius: 12px 12px 0 0;
   }
 
+  .section-heading-row {
+    align-items: center;
+  }
+
+  .mobile-section-jump {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 6px 2px;
+  }
+
+  .course-list-toolbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .search-count {
+    margin-bottom: 8px;
+  }
+
+  .clear-filter-btn,
+  .empty-reset-btn {
+    min-height: 40px;
+  }
+
+  .right-column,
+  .left-column {
+    scroll-margin-top: 12px;
+  }
+
+  .actions button,
+  .delete-btn {
+    min-height: 42px;
+  }
+}
+
+/* 既存の狭幅用input-area指定より後に置き、検索欄とpanel入口を常に1列へ固定する。 */
+@media screen and (max-width: 768px) {
+  .input-area {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .input-area #search-bar,
+  .input-area .filter-actions {
+    grid-column: 1 !important;
+  }
+}
+
+/* hidden属性は既存のinline-flex指定より優先して、未適用時のバッジを確実に隠す。 */
+.filter-active-count[hidden] {
+  display: none !important;
+}
+
+@media screen and (max-width: 768px) {
+  .filter-actions {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  }
+
+  .filter-options-toggle {
+    white-space: nowrap;
+    font-size: 0.9rem;
+    gap: 5px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
 }

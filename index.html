@@ -39,37 +39,65 @@
 
   <div class="input-area">
     <input id="search-bar" type="text" placeholder="授業名や教員名で検索...">
-    <select id="year-filter">
-      <option value="すべて表示">学年</option>
-      <option value="1年次">1年次</option>
-      <option value="2年次">2年次</option>
-      <option value="3年次">3年次</option>
-      <option value="4年次">4年次</option>
-    </select>
-    <select id="quarter-filter">
-      <option value="すべて表示">学期</option>
-      <option value="1Q">1Q</option>
-      <option value="2Q">2Q</option>
-      <option value="3Q">3Q</option>
-      <option value="4Q">4Q</option>
-    </select>
-    <select id="category-filter">
-      <option value="すべて表示">カテゴリ</option>
-    </select>
-    <select id="requirement-filter">
-      <option value="すべて表示">必修フィルター</option>
-      <option value="必修">必修</option>
-      <option value="選択必修">選択必修</option>
-    </select>
-    <div class="sort-control">
-      <span class="sort-control-label" aria-hidden="true">↕ 難易度順</span>
-      <select id="sort-filter" aria-label="難易度順">
-        <option value="default">標準</option>
-        <option value="difficulty-asc">難易度：低い順</option>
-        <option value="difficulty-desc">難易度：高い順</option>
-      </select>
+    <div class="filter-actions">
+      <button id="filter-options-toggle" class="filter-options-toggle" type="button" aria-expanded="false" aria-controls="filter-options-panel">
+        絞り込み・並び替え <span id="filter-active-count" class="filter-active-count" hidden aria-live="polite"></span>
+      </button>
+      <button id="analysis-btn" type="button">卒業要件分析</button>
     </div>
-    <button id="analysis-btn" type="button">卒業要件分析</button>
+    <section id="filter-options-panel" class="filter-options-panel" hidden aria-label="絞り込み・並び替え">
+      <div class="filter-options-section">
+        <h2>絞り込み</h2>
+        <div class="filter-options-grid">
+          <label for="year-filter">学年
+            <select id="year-filter">
+              <option value="すべて表示">すべて表示</option>
+              <option value="1年次">1年次</option>
+              <option value="2年次">2年次</option>
+              <option value="3年次">3年次</option>
+              <option value="4年次">4年次</option>
+            </select>
+          </label>
+          <label for="quarter-filter">開講Q
+            <select id="quarter-filter">
+              <option value="すべて表示">すべて表示</option>
+              <option value="1Q">1Q</option>
+              <option value="2Q">2Q</option>
+              <option value="3Q">3Q</option>
+              <option value="4Q">4Q</option>
+            </select>
+          </label>
+          <label for="category-filter">分野
+            <select id="category-filter">
+              <option value="すべて表示">すべて表示</option>
+            </select>
+          </label>
+          <label for="requirement-filter">必修区分
+            <select id="requirement-filter">
+              <option value="すべて表示">すべて表示</option>
+              <option value="必修">必修</option>
+              <option value="選択必修">選択必修</option>
+            </select>
+          </label>
+        </div>
+        <label class="filter-checkbox" for="exclude-pixiv-filter">
+          <input id="exclude-pixiv-filter" type="checkbox">
+          <span>pixiv関連科目を除外</span>
+        </label>
+      </div>
+      <div class="filter-options-section sort-options-section">
+        <h2>並び替え</h2>
+        <div class="sort-control">
+          <span class="sort-control-label" aria-hidden="true">↕ 難易度順</span>
+          <select id="sort-filter" aria-label="難易度順">
+            <option value="default">標準</option>
+            <option value="difficulty-asc">難易度：低い順</option>
+            <option value="difficulty-desc">難易度：高い順</option>
+          </select>
+        </div>
+      </div>
+      <button id="clear-course-filters" class="clear-filter-btn" type="button" hidden>条件をすべて解除</button>
+    </section>
   </div>
 </div>
 
@@ -79,10 +107,16 @@
 -->
 <main class="main-container">
   <!-- 左カラム: 検索機能と授業の選択リスト -->
-  <section class="left-column">
-    <h2>授業を探して追加</h2>
-    <button id="simulator-btn" class="simulator-launch-btn" type="button">4年間履修シミュレーター</button>
-    <div id="search-count" class="search-count"></div>
+  <section class="left-column" id="course-explorer" tabindex="-1">
+    <div class="section-heading-row">
+      <h2>授業を探して追加</h2>
+      <a href="#my-enrollment" class="mobile-section-jump">マイ履修 ↓</a>
+    </div>
+    <div class="course-list-toolbar">
+      <div id="search-count" class="search-count"></div>
+      <button id="simulator-btn" class="simulator-launch-btn" type="button">4年間履修シミュレーター</button>
+    </div>
+    <section id="related-course-detail-host" class="related-course-detail-host" hidden aria-label="関連科目の詳細" aria-live="polite"></section>
     <div class="predefined-classes-section">
       <!-- ここに JavaScript (app.js) で生成された授業リストが入ります -->
       <div id="data-status" class="data-status" role="status" aria-live="polite">授業データを読み込み中…</div>
@@ -92,8 +126,11 @@
   </section>
 
   <!-- 右カラム: 自分が選択した授業の確認リスト -->
-  <section class="right-column">
-    <h2>マイ履修</h2>
+  <section class="right-column" id="my-enrollment" tabindex="-1">
+    <div class="section-heading-row">
+      <h2>マイ履修</h2>
+      <a href="#course-explorer" class="mobile-section-jump">授業を探す ↑</a>
+    </div>
     <div class="summary-box">
       <div>取得単位：<span id="earned-credits">0</span></div>
       <div>履修予定(科目)：<span id="registered-count">0</span></div>
@@ -111,7 +148,7 @@
 <!-- 必修分析ポップアップ -->
 <div id="analysis-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="analysis-modal-title">
   <div class="modal-content">
-    <span id="close-modal" class="close-btn">&times;</span>
+    <button id="close-modal" class="close-btn" type="button" aria-label="閉じる">&times;</button>
     <h2 id="analysis-modal-title">卒業要件分析結果</h2>
 
     <div id="analysis-result">
@@ -216,9 +253,9 @@
 <button id="back-to-top-btn" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
 <!-- 使い方モーダル -->
-<div id="tutorial-modal" class="modal-overlay" role="dialog" aria-modal="true">
+<div id="tutorial-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="使い方">
   <div class="modal-content tutorial-content">
-    <span id="close-tutorial" class="close-btn">&times;</span>
+    <button id="close-tutorial" class="close-btn" type="button" aria-label="閉じる">&times;</button>
     <div id="tutorial-body">
       <p>読み込み中...</p>
     </div>
