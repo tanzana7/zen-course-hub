@@ -814,7 +814,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Keep a short but usable card area for empty years, then grow only when
       // lane allocation requires it.  The same template is used by the quarter
       // cells and the card layer so every Q in a year remains equal height.
-      const rowTemplate = laneCount ? `30px repeat(${laneCount}, minmax(44px, auto))` : '30px minmax(44px, auto)';
+      const rowTemplate = laneCount ? `24px repeat(${laneCount}, minmax(34px, auto))` : '24px minmax(34px, auto)';
       return `
       <div class="simulator-year-row" data-sim-year="${year}">
         <div class="simulator-year-label"><strong>${year}年</strong><span>${yearPlacements.get(year).reduce((sum, placement) => sum + Number(getCourse(placement.courseId)?.credits || 0), 0)}単位</span></div>
@@ -846,7 +846,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const yearIssue = placementIssues.find((issue) => issue.type === 'year');
         const quarterIssue = placementIssues.find((issue) => issue.type === 'quarter');
         const card = document.createElement('article');
-        card.className = `sim-course-card${quarterIssue ? ' is-quarter-invalid' : ''}`;
+        card.className = `sim-course-card${quarterIssue ? ' is-quarter-invalid' : ''}${yearIssue || quarterIssue ? ' has-inline-issue' : ''}`;
         card.draggable = true;
         card.dataset.simDragCourse = course.id;
         card.dataset.simCardYear = String(year);

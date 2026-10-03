@@ -955,7 +955,7 @@ body.simulator-view-active > #analysis-modal {
   position: relative;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
 }
 
@@ -976,17 +976,21 @@ body.simulator-view-active > #analysis-modal {
 
 .simulator-quarter-header {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-height: 30px;
-  padding: 6px 3px 4px;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 3px;
+  box-sizing: border-box;
+  height: 24px;
+  min-height: 24px;
+  padding: 3px 3px 2px;
   border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
   font-weight: 600;
 }
 
 .simulator-quarter-header small {
   color: #64748b;
-  font-size: 0.82em;
+  font-size: 0.72em;
   font-weight: 500;
   line-height: 1.15;
 }
@@ -1012,8 +1016,8 @@ body.simulator-view-active > #analysis-modal {
   z-index: 1;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  column-gap: 6px;
-  row-gap: 6px;
+  column-gap: 4px;
+  row-gap: 3px;
   min-width: 0;
   pointer-events: none;
 }
@@ -1021,15 +1025,19 @@ body.simulator-view-active > #analysis-modal {
 .sim-course-card {
   position: relative;
   z-index: 2;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   min-width: 0;
   align-self: start;
-  flex-direction: column;
-  gap: 1px;
-  min-height: 44px;
-  max-height: 60px;
-  margin: 1px 2px;
-  padding: 4px 38px 4px 6px;
+  column-gap: 4px;
+  row-gap: 0;
+  box-sizing: border-box;
+  height: 36px;
+  min-height: 34px;
+  max-height: 48px;
+  margin: 1px 1px;
+  padding: 2px 60px 2px 5px;
   border: 1px solid #60a5fa;
   border-left: 3px solid #2563eb;
   border-radius: 5px;
@@ -1051,7 +1059,10 @@ body.simulator-view-active > #analysis-modal {
 }
 
 .sim-course-card-title {
-  display: -webkit-box;
+  display: block;
+  grid-column: 1;
+  grid-row: 1;
+  flex: 1 1 auto;
   min-width: 0;
   padding: 0;
   border: 0;
@@ -1059,11 +1070,11 @@ body.simulator-view-active > #analysis-modal {
   color: #1e3a8a;
   font: inherit;
   font-size: 0.76rem;
-  line-height: 1.18;
+  line-height: 1.1;
   text-align: left;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -1073,12 +1084,17 @@ body.simulator-view-active > #analysis-modal {
 }
 
 .sim-course-credits {
+  grid-column: 2;
+  grid-row: 1;
+  white-space: nowrap;
   color: #475569;
   font-size: 0.68rem;
   line-height: 1.2;
 }
 
 .sim-course-quarter-warning {
+  grid-column: 1 / -1;
+  grid-row: 2;
   max-width: 100%;
   color: #991b1b;
   font-size: 0.66rem;
@@ -1090,6 +1106,8 @@ body.simulator-view-active > #analysis-modal {
 }
 
 .sim-course-year-recommendation {
+  grid-column: 1 / -1;
+  grid-row: 2;
   color: #64748b;
   font-size: 0.68rem;
   line-height: 1.2;
@@ -2565,7 +2583,39 @@ body.simulator-view-active > #analysis-modal {
   }
 
   .sim-course-card {
+    display: block;
     min-width: 0;
+    height: 44px;
+    min-height: 44px;
+    max-height: 52px;
+    padding: 3px 32px 3px 5px;
+  }
+
+  .sim-course-card-title {
+    width: 100%;
+  }
+
+  .sim-course-credits {
+    position: absolute;
+    bottom: 2px;
+    left: 5px;
+    font-size: 0.62rem;
+  }
+
+  .sim-course-card.has-inline-issue {
+    height: 52px;
+  }
+
+  .sim-course-card.has-inline-issue .sim-course-credits {
+    bottom: 18px;
+  }
+
+  .sim-course-quarter-warning,
+  .sim-course-year-recommendation {
+    position: absolute;
+    right: 32px;
+    bottom: 2px;
+    left: 5px;
   }
 
   .sim-course-remove,

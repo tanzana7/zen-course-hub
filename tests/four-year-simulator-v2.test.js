@@ -235,10 +235,14 @@ test('quarter card layer keeps the header drop target separate and resolves card
 
 test('simulator polish keeps dynamic rows, compact cards, and usable palette controls', () => {
   const style = fs.readFileSync('style.css', 'utf8');
-  assert.match(app, /repeat\(\$\{laneCount\}, minmax\(44px, auto\)\)/);
+  assert.match(app, /repeat\(\$\{laneCount\}, minmax\(34px, auto\)\)/);
+  assert.match(app, /24px repeat\(\$\{laneCount\}/);
+  assert.match(app, /has-inline-issue/);
   assert.match(style, /\.simulator-quarter-card-layer\s*\{/);
-  assert.match(style, /\.sim-course-card\s*\{[\s\S]*?min-height:\s*44px;[\s\S]*?max-height:\s*60px;/);
-  assert.match(style, /\.sim-course-card-title\s*\{[\s\S]*?-webkit-line-clamp:\s*2;/);
+  assert.match(style, /\.simulator-quarter-header\s*\{[\s\S]*?height:\s*24px;[\s\S]*?white-space:\s*nowrap;/);
+  assert.match(style, /\.sim-course-card\s*\{[\s\S]*?min-height:\s*34px;[\s\S]*?max-height:\s*48px;/);
+  assert.match(style, /\.sim-course-card\s*\{[\s\S]*?height:\s*36px;/);
+  assert.match(style, /\.sim-course-card-title\s*\{[\s\S]*?text-overflow:\s*ellipsis;[\s\S]*?white-space:\s*nowrap;/);
   assert.match(style, /\.sim-course-picker-item,\s*\n\.sim-unplaced-item,\s*\n\.sim-scheduled-item\s*\{[\s\S]*?padding:\s*6px 8px;/);
   assert.match(style, /\.sim-course-placement-open\s*\{[\s\S]*?min-height:\s*36px;/);
 });
