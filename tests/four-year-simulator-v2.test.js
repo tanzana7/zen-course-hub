@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const simulatorRules = require('../simulator-rules.js');
+const courseSorting = require('../course-sorting.js');
 
 const app = fs.readFileSync('app.js', 'utf8');
 const index = fs.readFileSync('index.html', 'utf8');
@@ -36,13 +37,72 @@ test('simulator palette uses the requested labels and keeps myClasses separate f
 });
 
 test('simulator reuses the main difficulty sort helper after filtering', () => {
-  assert.match(app, /const sortCoursesByDifficulty = \(courses, sortMode\)/);
-  assert.match(app, /const sorted = sortCoursesByDifficulty\(filtered, state\.difficultySort\)/);
-  assert.match(app, /matches = sortCoursesByDifficulty\(matches, selectedSort\)/);
-  assert.match(app, /aMissing \? 1 : -1/);
-  assert.match(app, /return difference \|\| \(a\.index - b\.index\)/);
-  assert.match(index, /<option value="difficulty-asc">難易度：低い順<\/option>/);
-  assert.match(index, /<option value="difficulty-desc">難易度：高い順<\/option>/);
+  assert.match(app, /const \{ COURSE_SORT_OPTIONS, sortCourses \} = courseSorting/);
+  assert.match(app, /\['sort-filter', 'sim-course-sort'\]\.forEach/);
+  assert.match(app, /const sorted = sortCourses\(filtered, state\.difficultySort, state\.difficultyMap\)/);
+  assert.match(app, /matches = sortCourses\(matches, selectedSort, state\.difficultyMap\)/);
+  assert.match(index, /<script src="course-sorting\.js"><\/script>/);
+  assert.match(index, /id="sort-filter" aria-label="難易度順"><\/select>/);
+  assert.match(index, /id="sim-course-sort" aria-label="難易度順"><\/select>/);
+});
+
+test('Main Hub and simulator use identical sort options and stable comparator behavior', () => {
+  assert.deepEqual(courseSorting.COURSE_SORT_OPTIONS, [
+    { value: 'default', label: '標準' },
+    { value: 'difficulty-asc', label: '難易度：低い順' },
+    { value: 'difficulty-desc', label: '難易度：高い順' }
+  ]);
+
+  const coursesFixture = [
+    { id: 'tie-first' },
+    { id: 'missing' },
+    { id: 'high' },
+    { id: 'tie-second' },
+    { id: 'low' }
+  ];
+  const difficultyMap = new Map([
+    ['tie-first', { average: 4 }],
+    ['high', { average: 9 }],
+    ['tie-second', { average: 4 }],
+    ['low', { average: 1 }]
+  ]);
+  const mainHubSort = (mode) => courseSorting.sortCourses(coursesFixture, mode, difficultyMap).map(({ id }) => id);
+  const simulatorSort = (mode) => courseSorting.sortCourses(coursesFixture, mode, difficultyMap).map(({ id }) => id);
+
+  for (const { value } of courseSorting.COURSE_SORT_OPTIONS) {
+    assert.deepEqual(simulatorSort(value), mainHubSort(value), value);
+  }
+  assert.deepEqual(mainHubSort('default'), ['tie-first', 'missing', 'high', 'tie-second', 'low']);
+  assert.deepEqual(mainHubSort('difficulty-asc'), ['low', 'tie-first', 'tie-second', 'high', 'missing']);
+  assert.deepEqual(mainHubSort('difficulty-desc'), ['high', 'tie-first', 'tie-second', 'low', 'missing']);
+});
+
+test('shared sort remains parity-safe after every supported filter combination', () => {
+  const coursesFixture = [
+    { id: 'math-low', subject: '数学', year: '1年次', quarter: '1Q', category: '数理', placement: 'unplaced' },
+    { id: 'math-high', subject: '数学', year: '2年次', quarter: '2Q', category: '数理', placement: 'placed' },
+    { id: 'art', subject: '芸術', year: '1年次', quarter: '3Q', category: '文化・思想', placement: 'unplaced' }
+  ];
+  const difficultyMap = new Map([
+    ['math-low', { average: 2 }],
+    ['math-high', { average: 8 }],
+    ['art', { average: 5 }]
+  ]);
+  const filters = [
+    { apply: (course) => course.subject === '数学', expected: ['math-low', 'math-high'] },
+    { apply: (course) => course.year === '1年次', expected: ['math-low', 'art'] },
+    { apply: (course) => course.quarter === '2Q', expected: ['math-high'] },
+    { apply: (course) => course.category === '数理', expected: ['math-low', 'math-high'] },
+    { apply: (course) => course.placement === 'placed', expected: ['math-high'] },
+    { apply: () => true, expected: ['math-low', 'art', 'math-high'] }
+  ];
+  for (const { apply, expected } of filters) {
+    const filtered = coursesFixture.filter(apply);
+    assert.deepEqual(
+      courseSorting.sortCourses(filtered, 'difficulty-asc', difficultyMap).map(({ id }) => id),
+      expected
+    );
+  }
 });
 
 test('palette exposes separate detail and placement controls while retaining drag', () => {
@@ -248,7 +308,7 @@ test('missing rules disables only simulator entry while main Hub bootstrap remai
   };
   vm.runInNewContext(app, {
     document,
-    window: { addEventListener() {}, clearTimeout() {}, setTimeout() {} },
+    window: { addEventListener() {}, clearTimeout() {}, setTimeout() {}, CourseSorting: courseSorting },
     localStorage: { getItem: () => null },
     fetch: () => { fetchCount += 1; return new Promise(() => {}); },
     console, URL, Map, Set

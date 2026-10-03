@@ -28,6 +28,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     FILTER_PREFERENCES: 'courseFilterPreferences'
   };
   const SIMULATOR_STORAGE_KEY = 'fourYearSimulatorPlanV1';
+  const courseSorting = window.CourseSorting;
+  if (!courseSorting) {
+    console.error('科目並び替えモジュールを読み込めませんでした。');
+    return;
+  }
+  const { COURSE_SORT_OPTIONS, sortCourses } = courseSorting;
   const simulatorRules = window.SimulatorRules;
   const simulatorAvailable = Boolean(simulatorRules && [
     'getQuarterInfo', 'canPlaceCourseAt',
@@ -130,6 +136,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     simulatorPaletteDefaulted: false,
     // マイ履修は通常の履修予定（myClasses）を表示するだけで、4年計画とは分離する。
     simulatorPlacementFilter: 'all'
+  };
+
+  const syncCourseSortOptions = () => {
+    ['sort-filter', 'sim-course-sort'].forEach((selectId) => {
+      const select = document.getElementById(selectId);
+      if (!select) return;
+      const selectedValue = COURSE_SORT_OPTIONS.some((option) => option.value === select.value)
+        ? select.value
+        : 'default';
+      select.replaceChildren(...COURSE_SORT_OPTIONS.map(({ value, label }) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        return option;
+      }));
+      select.value = selectedValue;
+    });
   };
 
   // 探索一覧の表示設定だけを独立保存し、履修データのlocalStorage形式へ混ぜない。
@@ -377,25 +400,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   const getSimulatorPlacement = (courseId) => state.simulatorPlan.placements.find((placement) => placement.courseId === courseId);
-
-  // Main Hubとシミュレーターで同じ難易度順・未登録末尾・安定順序を使う。
-  // 標準順は呼び出し側の既存配列をそのまま返し、既存の科目順を維持する。
-  const sortCoursesByDifficulty = (courses, sortMode) => {
-    if (sortMode === 'default') return courses;
-    return courses
-      .map((item, index) => ({ item, index, average: state.difficultyMap.get(item.id)?.average }))
-      .sort((a, b) => {
-        const aMissing = !Number.isFinite(a.average);
-        const bMissing = !Number.isFinite(b.average);
-        if (aMissing !== bMissing) return aMissing ? 1 : -1;
-        if (aMissing) return a.index - b.index;
-        const difference = sortMode === 'difficulty-asc'
-          ? a.average - b.average
-          : b.average - a.average;
-        return difference || (a.index - b.index);
-      })
-      .map(({ item }) => item);
-  };
 
   const getSimulatorWarnings = (course, placement) => {
     const prerequisites = state.relationsMap.get(course.id)?.prerequisites || [];
@@ -683,7 +687,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return matchSearch && matchYear && matchQuarter && matchCategory;
     });
 
-    matches = sortCoursesByDifficulty(matches, selectedSort);
+    matches = sortCourses(matches, selectedSort, state.difficultyMap);
 
     if (!matches.length) {
       const message = state.simulatorPaletteMode === 'scheduled'
@@ -1490,7 +1494,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return matchYear && matchQuarter && matchRequirement && matchIntro && matchCategory && matchSearch && matchProvider;
     });
 
-    const sorted = sortCoursesByDifficulty(filtered, state.difficultySort);
+    const sorted = sortCourses(filtered, state.difficultySort, state.difficultyMap);
 
     const hasActiveFilters = Boolean(
       state.filterSearch.trim() ||
@@ -2068,6 +2072,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // --- アプリケーションの実行開始 ---
   // すべての関数(const)の定義が完了した後に、呼び出しを行います。
 
+  syncCourseSortOptions();
   setupFilters();
   setupSimulatorModal();
   setupAnalysisModal();

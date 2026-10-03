@@ -89,11 +89,7 @@
         <h2>並び替え</h2>
         <div class="sort-control">
           <span class="sort-control-label" aria-hidden="true">↕ 難易度順</span>
-          <select id="sort-filter" aria-label="難易度順">
-            <option value="default">標準</option>
-            <option value="difficulty-asc">難易度：低い順</option>
-            <option value="difficulty-desc">難易度：高い順</option>
-          </select>
+          <select id="sort-filter" aria-label="難易度順"></select>
         </div>
       </div>
       <button id="clear-course-filters" class="clear-filter-btn" type="button" hidden>条件をすべて解除</button>
@@ -220,11 +216,7 @@
               <option value="unplaced">未配置</option>
               <option value="placed">配置済み</option>
             </select>
-            <select id="sim-course-sort" aria-label="シミュレーター難易度順">
-              <option value="default">標準</option>
-              <option value="difficulty-asc">難易度：低い順</option>
-              <option value="difficulty-desc">難易度：高い順</option>
-            </select>
+            <select id="sim-course-sort" aria-label="難易度順"></select>
           </div>
         </div>
         <div id="sim-course-results" class="sim-course-results simulator-palette-list" aria-live="polite"></div>
@@ -286,6 +278,7 @@
 </div>
 
 <script src="simulator-rules.js"></script>
+<script src="course-sorting.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
