@@ -222,3 +222,23 @@ test('v2 title is configured once and applied to the launch/title UI', () => {
   assert.match(app, /modal\.dataset\.simulatorTitle/);
   assert.match(app, /button\.textContent = simulatorTitle/);
 });
+
+test('quarter card layer keeps the header drop target separate and resolves card drops to its parent quarter', () => {
+  assert.match(app, /const resolveSimulatorDropCell = \(target\) =>/);
+  assert.match(app, /const directCell = target\.closest\('\[data-sim-drop-quarter\]'\)/);
+  assert.match(app, /const card = target\.closest\('\[data-sim-drag-course\]'\)/);
+  assert.match(app, /card\.dataset\.simCardYear = String\(year\)/);
+  assert.match(app, /card\.dataset\.simCardQuarter = String\(assignment\.start\)/);
+  assert.equal((app.match(/resolveSimulatorDropCell\(event\.target\)/g) || []).length, 4);
+  assert.match(app, /class="simulator-quarter-card-layer"/);
+});
+
+test('simulator polish keeps dynamic rows, compact cards, and usable palette controls', () => {
+  const style = fs.readFileSync('style.css', 'utf8');
+  assert.match(app, /repeat\(\$\{laneCount\}, minmax\(44px, auto\)\)/);
+  assert.match(style, /\.simulator-quarter-card-layer\s*\{/);
+  assert.match(style, /\.sim-course-card\s*\{[\s\S]*?min-height:\s*44px;[\s\S]*?max-height:\s*60px;/);
+  assert.match(style, /\.sim-course-card-title\s*\{[\s\S]*?-webkit-line-clamp:\s*2;/);
+  assert.match(style, /\.sim-course-picker-item,\s*\n\.sim-unplaced-item,\s*\n\.sim-scheduled-item\s*\{[\s\S]*?padding:\s*6px 8px;/);
+  assert.match(style, /\.sim-course-placement-open\s*\{[\s\S]*?min-height:\s*36px;/);
+});

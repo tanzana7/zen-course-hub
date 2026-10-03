@@ -737,6 +737,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   };
 
+  // The visible drop target is the whole quarter cell.  Cards sit above that
+  // background layer, so a drop on a title, warning, or action area must resolve
+  // back to the card's assigned quarter instead of becoming a card-to-card action.
+  const resolveSimulatorDropCell = (target) => {
+    const yearGrid = document.getElementById('simulator-year-grid');
+    if (!yearGrid || !target || typeof target.closest !== 'function') return null;
+    const directCell = target.closest('[data-sim-drop-quarter]');
+    if (directCell && yearGrid.contains(directCell)) return directCell;
+    const card = target.closest('[data-sim-drag-course]');
+    if (!card || !yearGrid.contains(card)) return null;
+    const year = Number(card.dataset.simCardYear);
+    const quarter = Number(card.dataset.simCardQuarter);
+    if (!Number.isInteger(year) || !Number.isInteger(quarter)) return null;
+    return yearGrid.querySelector(`[data-sim-drop-year="${year}"][data-sim-drop-quarter="${quarter}"]`);
+  };
+
   const renderSimulator = () => {
     const summary = document.getElementById('simulator-summary');
     const totalSummary = document.getElementById('simulator-total-summary');
@@ -795,12 +811,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     yearGrid.innerHTML = years.map((year) => {
       const laneCount = laneDataByYear.get(year).laneCount;
-      const rowTemplate = laneCount ? `30px repeat(${laneCount}, minmax(28px, auto))` : '30px';
+      // Keep a short but usable card area for empty years, then grow only when
+      // lane allocation requires it.  The same template is used by the quarter
+      // cells and the card layer so every Q in a year remains equal height.
+      const rowTemplate = laneCount ? `30px repeat(${laneCount}, minmax(44px, auto))` : '30px minmax(44px, auto)';
       return `
       <div class="simulator-year-row" data-sim-year="${year}">
         <div class="simulator-year-label"><strong>${year}年</strong><span>${yearPlacements.get(year).reduce((sum, placement) => sum + Number(getCourse(placement.courseId)?.credits || 0), 0)}単位</span></div>
         <div class="simulator-quarter-grid" style="grid-template-rows: ${rowTemplate};">
-          ${[1, 2, 3, 4].map((quarter) => `<div class="simulator-quarter-cell" style="grid-column: ${quarter}; grid-row: 1 / span ${laneCount + 1};" data-sim-drop-year="${year}" data-sim-drop-quarter="${quarter}"><span class="simulator-quarter-header"><strong>${quarter}Q</strong><small>${quarterCreditsByYear.get(year).get(quarter)}単位</small></span></div>`).join('')}
+          ${[1, 2, 3, 4].map((quarter) => `<div class="simulator-quarter-cell" style="grid-column: ${quarter}; grid-row: 1 / -1;" data-sim-drop-year="${year}" data-sim-drop-quarter="${quarter}"><span class="simulator-quarter-header"><strong>${quarter}Q</strong><small>${quarterCreditsByYear.get(year).get(quarter)}単位</small></span></div>`).join('')}
+          <div class="simulator-quarter-card-layer" style="grid-column: 1 / -1; grid-row: 1 / -1; grid-template-rows: ${rowTemplate};" aria-label="${year}年の配置済み科目"></div>
         </div>
       </div>
     `;
@@ -808,8 +828,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     yearPlacements.forEach((placements, year) => {
       const row = yearGrid.querySelector(`[data-sim-year="${year}"]`);
-      const quarterGrid = row?.querySelector('.simulator-quarter-grid');
-      if (!quarterGrid) return;
+      const cardLayer = row?.querySelector('.simulator-quarter-card-layer');
+      if (!cardLayer) return;
       const laneData = laneDataByYear.get(year);
 
       placements.forEach((placement) => {
@@ -829,6 +849,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         card.className = `sim-course-card${quarterIssue ? ' is-quarter-invalid' : ''}`;
         card.draggable = true;
         card.dataset.simDragCourse = course.id;
+        card.dataset.simCardYear = String(year);
+        card.dataset.simCardQuarter = String(assignment.start);
         card.style.gridColumn = `${assignment.start} / span ${assignment.span}`;
         card.style.gridRow = String(assignment.lane + 2);
         card.title = warningTooltip || `${course.subject}（${course.credits}単位）`;
@@ -842,7 +864,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <button type="button" class="sim-course-remove" data-sim-remove-course="${escapeHTML(course.id)}" aria-label="${escapeHTML(course.subject)}を削除">×</button>
           </div>
         `;
-        quarterGrid.appendChild(card);
+        cardLayer.appendChild(card);
       });
     });
 
@@ -1834,23 +1856,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       clearSimulatorDropHighlights();
     });
     yearGrid?.addEventListener('dragenter', (event) => {
-      const target = event.target.closest('[data-sim-drop-quarter]');
+      const target = resolveSimulatorDropCell(event.target);
       const courseId = event.dataTransfer?.getData('text/plain');
       if (target && courseId && target.classList.contains('is-drop-allowed')) target.classList.add('is-drop-active');
     });
     yearGrid?.addEventListener('dragover', (event) => {
-      const target = event.target.closest('[data-sim-drop-quarter]');
+      const target = resolveSimulatorDropCell(event.target);
       if (!target) return;
       // Accept the drop event on invalid cells only to give feedback; shared validation still rejects it.
       event.preventDefault();
       if (target.classList.contains('is-drop-allowed')) target.classList.add('is-drop-active');
     });
     yearGrid?.addEventListener('dragleave', (event) => {
-      const target = event.target.closest('[data-sim-drop-quarter]');
-      if (target && (!event.relatedTarget || !target.contains(event.relatedTarget))) target.classList.remove('is-drop-active');
+      const target = resolveSimulatorDropCell(event.target);
+      const relatedTarget = resolveSimulatorDropCell(event.relatedTarget);
+      if (target && relatedTarget !== target) target.classList.remove('is-drop-active');
     });
     yearGrid?.addEventListener('drop', (event) => {
-      const target = event.target.closest('[data-sim-drop-quarter]');
+      const target = resolveSimulatorDropCell(event.target);
       if (!target) return;
       event.preventDefault();
       clearSimulatorDropHighlights();
