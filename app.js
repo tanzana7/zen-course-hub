@@ -854,6 +854,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           ${quarterIssue ? `<span class="sim-course-quarter-warning" title="${escapeHTML(quarterIssue.message)}">要修正 · ${escapeHTML(quarterIssue.message)}</span>` : ''}
           <div class="sim-course-card-actions">
             ${warnings.length || placementIssues.length ? `<button type="button" class="sim-warning-badge${warningClass}" data-sim-warning-course="${escapeHTML(course.id)}" aria-label="配置・前提の注意を確認">⚠</button>` : ''}
+            <button type="button" class="sim-course-detail-view" data-sim-detail-course="${escapeHTML(course.id)}" aria-label="${escapeHTML(course.subject)}の詳細を見る" title="科目詳細を見る">👁</button>
             <button type="button" class="sim-course-remove" data-sim-remove-course="${escapeHTML(course.id)}" aria-label="${escapeHTML(course.subject)}を削除">×</button>
           </div>
         `;

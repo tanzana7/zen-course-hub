@@ -34,6 +34,15 @@ test('palette exposes separate detail and placement controls while retaining dra
   assert.doesNotMatch(app, /sim-mobile-place-button/);
 });
 
+test('placed cards expose an explicit detail control without changing delete semantics', () => {
+  assert.match(app, /class="sim-course-detail-view"/);
+  assert.match(app, /data-sim-detail-course="\$\{escapeHTML\(course\.id\)\}"/);
+  assert.match(app, /aria-label="\$\{escapeHTML\(course\.subject\)\}の詳細を見る"/);
+  assert.match(app, /title="科目詳細を見る">👁<\/button>/);
+  assert.match(app, /const detailButton = event\.target\.closest\('\[data-sim-detail-course\]'\)/);
+  assert.match(app, /data-sim-remove-course="\$\{escapeHTML\(course\.id\)\}"/);
+});
+
 test('placement destinations are created on demand in an accessible native dialog', () => {
   assert.match(index, /<dialog id="simulator-placement-dialog"/);
   assert.match(index, /aria-labelledby="simulator-placement-title"/);
@@ -244,6 +253,9 @@ test('simulator polish keeps dynamic rows, compact cards, and usable palette con
   assert.match(style, /\.sim-course-card\s*\{[\s\S]*?min-height:\s*34px;[\s\S]*?max-height:\s*48px;/);
   assert.match(style, /\.sim-course-card\s*\{[\s\S]*?height:\s*36px;/);
   assert.match(style, /\.sim-course-card-title\s*\{[\s\S]*?text-overflow:\s*ellipsis;[\s\S]*?white-space:\s*nowrap;/);
+  assert.match(style, /\.sim-course-card\s*\{[\s\S]*?container:\s*sim-course-card\s*\/\s*inline-size;/);
+  assert.match(style, /@container sim-course-card \(max-width: 50px\)/);
+  assert.match(style, /\.sim-course-detail-view\s*\{/);
   assert.match(style, /\.sim-course-picker-item,\s*\n\.sim-unplaced-item,\s*\n\.sim-scheduled-item\s*\{[\s\S]*?padding:\s*6px 8px;/);
   assert.match(style, /\.sim-course-placement-open\s*\{[\s\S]*?min-height:\s*36px;/);
 });

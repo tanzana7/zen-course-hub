@@ -1042,7 +1042,7 @@ body.simulator-view-active > #analysis-modal {
   min-height: 34px;
   max-height: 48px;
   margin: 1px 1px;
-  padding: 2px 60px 2px 5px;
+  padding: 2px 64px 2px 5px;
   border: 1px solid #60a5fa;
   border-left: 3px solid #2563eb;
   border-radius: 5px;
@@ -1052,6 +1052,7 @@ body.simulator-view-active > #analysis-modal {
   overflow: hidden;
   pointer-events: auto;
   cursor: grab;
+  container: sim-course-card / inline-size;
 }
 
 .sim-course-card:active {
@@ -1131,6 +1132,27 @@ body.simulator-view-active > #analysis-modal {
   color: #1d4ed8;
 }
 
+.sim-course-detail-view {
+  width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  font-size: 0.82rem;
+  line-height: 1;
+}
+
+.sim-course-detail-view:hover,
+.sim-course-detail-view:focus-visible {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
 .sim-warning-badge {
   width: 28px;
   min-height: 28px;
@@ -1151,7 +1173,7 @@ body.simulator-view-active > #analysis-modal {
   right: 2px;
   min-height: 28px;
   justify-content: flex-end;
-  gap: 1px;
+  gap: 0;
   margin-top: 0;
 }
 
@@ -2585,18 +2607,17 @@ body.simulator-view-active > #analysis-modal {
     height: 44px;
     min-height: 44px;
     max-height: 52px;
-    padding: 3px 32px 3px 5px;
+    padding: 3px 5px;
   }
 
   .sim-course-card-title {
     width: 100%;
+    height: 16px;
+    padding-right: 0;
   }
 
   .sim-course-credits {
-    position: absolute;
-    bottom: 2px;
-    left: 5px;
-    font-size: 0.62rem;
+    display: none;
   }
 
   .sim-course-card.has-inline-issue {
@@ -2609,16 +2630,26 @@ body.simulator-view-active > #analysis-modal {
 
   .sim-course-quarter-warning {
     position: absolute;
-    right: 32px;
-    bottom: 2px;
+    right: 2px;
+    bottom: 22px;
     left: 5px;
   }
 
-  .sim-course-remove,
-  .sim-warning-badge {
-    width: 29px;
-    min-height: 40px;
-    height: 40px;
+  .sim-course-card-actions {
+    top: auto;
+    right: 1px;
+    bottom: 1px;
+    height: 24px;
+    min-height: 24px;
+    background: #fff;
+  }
+
+  .sim-course-card-actions button {
+    width: 21px;
+    min-width: 21px;
+    min-height: 24px;
+    height: 24px;
+    font-size: 0.75rem;
   }
 
   .simulator-placement-options {
@@ -2675,6 +2706,42 @@ body.simulator-view-active > #analysis-modal {
   .actions button,
   .delete-btn {
     min-height: 42px;
+  }
+}
+
+/* Keep the subject recognizable when a single-Q card becomes narrower than the
+   action cluster. Credits are secondary in that case; the title gets its own
+   line and the actions remain independently tappable below it. */
+@container sim-course-card (max-width: 50px) {
+  .sim-course-card {
+    padding: 2px 4px;
+  }
+
+  .sim-course-card-title {
+    width: 100%;
+    height: 15px;
+    line-height: 1.1;
+  }
+
+  .sim-course-credits {
+    display: none;
+  }
+
+  .sim-course-card-actions {
+    top: auto;
+    right: 1px;
+    bottom: 1px;
+    height: 19px;
+    min-height: 19px;
+    background: #fff;
+  }
+
+  .sim-course-card-actions button {
+    width: 21px;
+    min-width: 21px;
+    height: 19px;
+    min-height: 19px;
+    font-size: 0.72rem;
   }
 }
 
