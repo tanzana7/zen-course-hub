@@ -159,17 +159,18 @@
 </div>
 
 <!-- 4年間履修シミュレーター（全画面ビュー） -->
-<div id="simulator-modal" class="simulator-view" hidden role="dialog" aria-modal="true" aria-labelledby="simulator-modal-title" tabindex="-1" data-simulator-title="4年間履修シミュレーター v2">
+<div id="simulator-modal" class="simulator-view" hidden role="dialog" aria-modal="true" aria-labelledby="simulator-modal-title" tabindex="-1" data-simulator-title="4年間履修シミュレーター β">
   <div class="simulator-shell">
     <header class="simulator-toolbar">
       <button id="close-simulator" class="simulator-back" type="button">← 履修管理に戻る</button>
-      <h1 id="simulator-modal-title" tabindex="-1">4年間履修シミュレーター</h1>
+      <h1 id="simulator-modal-title" tabindex="-1">4年間履修シミュレーター β</h1>
       <div id="simulator-total-summary" class="simulator-total-summary" aria-live="polite"></div>
     </header>
 
     <div class="simulator-layout">
       <section class="simulator-plan-panel" aria-labelledby="simulator-plan-title">
         <p class="simulator-note">計画は「履修予定」と別に保存します。履修済みは前提判定に反映され、複数Q科目の単位は開始Qに計上します。</p>
+        <p class="simulator-note simulator-beta-note">β版です。開講情報は変更される場合があります。実際の履修登録時は最新のシラバスを確認してください。</p>
         <p id="simulator-feedback" class="simulator-feedback" role="status" aria-live="polite" hidden></p>
         <div class="simulator-summary" id="simulator-summary"></div>
         <details class="simulator-plan-check" id="simulator-plan-check">

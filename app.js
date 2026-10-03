@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const SIMULATOR_STORAGE_KEY = 'fourYearSimulatorPlanV1';
   const simulatorRules = window.SimulatorRules;
   const simulatorAvailable = Boolean(simulatorRules && [
-    'getQuarterInfo', 'canPlaceCourseAt', 'getRecommendedYear',
+    'getQuarterInfo', 'canPlaceCourseAt',
     'getPlacementIssues', 'applyPlacement', 'createEmptyPlan', 'savePlanChange'
   ].every((name) => typeof simulatorRules[name] === 'function'));
 
@@ -442,15 +442,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const prerequisiteWarnings = getSimulatorPlanWarnings();
     const placementIssues = getSimulatorPlacementIssues();
     const quarterIssues = placementIssues.filter((issue) => issue.type === 'quarter').length;
-    const yearWarnings = placementIssues.filter((issue) => issue.type === 'year').length;
     const strongCount = prerequisiteWarnings.filter((warning) => warning.strengthClass === 'strong').length;
     const recommendedCount = prerequisiteWarnings.length - strongCount;
     const issueCount = placementIssues.length + prerequisiteWarnings.length;
     summary.textContent = issueCount
-      ? `⚠ 計画チェック：要修正 ${quarterIssues}・年次目安 ${yearWarnings}・前提 ${strongCount}強/${recommendedCount}推奨`
+      ? `⚠ 計画チェック：要修正 ${quarterIssues}・前提 ${strongCount}強/${recommendedCount}推奨`
       : '✓ 計画チェック';
     const checkItems = [
-      ...placementIssues.map((issue) => ({ ...issue, strengthText: issue.type === 'quarter' ? '要修正' : '年次目安' })),
+      ...placementIssues.map((issue) => ({ ...issue, strengthText: '要修正' })),
       ...prerequisiteWarnings.map((warning) => ({ ...warning, strengthText: warning.strengthLabel }))
     ];
     details.innerHTML = checkItems.length
@@ -701,17 +700,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       const difficulty = state.difficultyMap.get(course.id);
       const placementText = placement ? `✓ ${formatSimulatorPlacement(course, placement)}に配置済み` : '未配置';
       const difficultyText = difficulty ? `難易度 ${difficulty.average.toFixed(2)} / 10.0` : '難易度 未登録';
-      const recommendedYear = simulatorRules.getRecommendedYear(course);
-      const yearWarning = placement && recommendedYear && placement.year !== recommendedYear
-        ? ` ｜ ${recommendedYear}年次推奨`
-        : '';
       const placedClass = placement ? ' is-placed' : '';
       return `
         <article class="sim-course-picker-item${placedClass}" draggable="${placement ? 'false' : 'true'}" data-sim-drag-course="${escapeHTML(course.id)}">
           <div class="sim-course-picker-info">
             <button type="button" class="sim-course-detail-trigger" data-sim-detail-course="${escapeHTML(course.id)}">${escapeHTML(course.subject)}</button>
             <span>${escapeHTML(course.quarter || 'Q未定')} ｜ ${escapeHTML(String(course.credits || 0))}単位</span>
-            <small>${escapeHTML(difficultyText)} ｜ ${escapeHTML(placementText + yearWarning)}</small>
+            <small>${escapeHTML(difficultyText)} ｜ ${escapeHTML(placementText)}</small>
           </div>
           <div class="sim-course-placement-controls">
             <button type="button" class="sim-course-placement-open" data-sim-placement-course="${escapeHTML(course.id)}" aria-label="${escapeHTML(course.subject)}を${placement ? '別の場所へ移動' : '配置'}">${placement ? '配置先を変更' : '配置'}</button>
@@ -843,10 +838,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const warningClass = placementIssues.some((issue) => issue.type === 'quarter') || warnings.some((warning) => warning.strengthClass === 'strong')
           ? ' is-strong'
           : '';
-        const yearIssue = placementIssues.find((issue) => issue.type === 'year');
         const quarterIssue = placementIssues.find((issue) => issue.type === 'quarter');
         const card = document.createElement('article');
-        card.className = `sim-course-card${quarterIssue ? ' is-quarter-invalid' : ''}${yearIssue || quarterIssue ? ' has-inline-issue' : ''}`;
+        card.className = `sim-course-card${quarterIssue ? ' is-quarter-invalid' : ''}${quarterIssue ? ' has-inline-issue' : ''}`;
         card.draggable = true;
         card.dataset.simDragCourse = course.id;
         card.dataset.simCardYear = String(year);
@@ -858,7 +852,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           <button type="button" class="sim-course-card-title" data-sim-detail-course="${escapeHTML(course.id)}">${escapeHTML(course.subject)}</button>
           <span class="sim-course-credits">${escapeHTML(String(course.credits || 0))}単位</span>
           ${quarterIssue ? `<span class="sim-course-quarter-warning" title="${escapeHTML(quarterIssue.message)}">要修正 · ${escapeHTML(quarterIssue.message)}</span>` : ''}
-          ${yearIssue ? `<span class="sim-course-year-recommendation">${escapeHTML(String(yearIssue.recommendedYear))}年次推奨</span>` : ''}
           <div class="sim-course-card-actions">
             ${warnings.length || placementIssues.length ? `<button type="button" class="sim-warning-badge${warningClass}" data-sim-warning-course="${escapeHTML(course.id)}" aria-label="配置・前提の注意を確認">⚠</button>` : ''}
             <button type="button" class="sim-course-remove" data-sim-remove-course="${escapeHTML(course.id)}" aria-label="${escapeHTML(course.subject)}を削除">×</button>

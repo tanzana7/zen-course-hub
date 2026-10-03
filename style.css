@@ -462,6 +462,11 @@ body.simulator-view-active > #analysis-modal {
   line-height: 1.5;
 }
 
+.simulator-beta-note {
+  margin-top: -6px;
+  color: #475569;
+}
+
 .simulator-feedback {
   margin: -6px 0 12px;
   padding: 8px 10px;
@@ -1103,14 +1108,6 @@ body.simulator-view-active > #analysis-modal {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.sim-course-year-recommendation {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  color: #64748b;
-  font-size: 0.68rem;
-  line-height: 1.2;
 }
 
 .sim-course-remove {
@@ -2610,8 +2607,7 @@ body.simulator-view-active > #analysis-modal {
     bottom: 18px;
   }
 
-  .sim-course-quarter-warning,
-  .sim-course-year-recommendation {
+  .sim-course-quarter-warning {
     position: absolute;
     right: 32px;
     bottom: 2px;

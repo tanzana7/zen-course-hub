@@ -60,11 +60,6 @@
     );
   };
 
-  const getRecommendedYear = (course) => {
-    const match = String(course?.year || '').match(/^\s*([1-4])年次\s*$/);
-    return match ? Number(match[1]) : null;
-  };
-
   const getPlacementIssues = (course, placement) => {
     if (!course || !placement) return [];
     const issues = [];
@@ -78,14 +73,6 @@
       });
     }
 
-    const recommendedYear = getRecommendedYear(course);
-    if (recommendedYear && placement.year !== recommendedYear) {
-      issues.push({
-        type: 'year',
-        recommendedYear,
-        message: `${recommendedYear}年次推奨（現在は${placement.year}年）`
-      });
-    }
     return issues;
   };
 
@@ -132,7 +119,6 @@
   return Object.freeze({
     getQuarterInfo,
     canPlaceCourseAt,
-    getRecommendedYear,
     getPlacementIssues,
     applyPlacement,
     createEmptyPlan,

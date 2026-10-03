@@ -52,15 +52,13 @@ test('simulator and course detail expose dialog semantics and focus restoration'
   assert.match(app, /trapDialogTab\(event/);
 });
 
-test('course Q is a hard placement constraint while a different recommended year stays allowed', () => {
+test('course Q is a hard placement constraint while a different recommended year stays allowed without a warning', () => {
   const qOneAndThree = courses.find((course) => course.id === 'academic_literacy');
   assert.equal(simulatorRules.canPlaceCourseAt(qOneAndThree, 1, 1), true);
   assert.equal(simulatorRules.canPlaceCourseAt(qOneAndThree, 3, 3), true);
   assert.equal(simulatorRules.canPlaceCourseAt(qOneAndThree, 1, 2), false);
   assert.equal(simulatorRules.applyPlacement([], qOneAndThree, 3, 3).allowed, true);
-  assert.deepEqual(simulatorRules.getPlacementIssues(qOneAndThree, { year: 3, selectedQuarter: 3 }), [
-    { type: 'year', recommendedYear: 1, message: '1年次推奨（現在は3年）' }
-  ]);
+  assert.deepEqual(simulatorRules.getPlacementIssues(qOneAndThree, { year: 3, selectedQuarter: 3 }), []);
 });
 
 test('multiple-Q, span alternatives, and full-year courses use only their actual start Q', () => {
@@ -81,7 +79,7 @@ test('placement rejects an invalid move without changing legacy data and prevent
   const rejected = simulatorRules.applyPlacement(legacyPlan, course, 2, 2);
   assert.equal(rejected.allowed, false);
   assert.equal(rejected.placements, legacyPlan);
-  assert.deepEqual(simulatorRules.getPlacementIssues(course, legacyPlan[0]).map((issue) => issue.type), ['quarter', 'year']);
+  assert.deepEqual(simulatorRules.getPlacementIssues(course, legacyPlan[0]).map((issue) => issue.type), ['quarter']);
 
   const moved = simulatorRules.applyPlacement(legacyPlan, course, 3, 3);
   assert.equal(moved.allowed, true);
@@ -217,10 +215,13 @@ test('live course data is not given invented weekday or period fields', () => {
   }
 });
 
-test('v2 title is configured once and applied to the launch/title UI', () => {
-  assert.match(index, /data-simulator-title="4年間履修シミュレーター v2"/);
+test('beta title is configured once and applied to the launch/title UI', () => {
+  assert.match(index, /data-simulator-title="4年間履修シミュレーター β"/);
   assert.match(app, /modal\.dataset\.simulatorTitle/);
   assert.match(app, /button\.textContent = simulatorTitle/);
+  assert.match(index, /simulator-beta-note/);
+  assert.doesNotMatch(app, /年次目安/);
+  assert.doesNotMatch(app, /sim-course-year-recommendation/);
 });
 
 test('quarter card layer keeps the header drop target separate and resolves card drops to its parent quarter', () => {
