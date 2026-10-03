@@ -1113,6 +1113,7 @@ body.simulator-view-active > #analysis-modal {
 
 .sim-course-remove {
   width: 28px;
+  min-width: 28px;
   height: 28px;
   min-height: 28px;
   padding: 0;
@@ -1134,6 +1135,7 @@ body.simulator-view-active > #analysis-modal {
 
 .sim-course-detail-view {
   width: 28px;
+  min-width: 28px;
   height: 28px;
   min-height: 28px;
   padding: 0;
@@ -1155,6 +1157,7 @@ body.simulator-view-active > #analysis-modal {
 
 .sim-warning-badge {
   width: 28px;
+  min-width: 28px;
   min-height: 28px;
   height: 28px;
   padding: 0;
@@ -1175,6 +1178,11 @@ body.simulator-view-active > #analysis-modal {
   justify-content: flex-end;
   gap: 0;
   margin-top: 0;
+  flex-shrink: 0;
+}
+
+.sim-course-card-actions button {
+  flex: 0 0 28px;
 }
 
 .sim-warning-badge.is-strong {
@@ -2246,6 +2254,20 @@ body.simulator-view-active > #analysis-modal {
   }
 }
 
+/* Reserve the full warning/eye/delete cluster on desktop cards so the
+   subject and credits never occupy the same pixels as an action button. */
+@media screen and (min-width: 769px) {
+  .sim-course-card.has-warning {
+    padding-right: 92px;
+  }
+}
+
+@media screen and (min-width: 769px) and (max-width: 900px) {
+  .sim-course-credits {
+    display: none;
+  }
+}
+
 /* 絞り込み・並び替えを一つの入口へまとめるための共通レイアウト。 */
 .input-area {
   display: grid !important;
@@ -2645,6 +2667,7 @@ body.simulator-view-active > #analysis-modal {
   }
 
   .sim-course-card-actions button {
+    flex-basis: 21px;
     width: 21px;
     min-width: 21px;
     min-height: 24px;
@@ -2737,6 +2760,7 @@ body.simulator-view-active > #analysis-modal {
   }
 
   .sim-course-card-actions button {
+    flex-basis: 21px;
     width: 21px;
     min-width: 21px;
     height: 19px;

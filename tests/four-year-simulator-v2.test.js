@@ -6,7 +6,9 @@ const simulatorRules = require('../simulator-rules.js');
 
 const app = fs.readFileSync('app.js', 'utf8');
 const index = fs.readFileSync('index.html', 'utf8');
+const style = fs.readFileSync('style.css', 'utf8');
 const courses = JSON.parse(fs.readFileSync('courses.json', 'utf8'));
+const relations = JSON.parse(fs.readFileSync('course-relations.json', 'utf8'));
 
 test('v1 simulator storage and placement logic remain available', () => {
   assert.match(app, /fourYearSimulatorPlanV1/);
@@ -41,6 +43,18 @@ test('placed cards expose an explicit detail control without changing delete sem
   assert.match(app, /title="科目詳細を見る">👁<\/button>/);
   assert.match(app, /const detailButton = event\.target\.closest\('\[data-sim-detail-course\]'\)/);
   assert.match(app, /data-sim-remove-course="\$\{escapeHTML\(course\.id\)\}"/);
+  assert.match(app, /has-warning/);
+  assert.match(app, /isPrerequisiteSatisfied\(prerequisite, prerequisitePlacement, course, placement\)/);
+  assert.match(app, /'getPlacementStart', 'isPrerequisiteSatisfied', 'getPlacementIssues'/);
+  assert.match(app, /state\.completedClasses\.has\(prerequisite\.id\)/);
+});
+
+test('warning cards reserve the action cluster and hide secondary credits at narrow desktop widths', () => {
+  assert.match(style, /\.sim-course-card\.has-warning\s*\{[\s\S]*?padding-right:\s*92px;/);
+  assert.match(style, /@media screen and \(min-width: 769px\) and \(max-width: 900px\)/);
+  assert.match(style, /\.sim-course-credits\s*\{\s*display: none;\s*\}/);
+  assert.match(style, /\.sim-course-card-actions\s*\{[\s\S]*?flex-shrink:\s*0;/);
+  assert.match(style, /\.sim-course-card-actions button\s*\{\s*flex: 0 0 28px;/);
 });
 
 test('placement destinations are created on demand in an accessible native dialog', () => {
@@ -68,6 +82,48 @@ test('course Q is a hard placement constraint while a different recommended year
   assert.equal(simulatorRules.canPlaceCourseAt(qOneAndThree, 1, 2), false);
   assert.equal(simulatorRules.applyPlacement([], qOneAndThree, 3, 3).allowed, true);
   assert.deepEqual(simulatorRules.getPlacementIssues(qOneAndThree, { year: 3, selectedQuarter: 3 }), []);
+});
+
+test('prerequisite timing accepts same-Q and earlier placements, but rejects later or missing placements', () => {
+  const prerequisite = courses.find((course) => course.id === 'academic_literacy');
+  const successor = courses.find((course) => course.id === 'academic_literacy');
+  const placement = (year, selectedQuarter) => ({ year, selectedQuarter });
+  assert.equal(simulatorRules.isPrerequisiteSatisfied(prerequisite, placement(1, 1), successor, placement(1, 1)), true);
+  assert.equal(simulatorRules.isPrerequisiteSatisfied(prerequisite, placement(1, 1), successor, placement(1, 3)), true);
+  assert.equal(simulatorRules.isPrerequisiteSatisfied(prerequisite, placement(1, 3), successor, placement(1, 1)), false);
+  assert.equal(simulatorRules.isPrerequisiteSatisfied(prerequisite, placement(2, 1), successor, placement(1, 4)), false);
+  assert.equal(simulatorRules.isPrerequisiteSatisfied(prerequisite, placement(1, 1), successor, placement(2, 1)), true);
+  assert.equal(simulatorRules.isPrerequisiteSatisfied(prerequisite, null, successor, placement(1, 1)), false);
+});
+
+test('prerequisite timing uses the selected start Q for spans and alternatives', () => {
+  const span = courses.find((course) => course.id === 'ai_practical_usage');
+  const successor = courses.find((course) => course.id === 'academic_literacy');
+  assert.equal(simulatorRules.getPlacementStart(span, { year: 1, selectedQuarter: 1 }), 1);
+  assert.equal(simulatorRules.isPrerequisiteSatisfied(span, { year: 1, selectedQuarter: 1 }, successor, { year: 1, selectedQuarter: 1 }), true);
+  assert.equal(simulatorRules.isPrerequisiteSatisfied(span, { year: 1, selectedQuarter: 3 }, successor, { year: 1, selectedQuarter: 1 }), false);
+});
+
+test('recommended and strongly recommended relations use the same chronological satisfaction rule', () => {
+  const cases = [
+    { strength: 'strongly_recommended', prerequisiteId: 'linear_algebra_1', successorId: 'group_theory' },
+    { strength: 'recommended', prerequisiteId: 'modern_society_math', successorId: 'it_literacy' }
+  ];
+  for (const candidate of cases) {
+    assert.ok(relations.some((relation) => (
+      relation.strength === candidate.strength &&
+      relation.prerequisiteId === candidate.prerequisiteId &&
+      relation.successorId === candidate.successorId
+    )));
+    const prerequisite = courses.find((course) => course.id === candidate.prerequisiteId);
+    const successor = courses.find((course) => course.id === candidate.successorId);
+    assert.equal(simulatorRules.isPrerequisiteSatisfied(
+      prerequisite,
+      { year: 1, selectedQuarter: 1 },
+      successor,
+      { year: 1, selectedQuarter: 1 }
+    ), true);
+  }
 });
 
 test('multiple-Q, span alternatives, and full-year courses use only their actual start Q', () => {

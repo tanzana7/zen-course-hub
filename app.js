@@ -31,7 +31,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const simulatorRules = window.SimulatorRules;
   const simulatorAvailable = Boolean(simulatorRules && [
     'getQuarterInfo', 'canPlaceCourseAt',
-    'getPlacementIssues', 'applyPlacement', 'createEmptyPlan', 'savePlanChange'
+    'getPlacementStart', 'isPrerequisiteSatisfied', 'getPlacementIssues',
+    'applyPlacement', 'createEmptyPlan', 'savePlanChange'
   ].every((name) => typeof simulatorRules[name] === 'function'));
 
   const loadSimulatorPlan = () => {
@@ -374,32 +375,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     return `${placement?.year || ''}年${Number.isInteger(quarter) && quarter >= 1 && quarter <= 4 ? `Q${quarter}` : 'Q不明'}（要修正）`;
   };
 
-  const getPlacementPeriod = (course, placement) => {
-    const option = getPlacementOption(course, placement);
-    if (!option || !Number.isInteger(placement?.year)) return null;
-    return {
-      start: (placement.year - 1) * 4 + option.start,
-      end: (placement.year - 1) * 4 + option.end
-    };
-  };
-
   const getSimulatorPlacement = (courseId) => state.simulatorPlan.placements.find((placement) => placement.courseId === courseId);
 
   const getSimulatorWarnings = (course, placement) => {
     const prerequisites = state.relationsMap.get(course.id)?.prerequisites || [];
-    const targetPeriod = getPlacementPeriod(course, placement);
-
     return prerequisites.map((relation) => {
       const prerequisite = state.coursesMap.get(relation.id);
       if (!prerequisite) return null;
-      const placement = getSimulatorPlacement(prerequisite.id);
+      const prerequisitePlacement = getSimulatorPlacement(prerequisite.id);
       const strengthLabel = relation.strength === 'strongly_recommended' ? '強く推奨' : '推奨';
       const strengthClass = relation.strength === 'strongly_recommended' ? 'strong' : 'recommended';
 
       // 通常画面で履修済みにした科目は、シミュレーター上では既に完了した前提科目として扱う。
       if (state.completedClasses.has(prerequisite.id)) return null;
 
-      if (!placement) {
+      if (!prerequisitePlacement) {
         return {
           message: `前提科目「${prerequisite.subject}」が未配置です`,
           strengthLabel,
@@ -407,8 +397,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
       }
 
-      const prerequisitePeriod = getPlacementPeriod(prerequisite, placement);
-      if (!targetPeriod || !prerequisitePeriod || prerequisitePeriod.end < targetPeriod.start) return null;
+      if (simulatorRules.isPrerequisiteSatisfied(prerequisite, prerequisitePlacement, course, placement)) return null;
       return {
         message: `前提科目「${prerequisite.subject}」を先に配置してください`,
         strengthLabel,
@@ -840,7 +829,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           : '';
         const quarterIssue = placementIssues.find((issue) => issue.type === 'quarter');
         const card = document.createElement('article');
-        card.className = `sim-course-card${quarterIssue ? ' is-quarter-invalid' : ''}${quarterIssue ? ' has-inline-issue' : ''}`;
+        const hasWarning = warnings.length > 0 || placementIssues.length > 0;
+        card.className = `sim-course-card${quarterIssue ? ' is-quarter-invalid' : ''}${quarterIssue ? ' has-inline-issue' : ''}${hasWarning ? ' has-warning' : ''}`;
         card.draggable = true;
         card.dataset.simDragCourse = course.id;
         card.dataset.simCardYear = String(year);

@@ -60,6 +60,22 @@
     );
   };
 
+  // Compare the actual placement start selected by the student. Span and
+  // full-year courses use their start Q, matching credit accounting.
+  const getPlacementStart = (course, placement) => {
+    const year = Number(placement?.year);
+    const quarter = Number(placement?.selectedQuarter);
+    if (!Number.isInteger(year) || year < 1 || year > 4) return null;
+    const option = getQuarterInfo(course).options.find((candidate) => candidate.start === quarter);
+    return option ? ((year - 1) * 4) + option.start : null;
+  };
+
+  const isPrerequisiteSatisfied = (prerequisiteCourse, prerequisitePlacement, successorCourse, successorPlacement) => {
+    const prerequisiteStart = getPlacementStart(prerequisiteCourse, prerequisitePlacement);
+    const successorStart = getPlacementStart(successorCourse, successorPlacement);
+    return prerequisiteStart !== null && successorStart !== null && prerequisiteStart <= successorStart;
+  };
+
   const getPlacementIssues = (course, placement) => {
     if (!course || !placement) return [];
     const issues = [];
@@ -119,6 +135,8 @@
   return Object.freeze({
     getQuarterInfo,
     canPlaceCourseAt,
+    getPlacementStart,
+    isPrerequisiteSatisfied,
     getPlacementIssues,
     applyPlacement,
     createEmptyPlan,
