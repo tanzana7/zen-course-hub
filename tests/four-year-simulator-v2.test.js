@@ -50,7 +50,12 @@ test('Main Hub and simulator use identical sort options and stable comparator be
   assert.deepEqual(courseSorting.COURSE_SORT_OPTIONS, [
     { value: 'default', label: '標準' },
     { value: 'difficulty-asc', label: '難易度：低い順' },
-    { value: 'difficulty-desc', label: '難易度：高い順' }
+    { value: 'difficulty-desc', label: '難易度：高い順' },
+    { value: 'name-asc', label: '科目名：50音順' },
+    { value: 'year-asc', label: '推奨学年：低い順' },
+    { value: 'year-desc', label: '推奨学年：高い順' },
+    { value: 'credits-asc', label: '単位数：少ない順' },
+    { value: 'credits-desc', label: '単位数：多い順' }
   ]);
 
   const coursesFixture = [
@@ -75,6 +80,37 @@ test('Main Hub and simulator use identical sort options and stable comparator be
   assert.deepEqual(mainHubSort('default'), ['tie-first', 'missing', 'high', 'tie-second', 'low']);
   assert.deepEqual(mainHubSort('difficulty-asc'), ['low', 'tie-first', 'tie-second', 'high', 'missing']);
   assert.deepEqual(mainHubSort('difficulty-desc'), ['high', 'tie-first', 'tie-second', 'low', 'missing']);
+});
+
+test('course sorting handles Japanese names, recommended years, credits, missing values, and ties', () => {
+  const fixture = [
+    { id: 'z', subject: 'あいう', year: '3年次', credits: 4 },
+    { id: 'a', subject: 'アニメ', year: '1年次', credits: 2 },
+    { id: 'k', subject: '10デザイン', year: '2年次', credits: 2 },
+    { id: 'm', subject: '2デザイン', year: '2年次', credits: 1 },
+    { id: 'missing', subject: '', year: '', credits: null },
+    { id: 'same-year', subject: 'えん', year: '2年次', credits: 4 }
+  ];
+  const ids = (mode) => courseSorting.sortCourses(fixture, mode).map(({ id }) => id);
+
+  assert.deepEqual(ids('name-asc'), ['m', 'k', 'z', 'a', 'same-year', 'missing']);
+  assert.deepEqual(ids('year-asc'), ['a', 'k', 'm', 'same-year', 'z', 'missing']);
+  assert.deepEqual(ids('year-desc'), ['z', 'k', 'm', 'same-year', 'a', 'missing']);
+  assert.deepEqual(ids('credits-asc'), ['m', 'a', 'k', 'z', 'same-year', 'missing']);
+  assert.deepEqual(ids('credits-desc'), ['z', 'same-year', 'a', 'k', 'm', 'missing']);
+});
+
+test('all supported sorts preserve the full 275-course set', () => {
+  const sourceIds = courses.map(({ id }) => id);
+  const sourceSet = new Set(sourceIds);
+  assert.equal(sourceIds.length, 275);
+  assert.equal(sourceSet.size, sourceIds.length);
+  for (const { value } of courseSorting.COURSE_SORT_OPTIONS) {
+    const sortedIds = courseSorting.sortCourses(courses, value).map(({ id }) => id);
+    assert.equal(sortedIds.length, sourceIds.length, value);
+    assert.equal(new Set(sortedIds).size, sourceSet.size, value);
+    assert.deepEqual([...sortedIds].sort(), [...sourceIds].sort(), value);
+  }
 });
 
 test('shared sort remains parity-safe after every supported filter combination', () => {
