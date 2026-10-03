@@ -5,8 +5,8 @@
   if (root) root.SimulatorRules = rules;
 })(typeof globalThis === 'undefined' ? this : globalThis, () => {
   const getQuarterInfo = (course) => {
-    const label = String(course?.quarter || 'Q未定');
-    if (label.includes('通期')) {
+    const label = typeof course?.quarter === 'string' ? course.quarter.trim() : '';
+    if (label === '通期') {
       return {
         label,
         quarters: [1, 2, 3, 4],
@@ -17,35 +17,28 @@
       };
     }
 
-    const segments = label.split(/[,、]/).map((segment) => segment.trim()).filter(Boolean);
-    const quarters = [...new Set((label.match(/[1-4]/g) || []).map(Number))].sort((a, b) => a - b);
-    if (!quarters.length) return { label, quarters: [], options: [], start: null, end: null, contiguous: false };
-
-    const options = [];
-    segments.forEach((segment) => {
-      const segmentQuarters = [...new Set((segment.match(/[1-4]/g) || []).map(Number))].sort((a, b) => a - b);
-      if (!segmentQuarters.length) return;
-      const isContiguous = segmentQuarters.every((quarter, index) => index === 0 || quarter === segmentQuarters[index - 1] + 1);
-      if (isContiguous) {
-        options.push({
-          start: segmentQuarters[0],
-          end: segmentQuarters[segmentQuarters.length - 1],
-          label: segmentQuarters.length > 1
-            ? `${segmentQuarters[0]}-${segmentQuarters[segmentQuarters.length - 1]}Q`
-            : `${segmentQuarters[0]}Q`,
-          contiguous: true
-        });
-      } else {
-        segmentQuarters.forEach((quarter) => options.push({
-          start: quarter,
-          end: quarter,
-          label: `${quarter}Q`,
-          contiguous: false
-        }));
+    // Parse only the catalog's explicit Q tokens. Harvesting digits from an entire label
+    // would turn a year such as "2027年度 1Q" into an invented 1-2Q placement.
+    const segments = label.split(/\s*[,、]\s*/);
+    const options = segments.map((segment) => {
+      const single = /^([1-4])Q$/.exec(segment);
+      if (single) {
+        const quarter = Number(single[1]);
+        return { start: quarter, end: quarter, label: `${quarter}Q`, contiguous: true };
       }
+      const span = /^(1-2|3-4)Q$/.exec(segment);
+      if (!span) return null;
+      const [start, end] = span[1].split('-').map(Number);
+      return { start, end, label: `${start}-${end}Q`, contiguous: true };
     });
+    if (!label || options.some((option) => !option || !Number.isInteger(option.start))) {
+      return { label: label || 'Q未定', quarters: [], options: [], start: null, end: null, contiguous: false };
+    }
 
     const uniqueOptions = options.filter((option, index, list) => list.findIndex((candidate) => candidate.start === option.start) === index);
+    const quarters = [...new Set(uniqueOptions.flatMap((option) => Array.from(
+      { length: option.end - option.start + 1 }, (_, index) => option.start + index
+    )))].sort((a, b) => a - b);
     const firstOption = uniqueOptions[0];
     return {
       label,
@@ -53,7 +46,7 @@
       options: uniqueOptions,
       start: firstOption?.start || null,
       end: firstOption?.end || null,
-      contiguous: uniqueOptions.length === 1
+      contiguous: uniqueOptions.length === 1 && firstOption.contiguous
     };
   };
 
@@ -119,6 +112,17 @@
 
   const createEmptyPlan = () => ({ version: 1, placements: [] });
 
+  // Persist before replacing in-memory state, so quota/privacy failures leave both UI
+  // and the last saved plan unchanged. The caller owns user-facing feedback/logging.
+  const savePlanChange = (storage, key, nextPlan) => {
+    try {
+      storage.setItem(key, JSON.stringify(nextPlan));
+      return { saved: true, error: null };
+    } catch (error) {
+      return { saved: false, error };
+    }
+  };
+
   const resetPlanStorage = (storage, key) => {
     const plan = createEmptyPlan();
     storage.setItem(key, JSON.stringify(plan));
@@ -132,6 +136,7 @@
     getPlacementIssues,
     applyPlacement,
     createEmptyPlan,
+    savePlanChange,
     resetPlanStorage
   });
 });

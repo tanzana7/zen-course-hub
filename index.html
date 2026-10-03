@@ -116,6 +116,7 @@
       <div id="search-count" class="search-count"></div>
       <button id="simulator-btn" class="simulator-launch-btn" type="button">4年間履修シミュレーター</button>
     </div>
+    <p id="simulator-unavailable" class="data-status is-error" role="alert" hidden>履修シミュレーターを読み込めませんでした。ページを再読み込みしてください。</p>
     <section id="related-course-detail-host" class="related-course-detail-host" hidden aria-label="関連科目の詳細" aria-live="polite"></section>
     <div class="predefined-classes-section">
       <!-- ここに JavaScript (app.js) で生成された授業リストが入ります -->
@@ -182,6 +183,7 @@
             <button type="button" id="open-simulator-reset" class="simulator-reset-open">計画をリセット</button>
           </div>
           <div id="simulator-year-grid" class="simulator-year-grid"></div>
+          <div id="simulator-unknown-courses" class="simulator-unknown-courses" hidden></div>
         </section>
       </section>
 

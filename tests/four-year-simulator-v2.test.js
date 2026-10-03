@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const vm = require('node:vm');
 const simulatorRules = require('../simulator-rules.js');
 
 const app = fs.readFileSync('app.js', 'utf8');
@@ -86,7 +87,97 @@ test('placement rejects an invalid move without changing legacy data and prevent
   assert.equal(moved.allowed, true);
   assert.equal(moved.placements.length, 1);
   assert.deepEqual(moved.placements[0], { courseId: course.id, year: 3, selectedQuarter: 3 });
-  assert.match(app, /return placement;/);
+  assert.doesNotMatch(app, /cleanupSimulatorPlan\(\)/);
+});
+
+test('every catalog Q value parses, while unrelated numbers and unknown labels fail closed', () => {
+  const values = [...new Set(courses.map((course) => course.quarter))];
+  assert.equal(courses.length, 275);
+  assert.equal(values.length, 9);
+  for (const course of courses) {
+    assert.ok(simulatorRules.getQuarterInfo(course).options.length, `${course.id}: ${course.quarter}`);
+  }
+  assert.deepEqual(simulatorRules.getQuarterInfo({ quarter: '1Q, 3Q' }).options.map((option) => option.start), [1, 3]);
+  assert.deepEqual(simulatorRules.getQuarterInfo({ quarter: '1-2Q, 3-4Q' }).options.map(({ start, end }) => [start, end]), [[1, 2], [3, 4]]);
+  assert.deepEqual(simulatorRules.getQuarterInfo({ quarter: '通期' }).options.map(({ start, end }) => [start, end]), [[1, 4]]);
+  for (const quarter of ['2027年度 1Q', '2単位 1Q', 'Q1', '1-3Q', '1Q, 不明', '', null]) {
+    const course = { quarter };
+    assert.deepEqual(simulatorRules.getQuarterInfo(course).options, [], String(quarter));
+    assert.equal(simulatorRules.canPlaceCourseAt(course, 1, 1), false);
+  }
+});
+
+test('failed add, move, delete, and reset saves preserve the previous plan', () => {
+  const course = courses.find((item) => item.id === 'academic_literacy');
+  const key = 'fourYearSimulatorPlanV1';
+  const initial = { version: 1, placements: [{ courseId: course.id, year: 1, selectedQuarter: 1 }] };
+  let saved = JSON.stringify(initial);
+  const storage = {
+    getItem: () => saved,
+    setItem: () => { throw new Error('QuotaExceededError'); }
+  };
+  const add = { version: 1, placements: [...initial.placements, { courseId: 'old_course_123', year: 2, selectedQuarter: 1 }] };
+  const move = { version: 1, placements: simulatorRules.applyPlacement(initial.placements, course, 2, 3).placements };
+  const remove = { version: 1, placements: [] };
+  const reset = simulatorRules.createEmptyPlan();
+  for (const candidate of [add, move, remove, reset]) {
+    let current = initial;
+    const result = simulatorRules.savePlanChange(storage, key, candidate);
+    if (result.saved) current = candidate;
+    assert.equal(result.saved, false);
+    assert.match(result.error.message, /QuotaExceededError/);
+    assert.equal(current, initial);
+    assert.equal(storage.getItem(key), saved);
+  }
+  assert.match(app, /if \(!saveSimulatorPlan\(nextPlan\)\)/);
+  assert.match(app, /state\.simulatorPlan = nextPlan;/);
+  assert.match(app, /return commitSimulatorPlan\(\{ \.\.\.state\.simulatorPlan, placements: result\.placements \}\)/);
+  assert.match(app, /return commitSimulatorPlan\(\{ \.\.\.state\.simulatorPlan, placements \}\)/);
+  assert.match(app, /commitSimulatorPlan\(simulatorRules\.createEmptyPlan\(\)\)/);
+});
+
+test('unknown saved IDs are retained for explicit removal, not silently cleaned up', () => {
+  const key = 'fourYearSimulatorPlanV1';
+  const initial = { version: 1, placements: [
+    { courseId: 'academic_literacy', year: 1, selectedQuarter: 1 },
+    { courseId: 'old_course_123', year: 2, selectedQuarter: 1 }
+  ] };
+  let saved = JSON.stringify(initial);
+  const storage = { getItem: () => saved, setItem: (_key, value) => { saved = value; } };
+  assert.equal(JSON.parse(storage.getItem(key)).placements.length, 2);
+  assert.doesNotMatch(app, /cleanupSimulatorPlan\(\)/);
+  assert.match(app, /!getCourse\(placement\.courseId\)/);
+  assert.match(app, /info\.textContent = `科目ID:/);
+  assert.match(app, /removeSimulatorCourse\(removeButton\.dataset\.simRemoveCourse\)/);
+  const withoutUnknown = { ...initial, placements: initial.placements.filter((item) => item.courseId !== 'old_course_123') };
+  assert.equal(simulatorRules.savePlanChange(storage, key, withoutUnknown).saved, true);
+  assert.deepEqual(JSON.parse(saved).placements, withoutUnknown.placements);
+  assert.equal(simulatorRules.savePlanChange(storage, key, simulatorRules.createEmptyPlan()).saved, true);
+  assert.deepEqual(JSON.parse(saved).placements, []);
+});
+
+test('missing rules disables only simulator entry while main Hub bootstrap remains reachable', () => {
+  let onReady;
+  let fetchCount = 0;
+  const document = {
+    addEventListener: (name, callback) => { if (name === 'DOMContentLoaded') onReady = callback; },
+    getElementById: () => null,
+    querySelectorAll: () => []
+  };
+  vm.runInNewContext(app, {
+    document,
+    window: { addEventListener() {}, clearTimeout() {}, setTimeout() {} },
+    localStorage: { getItem: () => null },
+    fetch: () => { fetchCount += 1; return new Promise(() => {}); },
+    console, URL, Map, Set
+  });
+  assert.doesNotThrow(() => onReady());
+  assert.equal(fetchCount, 3); // courses, optional difficulty, optional relations
+  assert.match(app, /const simulatorAvailable = Boolean\(simulatorRules/);
+  assert.match(app, /button\.disabled = true/);
+  assert.match(app, /if \(simulatorAvailable\) renderSimulator\(\)/);
+  assert.match(index, /id="simulator-unavailable"[^>]*role="alert"/);
+  assert.match(index, /id="simulator-unknown-courses"/);
 });
 
 test('reset writes only the simulator storage key and keeps the v1 schema', () => {

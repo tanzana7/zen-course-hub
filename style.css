@@ -334,8 +334,13 @@ body {
   cursor: pointer;
 }
 
-.simulator-launch-btn:hover {
+.simulator-launch-btn:hover:not(:disabled) {
   background: #dbeafe;
+}
+
+.simulator-launch-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .simulator-view {
@@ -468,6 +473,12 @@ body.simulator-view-active > #analysis-modal {
 
 .simulator-feedback[hidden] {
   display: none;
+}
+
+.simulator-feedback.is-error {
+  border-color: #b91c1c;
+  background: #fef2f2;
+  color: #991b1b;
 }
 
 .simulator-summary {
@@ -877,6 +888,37 @@ body.simulator-view-active > #analysis-modal {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.simulator-unknown-courses {
+  margin-top: 14px;
+  padding: 10px;
+  border: 1px solid #facc15;
+  border-radius: 6px;
+  background: #fffbeb;
+}
+
+.simulator-unknown-courses[hidden] {
+  display: none;
+}
+
+.simulator-unknown-courses h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.simulator-unknown-course {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  overflow-wrap: anywhere;
+}
+
+.simulator-unknown-course span {
+  flex: 1 1 180px;
+  min-width: 0;
 }
 
 .simulator-year-row {

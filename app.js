@@ -29,6 +29,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
   const SIMULATOR_STORAGE_KEY = 'fourYearSimulatorPlanV1';
   const simulatorRules = window.SimulatorRules;
+  const simulatorAvailable = Boolean(simulatorRules && [
+    'getQuarterInfo', 'canPlaceCourseAt', 'getRecommendedYear',
+    'getPlacementIssues', 'applyPlacement', 'createEmptyPlan', 'savePlanChange'
+  ].every((name) => typeof simulatorRules[name] === 'function'));
 
   const loadSimulatorPlan = () => {
     try {
@@ -38,9 +42,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const placements = Array.isArray(parsed?.placements)
         ? parsed.placements
             .map((item) => ({
+              ...item,
               courseId: String(item?.courseId || ''),
               year: Number(item?.year),
-              selectedQuarter: Number(item?.selectedQuarter ?? item?.startQuarter)
+              selectedQuarter: Number(item?.selectedQuarter ?? item?.startQuarter ?? item?.quarter)
             }))
             .filter((item) => item.courseId && Number.isInteger(item.year) && item.year >= 1 && item.year <= 4)
         : [];
@@ -331,31 +336,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     localStorage.setItem(STORAGE_KEYS.COMPLETED, JSON.stringify(comp));
   };
 
-  const saveSimulatorPlan = () => {
+  const saveSimulatorPlan = (nextPlan) => {
     try {
-      localStorage.setItem(SIMULATOR_STORAGE_KEY, JSON.stringify(state.simulatorPlan));
+      const result = simulatorRules.savePlanChange(localStorage, SIMULATOR_STORAGE_KEY, nextPlan);
+      if (result.saved) return true;
+      console.error('シミュレーター計画を保存できませんでした:', result.error);
     } catch (error) {
-      console.warn('シミュレーター計画を保存できませんでした:', error);
+      console.error('シミュレーター計画を保存できませんでした:', error);
     }
+    return false;
   };
 
-  const cleanupSimulatorPlan = () => {
-    const seen = new Set();
-    state.simulatorPlan.placements = state.simulatorPlan.placements.map((placement) => {
-      const course = state.coursesMap.get(placement.courseId);
-      if (!course) return null;
-      // Keep legacy Q mismatches visible; only an explicit user move may change them.
-      return placement;
-    }).filter((placement) => {
-      if (!placement) return false;
-      if (seen.has(placement.courseId) || !state.coursesMap.has(placement.courseId)) return false;
-      seen.add(placement.courseId);
-      return true;
-    });
-    saveSimulatorPlan();
+  const commitSimulatorPlan = (nextPlan) => {
+    // Do not show a speculative placement or deletion: storage must accept the
+    // complete next plan before the in-memory plan and rendered credits change.
+    if (!saveSimulatorPlan(nextPlan)) {
+      renderSimulator();
+      showSimulatorFeedback('計画を保存できませんでした。ストレージの設定や空き容量を確認してください。', true);
+      return false;
+    }
+    state.simulatorPlan = nextPlan;
+    renderSimulator();
+    return true;
   };
 
-  const getQuarterInfo = simulatorRules.getQuarterInfo;
+  const getQuarterInfo = simulatorRules?.getQuarterInfo;
 
   const getPlacementOption = (course, placement) => {
     const quarterInfo = getQuarterInfo(course);
@@ -459,15 +464,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   let simulatorFeedbackTimer = null;
-  const showSimulatorFeedback = (message) => {
+  const showSimulatorFeedback = (message, isError = false) => {
     const feedback = document.getElementById('simulator-feedback');
     if (!feedback) return;
+    feedback.setAttribute('role', isError ? 'alert' : 'status');
+    feedback.setAttribute('aria-live', isError ? 'assertive' : 'polite');
+    feedback.classList.toggle('is-error', isError);
     feedback.textContent = message;
     feedback.hidden = false;
     window.clearTimeout(simulatorFeedbackTimer);
     simulatorFeedbackTimer = window.setTimeout(() => {
       feedback.hidden = true;
       feedback.textContent = '';
+      feedback.classList.remove('is-error');
     }, 4500);
   };
 
@@ -732,6 +741,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const summary = document.getElementById('simulator-summary');
     const totalSummary = document.getElementById('simulator-total-summary');
     const yearGrid = document.getElementById('simulator-year-grid');
+    const unknownHost = document.getElementById('simulator-unknown-courses');
     if (!summary || !totalSummary || !yearGrid) return;
 
     const years = [1, 2, 3, 4];
@@ -836,6 +846,34 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     });
 
+    // A missing catalog entry may return in a later data release. Keep it out of
+    // Q/credit calculations, but make the saved ID visible and removable by choice.
+    if (unknownHost) {
+      const unknownPlacements = state.simulatorPlan.placements.filter((placement) => !getCourse(placement.courseId));
+      unknownHost.hidden = unknownPlacements.length === 0;
+      unknownHost.replaceChildren();
+      if (unknownPlacements.length) {
+        const heading = document.createElement('h3');
+        heading.textContent = '確認が必要な科目';
+        unknownHost.appendChild(heading);
+        unknownPlacements.forEach((placement) => {
+          const row = document.createElement('div');
+          row.className = 'simulator-unknown-course';
+          const info = document.createElement('span');
+          const quarter = Number(placement.selectedQuarter);
+          const savedQuarter = Number.isInteger(quarter) && quarter >= 1 && quarter <= 4 ? `${quarter}Q` : 'Q不明';
+          info.textContent = `科目ID: ${placement.courseId} · 保存位置: ${placement.year}年${savedQuarter} · 現在の科目データでは確認できません · 単位不明`;
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.textContent = '削除';
+          remove.dataset.simRemoveCourse = placement.courseId;
+          remove.setAttribute('aria-label', `確認できない科目 ${placement.courseId} を計画から削除`);
+          row.append(info, remove);
+          unknownHost.appendChild(row);
+        });
+      }
+    }
+
     const categoryFilter = document.getElementById('sim-course-category-filter');
     if (categoryFilter) {
       const categories = [...new Set(state.predefinedData.map((course) => course.tag).filter(Boolean))]
@@ -859,16 +897,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       return false;
     }
-    state.simulatorPlan.placements = result.placements;
-    saveSimulatorPlan();
-    renderSimulator();
-    return true;
+    return commitSimulatorPlan({ ...state.simulatorPlan, placements: result.placements });
   };
 
   const removeSimulatorCourse = (courseId) => {
-    state.simulatorPlan.placements = state.simulatorPlan.placements.filter((placement) => placement.courseId !== courseId);
-    saveSimulatorPlan();
-    renderSimulator();
+    const placements = state.simulatorPlan.placements.filter((placement) => placement.courseId !== courseId);
+    return commitSimulatorPlan({ ...state.simulatorPlan, placements });
   };
 
 
@@ -1698,6 +1732,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const title = document.getElementById('simulator-modal-title');
     let simulatorResetTriggerElement = null;
     if (title) title.textContent = simulatorTitle;
+    if (!simulatorAvailable) {
+      // A broken optional rules script must never prevent the ordinary Hub from loading.
+      // Disabling the entry point is safer than allowing placements without Q validation.
+      console.error('シミュレーターのルールを読み込めませんでした。');
+      button.disabled = true;
+      const notice = document.getElementById('simulator-unavailable');
+      if (notice) notice.hidden = false;
+      return;
+    }
 
     const closeSimulator = () => {
       closeSimulatorPlacementPicker({ restoreFocus: false });
@@ -1740,16 +1783,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       simulatorResetTriggerElement = null;
     });
     confirmResetButton?.addEventListener('click', () => {
-      try {
-        state.simulatorPlan = simulatorRules.resetPlanStorage(localStorage, SIMULATOR_STORAGE_KEY);
-        renderSimulator();
-        resetDialog?.close();
+      if (commitSimulatorPlan(simulatorRules.createEmptyPlan())) {
         showSimulatorFeedback('計画をリセットしました。');
-      } catch (error) {
-        console.error('シミュレーター計画をリセットできませんでした。', error);
-        resetDialog?.close();
-        showSimulatorFeedback('計画を保存できませんでした。');
       }
+      resetDialog?.close();
     });
     closePlacementButton?.addEventListener('click', () => closeSimulatorPlacementPicker());
     placementDialog?.addEventListener('cancel', (event) => {
@@ -1851,6 +1888,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const card = detailButton.closest('[data-sim-drag-course]');
       if (card?.dataset.simSkipClick === 'true' || card?.dataset.simDragging === 'true') return;
       openSimulatorCourseDetail(detailButton.dataset.simDetailCourse);
+    });
+    document.getElementById('simulator-unknown-courses')?.addEventListener('click', (event) => {
+      const removeButton = event.target.closest('[data-sim-remove-course]');
+      if (removeButton) removeSimulatorCourse(removeButton.dataset.simRemoveCourse);
     });
     window.addEventListener('keydown', (event) => {
       if (!modal.classList.contains('is-active')) return;
@@ -2058,7 +2099,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     state.predefinedData = normalizedData;
     state.coursesMap = new Map(normalizedData.map(item => [item.id, item]));
     state.relationsMap = buildRelationsMap(relationsData, state.coursesMap);
-    cleanupSimulatorPlan();
 
     // 3秒以内に読み込みが完了した場合は、もし予約されていたエラーアラートがあればキャンセルする
     if (loadErrorTimer) clearTimeout(loadErrorTimer);
@@ -2067,7 +2107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       dataStatus.classList.remove('is-error');
     }
     renderAll(); // データロード後にクリーンアップを含めて再描画
-    renderSimulator();
+    if (simulatorAvailable) renderSimulator();
   } catch (error) {
     console.error('データの読み込みに失敗しました:', error);
     if (dataStatus) {
