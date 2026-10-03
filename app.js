@@ -127,7 +127,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     relationsMap: new Map(), // 科目IDをキーにした前提・後継科目データ
     simulatorPlan: loadSimulatorPlan(),
     simulatorPaletteMode: 'all',
-    // 通常の履修予定タブとは別に、4年計画上の配置状態だけを絞り込む。
+    simulatorPaletteDefaulted: false,
+    // マイ履修は通常の履修予定（myClasses）を表示するだけで、4年計画とは分離する。
     simulatorPlacementFilter: 'all'
   };
 
@@ -376,6 +377,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   const getSimulatorPlacement = (courseId) => state.simulatorPlan.placements.find((placement) => placement.courseId === courseId);
+
+  // Main Hubとシミュレーターで同じ難易度順・未登録末尾・安定順序を使う。
+  // 標準順は呼び出し側の既存配列をそのまま返し、既存の科目順を維持する。
+  const sortCoursesByDifficulty = (courses, sortMode) => {
+    if (sortMode === 'default') return courses;
+    return courses
+      .map((item, index) => ({ item, index, average: state.difficultyMap.get(item.id)?.average }))
+      .sort((a, b) => {
+        const aMissing = !Number.isFinite(a.average);
+        const bMissing = !Number.isFinite(b.average);
+        if (aMissing !== bMissing) return aMissing ? 1 : -1;
+        if (aMissing) return a.index - b.index;
+        const difference = sortMode === 'difficulty-asc'
+          ? a.average - b.average
+          : b.average - a.average;
+        return difference || (a.index - b.index);
+      })
+      .map(({ item }) => item);
+  };
 
   const getSimulatorWarnings = (course, placement) => {
     const prerequisites = state.relationsMap.get(course.id)?.prerequisites || [];
@@ -663,24 +683,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       return matchSearch && matchYear && matchQuarter && matchCategory;
     });
 
-    if (selectedSort !== 'default') {
-      matches = matches
-        .map((item, index) => ({ item, index, average: state.difficultyMap.get(item.id)?.average }))
-        .sort((a, b) => {
-          const aMissing = !Number.isFinite(a.average);
-          const bMissing = !Number.isFinite(b.average);
-          if (aMissing !== bMissing) return aMissing ? 1 : -1;
-          if (aMissing) return a.index - b.index;
-          const difference = selectedSort === 'difficulty-asc'
-            ? a.average - b.average
-            : b.average - a.average;
-          return difference || (a.index - b.index);
-        })
-        .map(({ item }) => item);
-    }
+    matches = sortCoursesByDifficulty(matches, selectedSort);
 
     if (!matches.length) {
-      results.innerHTML = '<p class="simulator-empty">該当する科目がありません。</p>';
+      const message = state.simulatorPaletteMode === 'scheduled'
+        ? '履修予定の科目はありません。'
+        : '該当する科目がありません。';
+      results.innerHTML = `<p class="simulator-empty">${message}</p>`;
       return;
     }
 
@@ -889,6 +898,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         + categories.map((category) => `<option value="${escapeHTML(category)}">${escapeHTML(category)}</option>`).join('');
       categoryFilter.value = categories.includes(currentCategory) ? currentCategory : 'すべて表示';
     }
+
+    if (!state.simulatorPaletteDefaulted) {
+      state.simulatorPaletteMode = [...state.registeredClasses]
+        .some((courseId) => state.coursesMap.has(courseId))
+        ? 'scheduled'
+        : 'all';
+      state.simulatorPaletteDefaulted = true;
+    }
+    document.querySelectorAll('[data-sim-palette-mode]').forEach((tab) => {
+      const active = (tab.dataset.simPaletteMode === 'scheduled' ? 'scheduled' : 'all') === state.simulatorPaletteMode;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-selected', String(active));
+    });
 
     renderSimulatorCourseResults();
     renderSimulatorPlanCheck();
@@ -1468,21 +1490,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return matchYear && matchQuarter && matchRequirement && matchIntro && matchCategory && matchSearch && matchProvider;
     });
 
-    const sorted = state.difficultySort === 'default'
-      ? filtered
-      : filtered
-          .map((item, index) => ({ item, index, average: state.difficultyMap.get(item.id)?.average }))
-          .sort((a, b) => {
-            const aMissing = !Number.isFinite(a.average);
-            const bMissing = !Number.isFinite(b.average);
-            if (aMissing !== bMissing) return aMissing ? 1 : -1;
-            if (aMissing) return a.index - b.index;
-            const difference = state.difficultySort === 'difficulty-asc'
-              ? a.average - b.average
-              : b.average - a.average;
-            return difference || (a.index - b.index);
-          })
-          .map(({ item }) => item);
+    const sorted = sortCoursesByDifficulty(filtered, state.difficultySort);
 
     const hasActiveFilters = Boolean(
       state.filterSearch.trim() ||

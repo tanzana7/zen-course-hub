@@ -26,6 +26,25 @@ test('palette has independent placement-state filtering', () => {
   assert.match(app, /selectedPlacement === 'unplaced'/);
 });
 
+test('simulator palette uses the requested labels and keeps myClasses separate from the plan', () => {
+  assert.match(index, /id="sim-palette-scheduled"[^>]*data-sim-palette-mode="scheduled"[^>]*>マイ履修</);
+  assert.match(index, /id="sim-palette-all"[^>]*data-sim-palette-mode="all"[^>]*>すべての教科</);
+  assert.match(app, /state\.registeredClasses\]\n\s*\.some\(\(courseId\) => state\.coursesMap\.has\(courseId\)\)/);
+  assert.match(app, /state\.simulatorPaletteMode === 'scheduled' && !state\.registeredClasses\.has\(course\.id\)/);
+  assert.match(app, /履修予定の科目はありません/);
+  assert.match(app, /simulatorPaletteDefaulted/);
+});
+
+test('simulator reuses the main difficulty sort helper after filtering', () => {
+  assert.match(app, /const sortCoursesByDifficulty = \(courses, sortMode\)/);
+  assert.match(app, /const sorted = sortCoursesByDifficulty\(filtered, state\.difficultySort\)/);
+  assert.match(app, /matches = sortCoursesByDifficulty\(matches, selectedSort\)/);
+  assert.match(app, /aMissing \? 1 : -1/);
+  assert.match(app, /return difference \|\| \(a\.index - b\.index\)/);
+  assert.match(index, /<option value="difficulty-asc">難易度：低い順<\/option>/);
+  assert.match(index, /<option value="difficulty-desc">難易度：高い順<\/option>/);
+});
+
 test('palette exposes separate detail and placement controls while retaining drag', () => {
   assert.match(app, /data-sim-detail-course/);
   assert.match(app, /openSimulatorCourseDetail\(detailButton\.dataset\.simDetailCourse\)/);
