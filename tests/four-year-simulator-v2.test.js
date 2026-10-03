@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const simulatorRules = require('../simulator-rules.js');
 
 const app = fs.readFileSync('app.js', 'utf8');
 const index = fs.readFileSync('index.html', 'utf8');
@@ -48,6 +49,64 @@ test('simulator and course detail expose dialog semantics and focus restoration'
   assert.match(app, /title\?\.focus\(\)/);
   assert.match(app, /focusElement\(simulatorTriggerElement \|\| button\)/);
   assert.match(app, /trapDialogTab\(event/);
+});
+
+test('course Q is a hard placement constraint while a different recommended year stays allowed', () => {
+  const qOneAndThree = courses.find((course) => course.id === 'academic_literacy');
+  assert.equal(simulatorRules.canPlaceCourseAt(qOneAndThree, 1, 1), true);
+  assert.equal(simulatorRules.canPlaceCourseAt(qOneAndThree, 3, 3), true);
+  assert.equal(simulatorRules.canPlaceCourseAt(qOneAndThree, 1, 2), false);
+  assert.equal(simulatorRules.applyPlacement([], qOneAndThree, 3, 3).allowed, true);
+  assert.deepEqual(simulatorRules.getPlacementIssues(qOneAndThree, { year: 3, selectedQuarter: 3 }), [
+    { type: 'year', recommendedYear: 1, message: '1年次推奨（現在は3年）' }
+  ]);
+});
+
+test('multiple-Q, span alternatives, and full-year courses use only their actual start Q', () => {
+  const multiple = courses.find((course) => course.id === 'academic_literacy');
+  const alternatives = courses.find((course) => course.id === 'ai_practical_usage');
+  const fullYear = courses.find((course) => course.quarter === '通期');
+  assert.deepEqual(simulatorRules.getQuarterInfo(multiple).options.map((option) => option.start), [1, 3]);
+  assert.deepEqual(simulatorRules.getQuarterInfo(alternatives).options.map((option) => option.start), [1, 3]);
+  assert.equal(simulatorRules.canPlaceCourseAt(alternatives, 2, 1), true);
+  assert.equal(simulatorRules.canPlaceCourseAt(alternatives, 2, 2), false);
+  assert.deepEqual(simulatorRules.getQuarterInfo(fullYear).options.map(({ start, end }) => ({ start, end })), [{ start: 1, end: 4 }]);
+  assert.equal(simulatorRules.canPlaceCourseAt(fullYear, 4, 2), false);
+});
+
+test('placement rejects an invalid move without changing legacy data and prevents duplicate rows', () => {
+  const course = courses.find((item) => item.id === 'academic_literacy');
+  const legacyPlan = [{ courseId: course.id, year: 2, selectedQuarter: 2 }];
+  const rejected = simulatorRules.applyPlacement(legacyPlan, course, 2, 2);
+  assert.equal(rejected.allowed, false);
+  assert.equal(rejected.placements, legacyPlan);
+  assert.deepEqual(simulatorRules.getPlacementIssues(course, legacyPlan[0]).map((issue) => issue.type), ['quarter', 'year']);
+
+  const moved = simulatorRules.applyPlacement(legacyPlan, course, 3, 3);
+  assert.equal(moved.allowed, true);
+  assert.equal(moved.placements.length, 1);
+  assert.deepEqual(moved.placements[0], { courseId: course.id, year: 3, selectedQuarter: 3 });
+  assert.match(app, /return placement;/);
+});
+
+test('reset writes only the simulator storage key and keeps the v1 schema', () => {
+  const values = new Map([
+    ['fourYearSimulatorPlanV1', JSON.stringify({ version: 1, placements: [{ courseId: 'academic_literacy', year: 1, selectedQuarter: 1 }] })],
+    ['myClasses', '["it_literacy"]'],
+    ['completedClasses', '["economics_intro"]'],
+    ['courseFilterPreferences', '{"excludePixiv":true}']
+  ]);
+  const storage = {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, String(value))
+  };
+  const unaffected = ['myClasses', 'completedClasses', 'courseFilterPreferences'].map((key) => storage.getItem(key));
+  const emptyPlan = simulatorRules.resetPlanStorage(storage, 'fourYearSimulatorPlanV1');
+  assert.deepEqual(emptyPlan, { version: 1, placements: [] });
+  assert.deepEqual(JSON.parse(storage.getItem('fourYearSimulatorPlanV1')), emptyPlan);
+  assert.deepEqual(['myClasses', 'completedClasses', 'courseFilterPreferences'].map((key) => storage.getItem(key)), unaffected);
+  assert.match(index, /id="simulator-reset-dialog"/);
+  assert.match(index, /4年間の計画をすべて削除します/);
 });
 
 test('detail deletion only calls simulator placement removal', () => {

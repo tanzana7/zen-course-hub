@@ -457,6 +457,19 @@ body.simulator-view-active > #analysis-modal {
   line-height: 1.5;
 }
 
+.simulator-feedback {
+  margin: -6px 0 12px;
+  padding: 8px 10px;
+  border-left: 3px solid #b45309;
+  background: #fffbeb;
+  color: #78350f;
+  font-size: 0.9em;
+}
+
+.simulator-feedback[hidden] {
+  display: none;
+}
+
 .simulator-summary {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -577,6 +590,61 @@ body.simulator-view-active > #analysis-modal {
 .simulator-plan h2 {
   margin: 0 0 8px;
   font-size: 1.05rem;
+}
+
+.simulator-plan-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.simulator-plan-heading h2 {
+  min-width: 0;
+  margin: 0;
+}
+
+.simulator-reset-open,
+.simulator-reset-cancel,
+.simulator-reset-confirm {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.simulator-reset-open {
+  flex: 0 0 auto;
+  color: #475569;
+}
+
+.simulator-reset-open:hover,
+.simulator-reset-cancel:hover {
+  background: #f1f5f9;
+}
+
+.simulator-reset-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.simulator-reset-confirm {
+  border-color: #b91c1c;
+  background: #b91c1c;
+  color: #fff;
+}
+
+.simulator-reset-confirm:hover,
+.simulator-reset-confirm:focus-visible {
+  background: #991b1b;
 }
 
 #sim-course-search {
@@ -919,6 +987,11 @@ body.simulator-view-active > #analysis-modal {
   cursor: grabbing;
 }
 
+.sim-course-card.is-quarter-invalid {
+  border-color: #fca5a5;
+  border-left-color: #b91c1c;
+}
+
 .sim-course-card-title {
   display: -webkit-box;
   min-width: 0;
@@ -944,6 +1017,19 @@ body.simulator-view-active > #analysis-modal {
 .sim-course-credits {
   color: #475569;
   font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.sim-course-quarter-warning {
+  color: #991b1b;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.sim-course-year-recommendation {
+  color: #64748b;
+  font-size: 0.68rem;
   line-height: 1.2;
 }
 

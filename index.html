@@ -168,7 +168,8 @@
 
     <div class="simulator-layout">
       <section class="simulator-plan-panel" aria-labelledby="simulator-plan-title">
-        <p class="simulator-note">科目の開講Qをもとに年次のQセルへ配置します。通常の履修予定とは別に保存されます。</p>
+        <p class="simulator-note">計画は「履修予定」と別に保存します。履修済みは前提判定に反映され、複数Q科目の単位は開始Qに計上します。</p>
+        <p id="simulator-feedback" class="simulator-feedback" role="status" aria-live="polite" hidden></p>
         <div class="simulator-summary" id="simulator-summary"></div>
         <details class="simulator-plan-check" id="simulator-plan-check">
           <summary id="simulator-plan-check-summary" aria-live="polite">✓ 計画チェック</summary>
@@ -176,7 +177,10 @@
         </details>
 
         <section class="simulator-plan" aria-labelledby="simulator-plan-title">
-          <h2 id="simulator-plan-title">4年間の計画</h2>
+          <div class="simulator-plan-heading">
+            <h2 id="simulator-plan-title">4年間の計画</h2>
+            <button type="button" id="open-simulator-reset" class="simulator-reset-open">計画をリセット</button>
+          </div>
           <div id="simulator-year-grid" class="simulator-year-grid"></div>
         </section>
       </section>
@@ -230,6 +234,14 @@
         <div id="simulator-course-detail-content"></div>
       </div>
     </div>
+    <dialog id="simulator-reset-dialog" class="simulator-placement-dialog simulator-reset-dialog" aria-labelledby="simulator-reset-title" aria-describedby="simulator-reset-description">
+      <h2 id="simulator-reset-title">計画をリセット</h2>
+      <p id="simulator-reset-description">4年間の計画をすべて削除します。この操作は元に戻せません。</p>
+      <div class="simulator-reset-actions">
+        <button type="button" id="cancel-simulator-reset" class="simulator-reset-cancel">キャンセル</button>
+        <button type="button" id="confirm-simulator-reset" class="simulator-reset-confirm">リセット</button>
+      </div>
+    </dialog>
     <dialog id="simulator-placement-dialog" class="simulator-placement-dialog" aria-labelledby="simulator-placement-title" aria-describedby="simulator-placement-course-info">
       <div class="simulator-placement-heading">
         <h2 id="simulator-placement-title">配置先を選択</h2>
@@ -270,6 +282,7 @@
   </div>
 </div>
 
+<script src="simulator-rules.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
