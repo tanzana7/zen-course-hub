@@ -1081,6 +1081,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     status.classList.toggle('is-error', isError);
   };
 
+  const clearCurriculumFocus = () => {
+    if (!curriculumState.selectedId) return;
+    curriculumState.selectedId = '';
+    const detail = document.getElementById('curriculum-course-detail');
+    if (detail) {
+      detail.hidden = true;
+      detail.replaceChildren();
+    }
+    renderCurriculumGraph();
+  };
+
   const openCurriculumCourseDetail = (courseId) => {
     const course = state.coursesMap.get(courseId);
     const detail = document.getElementById('curriculum-course-detail');
@@ -1096,9 +1107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
     detail.hidden = false;
     detail.querySelector('.curriculum-detail-close')?.addEventListener('click', () => {
-      detail.hidden = true;
-      curriculumState.selectedId = '';
-      renderCurriculumGraph();
+      clearCurriculumFocus();
     });
     detail.querySelectorAll('.related-course-link').forEach((link) => {
       link.addEventListener('click', (event) => {
@@ -1143,6 +1152,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const focusIds = getCurriculumFocusIds();
       const hasFocus = focusIds.size > 0;
       const coursesById = state.coursesMap;
+      const matchesById = new Map();
       let matchCount = 0;
 
       layout.lanes.forEach(([laneName, courses], laneIndex) => {
@@ -1154,6 +1164,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         courses.forEach((course) => {
           const matches = getCurriculumMatch(course);
+          matchesById.set(course.id, matches);
           if (matches) matchCount += 1;
           const isRegistered = state.registeredClasses.has(course.id);
           const isCompleted = state.completedClasses.has(course.id);
@@ -1172,8 +1183,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           node.setAttribute('role', 'button');
           node.setAttribute('aria-label', `${course.subject}の科目詳細`);
 
-          const statusLabel = isCompleted ? '履修済み' : isRegistered ? '履修予定' : '';
-          const addLabel = isRegistered ? '履修予定 ✓' : isCompleted ? '履修予定に戻す' : '履修予定に追加';
+          const statusLabel = isCompleted ? '履修済み' : isRegistered ? 'マイ履修' : '';
+          const addLabel = isRegistered ? 'マイ履修 ✓' : isCompleted ? 'マイ履修に戻す' : 'マイ履修に追加';
           node.innerHTML = `
             <div class="curriculum-node-title">${escapeHTML(course.subject)}</div>
             <div class="curriculum-node-meta">
@@ -1189,6 +1200,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           const openDetail = () => {
             if (curriculumState.didDrag) return;
+            if (curriculumState.selectedId === course.id) {
+              clearCurriculumFocus();
+              return;
+            }
             openCurriculumCourseDetail(course.id);
           };
           node.addEventListener('click', (event) => {
@@ -1232,12 +1247,23 @@ document.addEventListener('DOMContentLoaded', async () => {
           const edge = document.createElementNS('http://www.w3.org/2000/svg', 'path');
           edge.setAttribute('d', createCurriculumEdgePath(from, to));
           edge.setAttribute('class', `curriculum-edge ${relation.strength === 'strongly_recommended' ? 'is-strong' : 'is-recommended'}`);
+          const hasActiveFilter = Boolean(curriculumState.search.trim() || curriculumState.year !== 'すべて表示' || curriculumState.field !== 'すべて表示');
+          if (hasActiveFilter && !matchesById.get(sourceId) && !matchesById.get(relation.id)) edge.classList.add('is-filter-dimmed');
+          if (hasFocus && (sourceId === curriculumState.selectedId || relation.id === curriculumState.selectedId)) edge.classList.add('is-focused');
           if (hasFocus && !(focusIds.has(sourceId) && focusIds.has(relation.id))) edge.classList.add('is-out-of-focus');
           edges.push(edge);
         });
       });
       edges.forEach((edge) => edgesHost.appendChild(edge));
       count.textContent = `${matchCount} / ${state.predefinedData.length}科目`;
+      const hasActiveFilter = Boolean(curriculumState.search.trim() || curriculumState.year !== 'すべて表示' || curriculumState.field !== 'すべて表示');
+      if (hasActiveFilter && matchCount === 0) {
+        setCurriculumStatus('該当する科目はありません。条件を解除してください。', true);
+      } else if (hasActiveFilter) {
+        setCurriculumStatus(`${matchCount}科目が条件に一致しています。`);
+      } else {
+        setCurriculumStatus('');
+      }
     } catch (error) {
       console.error('カリキュラムツリーの描画に失敗しました:', error);
       setCurriculumStatus('ツリーを表示できませんでした。ページを再読み込みしてください。', true);
@@ -1260,6 +1286,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const search = document.getElementById('curriculum-tree-search');
     const year = document.getElementById('curriculum-tree-year');
     const field = document.getElementById('curriculum-tree-field');
+    const graph = document.getElementById('curriculum-graph');
     if (!nav || !view || !dropZone || !search || !year || !field) return;
 
     const setMode = (enabled) => {
@@ -1274,6 +1301,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else {
         const detail = document.getElementById('curriculum-course-detail');
         if (detail) detail.hidden = true;
+        curriculumState.selectedId = '';
       }
     };
 
@@ -1290,6 +1318,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     field.addEventListener('change', () => {
       curriculumState.field = field.value;
       renderCurriculumGraph();
+    });
+    graph?.addEventListener('click', (event) => {
+      if (!event.target.closest('.curriculum-node')) clearCurriculumFocus();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && document.body.classList.contains('curriculum-tree-mode') && curriculumState.selectedId) {
+        clearCurriculumFocus();
+      }
     });
 
     dropZone.addEventListener('dragover', (event) => {

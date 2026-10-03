@@ -36,6 +36,15 @@ test('curriculum relation direction is prerequisite to successor and has no inva
   });
 });
 
+test('curriculum relations preserve strong and normal recommendation distinctions', () => {
+  const relations = readJson('course-relations.json');
+  const strengths = new Set(relations.map((relation) => relation.strength));
+
+  assert.deepEqual([...strengths].sort(), ['recommended', 'strongly_recommended']);
+  assert.equal(relations.filter((relation) => relation.strength === 'strongly_recommended').length, 21);
+  assert.equal(relations.filter((relation) => relation.strength === 'recommended').length, 314);
+});
+
 test('curriculum tree is wired to the existing planned-state storage and accessible actions', () => {
   const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
@@ -43,9 +52,14 @@ test('curriculum tree is wired to the existing planned-state storage and accessi
   assert.match(index, /id="curriculum-tree-view"/);
   assert.match(index, /id="curriculum-drop-zone"/);
   assert.match(index, /id="curriculum-tree-search"/);
+  assert.match(index, /aria-label="マイ履修に追加"/);
   assert.match(app, /REGISTERED: 'myClasses'/);
   assert.match(app, /COMPLETED: 'completedClasses'/);
   assert.match(app, /dataTransfer\?\.setData\('application\/x-zen-course-id'/);
   assert.match(app, /commitStateChange\(course\.id, 'REGISTER'\)/);
   assert.match(app, /curriculum-detail-btn/);
+  assert.match(app, /該当する科目はありません。条件を解除してください。/);
+  assert.match(app, /clearCurriculumFocus/);
+  assert.match(app, /is-filter-dimmed/);
+  assert.match(app, /is-focused/);
 });

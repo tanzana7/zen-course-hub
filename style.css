@@ -1559,12 +1559,15 @@ body {
 .curriculum-edges marker path { fill: #94a3b8; }
 .curriculum-edge { fill: none; stroke: #94a3b8; stroke-width: 1.25; marker-end: url(#curriculum-arrow); opacity: 0.48; }
 .curriculum-edge.is-strong { stroke: #2563eb; stroke-width: 2.15; opacity: 0.82; }
+.curriculum-edge.is-focused { stroke: #0f766e; stroke-width: 2.25; opacity: 0.95; }
+.curriculum-edge.is-filter-dimmed { opacity: 0.16; }
 .curriculum-edge.is-out-of-focus, .curriculum-node.is-out-of-focus { opacity: 0.12; }
 .curriculum-lane { position: absolute; top: 0; z-index: 2; box-sizing: border-box; padding: 10px 24px 24px; }
 .curriculum-lane h3 { position: sticky; top: 0; z-index: 3; margin: 0 -8px 10px; padding: 7px 8px; border-bottom: 2px solid #cbd5e1; background: rgba(248, 250, 252, 0.96); color: #334155; font-size: 0.95rem; }
 .curriculum-node { position: relative; box-sizing: border-box; min-height: 82px; margin-bottom: 8px; padding: 9px 9px 7px; border: 1px solid #cbd5e1; border-left: 4px solid #94a3b8; border-radius: 7px; background: #fff; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08); color: #1e293b; cursor: grab; transition: opacity 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; }
 .curriculum-node:active { cursor: grabbing; }
 .curriculum-node:hover, .curriculum-node:focus-visible, .curriculum-node.is-selected { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18); outline: none; }
+.curriculum-node.is-dimmed { opacity: 0.4; }
 .curriculum-node.is-match { border-left-color: #0f766e; }
 .curriculum-node.is-registered { background: #eff6ff; border-left-color: #2563eb; }
 .curriculum-node.is-completed { background: #f0fdf4; border-left-color: #16a34a; }
