@@ -138,21 +138,97 @@ document.addEventListener('DOMContentLoaded', async () => {
     simulatorPlacementFilter: 'all'
   };
 
+  /**
+   * Main Hubとシミュレーターで同じ並べ替えメニューを使う。
+   * 選択肢をHTMLへ複製せず、COURSE_SORT_OPTIONSを唯一の定義として描画することで、
+   * 片方だけ選択肢や並び順が古くなることを防ぐ。
+   */
   const syncCourseSortOptions = () => {
-    ['sort-filter', 'sim-course-sort'].forEach((selectId) => {
-      const select = document.getElementById(selectId);
-      if (!select) return;
-      const selectedValue = COURSE_SORT_OPTIONS.some((option) => option.value === select.value)
-        ? select.value
-        : 'default';
-      select.replaceChildren(...COURSE_SORT_OPTIONS.map(({ value, label }) => {
-        const option = document.createElement('option');
-        option.value = value;
-        option.textContent = label;
-        return option;
+    const controls = [...document.querySelectorAll('[data-course-sort-control]')]
+      .map((control) => ({
+        root: control,
+        button: control.querySelector('.course-sort-toggle'),
+        menu: control.querySelector('.course-sort-menu')
+      }))
+      .filter(({ button, menu }) => button && menu);
+    if (!controls.length) return;
+
+    let openControl = null;
+    const closeMenus = (returnFocus = false) => {
+      controls.forEach(({ button, menu }) => {
+        menu.hidden = true;
+        button.setAttribute('aria-expanded', 'false');
+      });
+      if (returnFocus && openControl?.button) openControl.button.focus();
+      openControl = null;
+    };
+
+    const syncSelectedState = () => {
+      const selectedOption = COURSE_SORT_OPTIONS.find((option) => option.value === state.difficultySort)
+        || COURSE_SORT_OPTIONS[0];
+      state.difficultySort = selectedOption.value;
+      controls.forEach(({ button, menu }) => {
+        const current = button.querySelector('.course-sort-current');
+        if (current) current.textContent = `：${selectedOption.label}`;
+        menu.querySelectorAll('[data-sort-value]').forEach((optionButton) => {
+          const isSelected = optionButton.dataset.sortValue === selectedOption.value;
+          optionButton.classList.toggle('is-selected', isSelected);
+          optionButton.setAttribute('aria-checked', String(isSelected));
+        });
+      });
+    };
+
+    const selectSort = (value) => {
+      if (!COURSE_SORT_OPTIONS.some((option) => option.value === value)) return;
+      state.difficultySort = value;
+      syncSelectedState();
+      renderPredefinedList();
+      renderSimulatorCourseResults();
+      closeMenus(true);
+    };
+
+    controls.forEach((control) => {
+      const { root, button, menu } = control;
+      menu.replaceChildren(...COURSE_SORT_OPTIONS.map(({ value, label }) => {
+        const optionButton = document.createElement('button');
+        optionButton.type = 'button';
+        optionButton.className = 'course-sort-option';
+        optionButton.dataset.sortValue = value;
+        optionButton.setAttribute('role', 'menuitemradio');
+        optionButton.setAttribute('aria-checked', 'false');
+        optionButton.textContent = label;
+        optionButton.addEventListener('click', () => selectSort(value));
+        return optionButton;
       }));
-      select.value = selectedValue;
+
+      button.addEventListener('click', () => {
+        const willOpen = menu.hidden;
+        closeMenus();
+        if (!willOpen) return;
+        menu.hidden = false;
+        button.setAttribute('aria-expanded', 'true');
+        openControl = control;
+        [...menu.querySelectorAll('[data-sort-value]')]
+          .find((optionButton) => optionButton.dataset.sortValue === state.difficultySort)
+          ?.focus();
+      });
+
+      // Keeping the wrapper as the click boundary allows the popover to close
+      // without interfering with filter-panel clicks in either screen.
+      root.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !menu.hidden) {
+          event.preventDefault();
+          closeMenus(true);
+        }
+      });
     });
+
+    document.addEventListener('click', (event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (openControl && !target?.closest('[data-course-sort-control]')) closeMenus();
+    });
+
+    syncSelectedState();
   };
 
   // 探索一覧の表示設定だけを独立保存し、履修データのlocalStorage形式へ混ぜない。
@@ -663,13 +739,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const quarterFilter = document.getElementById('sim-course-quarter-filter');
     const categoryFilter = document.getElementById('sim-course-category-filter');
     const placementFilter = document.getElementById('sim-course-placement-filter');
-    const sortFilter = document.getElementById('sim-course-sort');
     const query = String(searchInput?.value || '').trim().toLowerCase();
     const selectedYear = yearFilter?.value || 'すべて表示';
     const selectedQuarter = quarterFilter?.value || 'すべて表示';
     const selectedCategory = categoryFilter?.value || 'すべて表示';
     const selectedPlacement = placementFilter?.value || state.simulatorPlacementFilter;
-    const selectedSort = sortFilter?.value || 'default';
 
     let matches = state.predefinedData.filter((course) => {
       if (state.simulatorPaletteMode === 'scheduled' && !state.registeredClasses.has(course.id)) return false;
@@ -687,7 +761,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return matchSearch && matchYear && matchQuarter && matchCategory;
     });
 
-    matches = sortCourses(matches, selectedSort, state.difficultyMap);
+    matches = sortCourses(matches, state.difficultySort, state.difficultyMap);
 
     if (!matches.length) {
       const message = state.simulatorPaletteMode === 'scheduled'
@@ -1297,8 +1371,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       'quarter-filter': state.filterQuarter,
       'category-filter': state.filterCategory,
       'requirement-filter': state.filterRequirement,
-      'intro-filter': state.filterIntro,
-      'sort-filter': state.difficultySort
+      'intro-filter': state.filterIntro
     };
     Object.entries(values).forEach(([id, value]) => {
       const element = document.getElementById(id);
@@ -1308,6 +1381,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (searchBar) searchBar.value = '';
     const excludePixiv = document.getElementById('exclude-pixiv-filter');
     if (excludePixiv) excludePixiv.checked = false;
+    syncCourseSortOptions();
     renderPredefinedList();
   };
 
@@ -1670,12 +1744,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       renderPredefinedList();
     });
 
-    const sortF = document.getElementById('sort-filter');
-    if (sortF) sortF.addEventListener('change', (e) => {
-      state.difficultySort = e.target.value;
-      renderPredefinedList();
-    });
-
     const searchB = document.getElementById('search-bar');
     if (searchB) searchB.addEventListener('input', (e) => {
       state.filterSearch = e.target.value;
@@ -1929,7 +1997,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       closeSimulator();
     });
     if (searchInput) searchInput.addEventListener('input', renderSimulatorCourseResults);
-    ['sim-course-year-filter', 'sim-course-quarter-filter', 'sim-course-category-filter', 'sim-course-sort', 'sim-course-placement-filter']
+    ['sim-course-year-filter', 'sim-course-quarter-filter', 'sim-course-category-filter', 'sim-course-placement-filter']
       .map((id) => document.getElementById(id))
       .filter(Boolean)
       .forEach((select) => select.addEventListener('change', () => {

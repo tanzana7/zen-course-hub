@@ -41,11 +41,17 @@
     <input id="search-bar" type="text" placeholder="授業名や教員名で検索...">
     <div class="filter-actions">
       <button id="filter-options-toggle" class="filter-options-toggle" type="button" aria-expanded="false" aria-controls="filter-options-panel">
-        絞り込み・並び替え <span id="filter-active-count" class="filter-active-count" hidden aria-live="polite"></span>
+        絞り込み <span id="filter-active-count" class="filter-active-count" hidden aria-live="polite"></span>
       </button>
+      <div class="course-sort-control" data-course-sort-control>
+        <button id="course-sort-toggle" class="course-sort-toggle" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="course-sort-menu">
+          <span aria-hidden="true">↕</span><span>並べ替え</span><span class="course-sort-current" aria-live="polite"></span>
+        </button>
+        <div id="course-sort-menu" class="course-sort-menu" role="menu" aria-label="並べ替え" hidden></div>
+      </div>
       <button id="analysis-btn" type="button">卒業要件分析</button>
     </div>
-    <section id="filter-options-panel" class="filter-options-panel" hidden aria-label="絞り込み・並び替え">
+    <section id="filter-options-panel" class="filter-options-panel" hidden aria-label="絞り込み">
       <div class="filter-options-section">
         <h2>絞り込み</h2>
         <div class="filter-options-grid">
@@ -84,13 +90,6 @@
           <input id="exclude-pixiv-filter" type="checkbox">
           <span>pixiv関連科目を除外</span>
         </label>
-      </div>
-      <div class="filter-options-section sort-options-section">
-        <h2>並び替え</h2>
-        <div class="sort-control">
-          <span class="sort-control-label" aria-hidden="true">↕ 難易度順</span>
-          <select id="sort-filter" aria-label="難易度順"></select>
-        </div>
       </div>
       <button id="clear-course-filters" class="clear-filter-btn" type="button" hidden>条件をすべて解除</button>
     </section>
@@ -216,7 +215,12 @@
               <option value="unplaced">未配置</option>
               <option value="placed">配置済み</option>
             </select>
-            <select id="sim-course-sort" aria-label="難易度順"></select>
+          </div>
+          <div class="course-sort-control simulator-palette-sort" data-course-sort-control>
+            <button id="sim-course-sort-toggle" class="course-sort-toggle" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="sim-course-sort-menu">
+              <span aria-hidden="true">↕</span><span>並べ替え</span><span class="course-sort-current" aria-live="polite"></span>
+            </button>
+            <div id="sim-course-sort-menu" class="course-sort-menu" role="menu" aria-label="並べ替え" hidden></div>
           </div>
         </div>
         <div id="sim-course-results" class="sim-course-results simulator-palette-list" aria-live="polite"></div>

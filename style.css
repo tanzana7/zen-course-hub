@@ -69,25 +69,6 @@ body {
   background: white;
 }
 
-.sort-control {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.sort-control-label {
-  color: #2d3748;
-  font-size: 0.9rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.sort-control select {
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
 .input-row {
   display: flex;
   gap: 10px;
@@ -1823,15 +1804,6 @@ body.simulator-view-active > #analysis-modal {
     white-space: nowrap;
   }
 
-  .sort-control {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .sort-control select {
-    width: 100%;
-  }
-
   .main-container {
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
@@ -1915,11 +1887,6 @@ body.simulator-view-active > #analysis-modal {
 
   #search-bar {
     grid-column: 1 / -1;
-  }
-
-  .sort-control {
-    grid-column: 1 / -1;
-    width: 100%;
   }
 
   #search-bar,
@@ -2286,11 +2253,127 @@ body.simulator-view-active > #analysis-modal {
 }
 
 .filter-actions {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(180px, auto);
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
   gap: 10px;
   width: 100%;
   min-width: 0;
+}
+
+.filter-actions #analysis-btn {
+  width: auto;
+  flex: 0 1 auto;
+}
+
+/* 並べ替えは絞り込みとは独立した操作として、必要なときだけメニューを開く。 */
+.course-sort-control {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.course-sort-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 48px;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 2px solid #64748b;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.course-sort-toggle:hover,
+.course-sort-toggle[aria-expanded="true"] {
+  border-color: #1d4ed8;
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+.course-sort-toggle:focus-visible,
+.course-sort-option:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.course-sort-current {
+  max-width: 18rem;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 0.88em;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.course-sort-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: max-content;
+  min-width: min(18rem, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  padding: 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+}
+
+.course-sort-menu[hidden] {
+  display: none;
+}
+
+.course-sort-option {
+  display: block;
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #334155;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.course-sort-option:hover,
+.course-sort-option.is-selected {
+  background: #dbeafe;
+  color: #1e3a8a;
+  font-weight: 700;
+}
+
+.course-sort-option.is-selected::before {
+  content: "✓ ";
+}
+
+.simulator-palette-sort {
+  align-self: stretch;
+  width: 100%;
+}
+
+.simulator-palette-sort .course-sort-toggle {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.simulator-scheduled-panel {
+  /* The result list owns its scroll area; allow the sort popover to escape the panel. */
+  overflow: visible;
 }
 
 .filter-options-toggle {
@@ -2410,8 +2493,7 @@ body.simulator-view-active > #analysis-modal {
   font-weight: 700;
 }
 
-.filter-options-grid select,
-.filter-options-panel .sort-control select {
+.filter-options-grid select {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
@@ -2434,15 +2516,6 @@ body.simulator-view-active > #analysis-modal {
   margin: 0;
 }
 
-.sort-options-section {
-  padding-left: 18px;
-  border-left: 1px solid #e5e7eb;
-}
-
-.filter-options-panel .sort-control {
-  width: 100%;
-}
-
 .filter-options-panel .clear-filter-btn {
   grid-column: 1 / -1;
   justify-self: start;
@@ -2454,24 +2527,28 @@ body.simulator-view-active > #analysis-modal {
     grid-template-columns: 1fr;
   }
 
-  .sort-options-section {
-    padding-top: 14px;
-    padding-left: 0;
-    border-top: 1px solid #e5e7eb;
-    border-left: 0;
-  }
 }
 
 @media screen and (max-width: 768px) {
   .filter-actions {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .filter-actions #analysis-btn,
-  .filter-actions .filter-options-toggle {
+  .filter-actions .filter-options-toggle,
+  .filter-actions .course-sort-control {
     width: 100%;
     min-width: 0;
     min-height: 48px;
+  }
+
+  .filter-actions #analysis-btn {
+    grid-column: 1 / -1;
+  }
+
+  .filter-actions .course-sort-toggle {
+    width: 100%;
   }
 
   .filter-options-panel {
@@ -2482,13 +2559,6 @@ body.simulator-view-active > #analysis-modal {
 
   .filter-options-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .sort-options-section {
-    padding-top: 12px;
-    padding-left: 0;
-    border-top: 1px solid #e5e7eb;
-    border-left: 0;
   }
 
   .filter-options-panel .clear-filter-btn {

@@ -38,12 +38,16 @@ test('simulator palette uses the requested labels and keeps myClasses separate f
 
 test('simulator reuses the main difficulty sort helper after filtering', () => {
   assert.match(app, /const \{ COURSE_SORT_OPTIONS, sortCourses \} = courseSorting/);
-  assert.match(app, /\['sort-filter', 'sim-course-sort'\]\.forEach/);
+  assert.match(app, /querySelectorAll\('\[data-course-sort-control\]'\)/);
   assert.match(app, /const sorted = sortCourses\(filtered, state\.difficultySort, state\.difficultyMap\)/);
-  assert.match(app, /matches = sortCourses\(matches, selectedSort, state\.difficultyMap\)/);
+  assert.match(app, /matches = sortCourses\(matches, state\.difficultySort, state\.difficultyMap\)/);
   assert.match(index, /<script src="course-sorting\.js"><\/script>/);
-  assert.match(index, /id="sort-filter" aria-label="難易度順"><\/select>/);
-  assert.match(index, /id="sim-course-sort" aria-label="難易度順"><\/select>/);
+  assert.match(index, /id="course-sort-toggle"[^>]*aria-haspopup="menu"/);
+  assert.match(index, /id="sim-course-sort-toggle"[^>]*aria-haspopup="menu"/);
+  assert.match(index, /id="course-sort-menu"[^>]*role="menu"/);
+  assert.match(index, /id="sim-course-sort-menu"[^>]*role="menu"/);
+  assert.doesNotMatch(index, /id="sort-filter"/);
+  assert.doesNotMatch(index, /id="sim-course-sort"/);
 });
 
 test('Main Hub and simulator use identical sort options and stable comparator behavior', () => {
