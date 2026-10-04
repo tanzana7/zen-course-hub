@@ -100,8 +100,11 @@
       if (!isNonEmptyString(requirements[field].metadataFlag)) {
         return invalid(`${field}.metadataFlagがありません。`);
       }
-      if (!Array.isArray(requirements[field].foundationMetadataValues) ||
-          requirements[field].foundationMetadataValues.some((value) => !isNonEmptyString(value))) {
+      const foundationValues = requirements[field].foundationMetadataValues;
+      // 基礎科目からの重複充当はこの対応表に依存する。空や重複は設定ミスとして判定を止める。
+      if (!Array.isArray(foundationValues) || foundationValues.length === 0 ||
+          foundationValues.some((value) => !isNonEmptyString(value)) ||
+          new Set(foundationValues).size !== foundationValues.length) {
         return invalid(`${field}.foundationMetadataValuesが不正です。`);
       }
     }
@@ -169,10 +172,10 @@
   const sum = (courses) => courses.reduce((total, course) => total + course.credits, 0);
 
   const analyzeGraduationRequirements = (courseIds, courses, definition) => {
-    const definitionResult = validateRequirementsDefinition(definition);
-    if (!definitionResult.valid) return invalid('科目データを確認できないため、卒業要件を判定できません。', [definitionResult.message]);
-    const coursesResult = validateCourses(courses);
-    if (!coursesResult.valid) return invalid('科目データを確認できないため、卒業要件を判定できません。', [coursesResult.message]);
+    // 呼び出し元に事前検証を要求しない。将来Simulatorから直接使っても、
+    // 定義が参照する未登録IDを見逃して卒業達成を返さないための入口検証。
+    const mappingResult = validateRequirementsAgainstCourses(definition, courses);
+    if (!mappingResult.valid) return invalid('科目データを確認できないため、卒業要件を判定できません。', [mappingResult.message]);
     if (!Array.isArray(courseIds) || courseIds.some((id) => !isNonEmptyString(id))) {
       return invalid('選択科目IDが不正なため、卒業要件を判定できません。');
     }

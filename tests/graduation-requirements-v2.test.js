@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import test from 'node:test';
 import graduationRequirementsEngine from '../graduation-requirements.js';
 
-const { analyzeGraduationRequirements, validateCourses, validateRequirementsDefinition, validateRequirementsAgainstCourses } = graduationRequirementsEngine;
+const { analyzeGraduationRequirements: analyzeDirect, validateCourses, validateRequirementsDefinition, validateRequirementsAgainstCourses } = graduationRequirementsEngine;
 
 const definition = JSON.parse(fs.readFileSync(new URL('../graduation-requirements.json', import.meta.url), 'utf8'));
 const officialCourses = JSON.parse(fs.readFileSync(new URL('../courses.json', import.meta.url), 'utf8'));
@@ -16,6 +16,23 @@ const course = (id, credits = 2, metadata = {}) => ({
   tag: 'その他',
   ...metadata
 });
+
+// 個別要件のテストでも、未選択の必修科目は科目カタログに存在する状態を再現する。
+// analyzerの入口が全参照IDを検証しても、選択した科目だけの集計を検証できる。
+const withDefinitionCourses = (courses, currentDefinition) => {
+  const requirements = currentDefinition.requirements;
+  const referencedIds = [
+    ...requirements.introduction.courseIds,
+    ...requirements.foundation.multilingualIT.courseIds,
+    ...requirements.industryHistory.courseIds,
+    ...requirements.projectPractice.courseIds
+  ];
+  const existingIds = new Set(courses.map((item) => item.id));
+  return [...courses, ...[...new Set(referencedIds)].filter((id) => !existingIds.has(id)).map((id) => course(id))];
+};
+
+const analyzeGraduationRequirements = (courseIds, courses, currentDefinition) =>
+  analyzeDirect(courseIds, withDefinitionCourses(courses, currentDefinition), currentDefinition);
 
 const minimalCourses = () => [
   ...definition.requirements.introduction.courseIds.map((id) => course(id)),
@@ -30,6 +47,54 @@ const minimalCourses = () => [
 ];
 
 const cloneDefinition = () => JSON.parse(JSON.stringify(definition));
+
+// 実在する科目だけで、導入・基礎5分野・展開・各領域・卒業プロジェクトを満たす計画。
+// 産業史と基礎の重複充当を含むが、総単位は科目IDごとに一度だけ数える。
+const graduationReadyIds = [
+  ...definition.requirements.introduction.courseIds,
+  'mathematical_thinking', 'math_history', 'info_security_intro',
+  'japanese_literature_1', 'sociology_1', 'business_mgmt',
+  'multilingual_it_comm', 'project_practice',
+  'machine_translation_english', 'machine_translation_law', 'machine_translation_it',
+  'elementary_algebra', 'it_industry_history',
+  'ai_society_walk', 'regional_studies', 'decision_making_dev', 'co_creation_earth',
+  'info_society_security', 'economics_history', 'marxian_economics',
+  'business_mgmt_accounting', 'internet_copyright', 'methods_of_math',
+  'reverse_science_history', 'linear_algebra_1', 'calculus_1', 'linear_algebra_2',
+  'calculus_2', 'set_theory_logic', 'symbolic_logic', 'graph_theory',
+  'gender_studies', 'media_studies', 'science_tech_society', 'postwar_japan_history_1',
+  'cross_cultural_understanding', 'university_media_anthropology', 'sociology_2',
+  'sociology_3', 'modern_sports_analysis', 'sf_future_vision',
+  'modern_social_theory', 'future_society_design', 'music_society',
+  'children_regional_creation', 'collaboration_creative',
+  'japan_politics_diplomacy_history', 'math_structure_discovery',
+  'complex_analysis', 'calculus_3', 'metric_spaces', 'group_theory',
+  'topological_spaces', 'manifolds'
+];
+
+const replaceSelected = (ids, removed, added) => [
+  ...ids.filter((id) => !removed.includes(id)),
+  ...added
+];
+
+const assertAllRequirementsExcept = (result, unmet = []) => {
+  assert.equal(result.valid, true);
+  const checks = {
+    total: result.totalCredits.satisfied,
+    introduction: result.introduction.satisfied,
+    foundation: result.foundation.satisfied,
+    multilingualIT: result.foundation.multilingualIT.satisfied,
+    advanced: result.advanced.satisfied,
+    literacy: result.literacy.satisfied,
+    multilingualInformation: result.multilingualInformation.satisfied,
+    worldUnderstanding: result.worldUnderstanding.satisfied,
+    projectPractice: result.projectPractice.satisfied
+  };
+  for (const [name, satisfied] of Object.entries(checks)) {
+    assert.equal(satisfied, !unmet.includes(name), `${name} の判定`);
+  }
+  assert.equal(result.satisfied, unmet.length === 0);
+};
 
 test('公式courses.jsonの定義と科目データは検証に合格する', () => {
   assert.deepEqual(validateRequirementsDefinition(definition), { valid: true });
@@ -238,4 +303,138 @@ test('公式データの産業史flagはIT・マンガ・アニメ・日本の�
     'manga_industry_history'
   ]);
   assert.ok(!officialCourses.some((course) => course.subject === 'デジタル産業史'));
+});
+
+test('analyzer直接呼び出しでも定義内の未知IDを判定不能にする', () => {
+  const valid = analyzeDirect([], officialCourses, definition);
+  assert.equal(valid.valid, true);
+  assert.equal(valid.satisfied, false);
+
+  for (const [label, change] of [
+    ['導入', (broken) => { broken.requirements.introduction.courseIds = ['unknown-intro']; }],
+    ['多言語IT', (broken) => { broken.requirements.foundation.multilingualIT.courseIds = ['unknown-multilingual']; }],
+    ['産業史', (broken) => { broken.requirements.industryHistory.courseIds = ['unknown-industry']; }],
+    ['プロジェクト', (broken) => { broken.requirements.projectPractice.courseIds = ['unknown-project']; }]
+  ]) {
+    const broken = cloneDefinition();
+    change(broken);
+    const result = analyzeDirect([], officialCourses, broken);
+    assert.equal(result.valid, false, label);
+    assert.match(result.message, /判定できません/);
+    assert.match(result.details[0], /存在しない科目ID/);
+    assert.equal('satisfied' in result, false);
+  }
+});
+
+test('analyzer直接呼び出しは不正な科目・選択IDと正常な未達を区別する', () => {
+  const catalog = withDefinitionCourses(
+    Array.from({ length: 123 }, (_, index) => course(`boundary-${index}`, 1)),
+    definition
+  );
+  const ids = catalog.filter((item) => item.id.startsWith('boundary-')).map((item) => item.id);
+  const unmet = analyzeDirect(ids, catalog, definition);
+  assert.equal(unmet.valid, true);
+  assert.equal(unmet.totalCredits.countedCredits, 123);
+  assert.equal(unmet.totalCredits.satisfied, false);
+  assert.equal(unmet.satisfied, false);
+
+  const invalidCases = [
+    ['未知の選択ID', [...ids, 'unknown-selected'], catalog, definition],
+    ['不正な単位数', ids, [...catalog, course('bad-credits', '2')], definition],
+    ['重複した科目ID', ids, [...catalog, catalog[0]], definition],
+    ['不正な要件metadata', ids, [...catalog, course('bad-flag', 2, { advancedRequirement: 'yes' })], definition]
+  ];
+  for (const [label, selectedIds, courses, currentDefinition] of invalidCases) {
+    const result = analyzeDirect(selectedIds, courses, currentDefinition);
+    assert.equal(result.valid, false, label);
+    assert.equal('totalCredits' in result, false, label);
+    assert.equal('satisfied' in result, false, label);
+  }
+});
+
+test('基礎科目からの重複充当を消す空・重複mappingは定義として拒否する', () => {
+  for (const field of ['literacy', 'multilingualInformation', 'worldUnderstanding']) {
+    for (const values of [[], ['数理', '数理'], ['']]) {
+      const broken = cloneDefinition();
+      broken.requirements[field].foundationMetadataValues = values;
+      assert.equal(validateRequirementsDefinition(broken).valid, false, `${field}: ${JSON.stringify(values)}`);
+      assert.equal(analyzeDirect([], officialCourses, broken).valid, false);
+    }
+  }
+});
+
+test('実在科目の複合計画は全要件を満たし、総単位に重複充当を二重加算しない', () => {
+  assert.equal(new Set(graduationReadyIds).size, graduationReadyIds.length);
+  const result = analyzeDirect(graduationReadyIds, officialCourses, definition);
+  assertAllRequirementsExcept(result);
+  assert.equal(result.totalCredits.actualCredits, 124);
+  assert.equal(result.totalCredits.countedCredits, 124);
+  assert.equal(result.introduction.credits, 14);
+  assert.equal(result.foundation.credits, 12);
+  assert.ok(result.foundation.groups.every((group) => group.credits >= 2));
+  assert.equal(result.foundation.multilingualIT.credits, 2);
+  assert.ok(result.advanced.credits >= 74);
+  assert.ok(result.literacy.credits >= 8);
+  assert.ok(result.multilingualInformation.credits >= 8);
+  assert.ok(result.worldUnderstanding.credits >= 26);
+  assert.equal(result.worldUnderstanding.industryHistory.credits, 2);
+  assert.equal(result.projectPractice.credits, 4);
+  const duplicated = analyzeDirect([...graduationReadyIds, 'it_industry_history'], officialCourses, definition);
+  assert.equal(duplicated.totalCredits.countedCredits, 124);
+  assert.equal(duplicated.worldUnderstanding.industryHistory.credits, 2);
+});
+
+test('124単位以上でも基礎の一分野が0なら卒業要件は未達', () => {
+  const ids = replaceSelected(graduationReadyIds, ['business_mgmt'], ['info_ethics_law']);
+  const result = analyzeDirect(ids, officialCourses, definition);
+  assertAllRequirementsExcept(result, ['foundation']);
+  assert.equal(result.totalCredits.countedCredits, 124);
+  assert.equal(result.foundation.credits, 12);
+  assert.equal(result.foundation.groups.find((group) => group.key === 'economyMarket').credits, 0);
+});
+
+const socialIds = [
+  'career_design_1', 'interpersonal_comm_theory', 'english_comm_1',
+  'english_comm_2', 'creative_workplace_theory', 'social_innovation_intro'
+];
+const replaceableAdvancedIds = [
+  'graph_theory', 'ai_society_walk', 'regional_studies',
+  'decision_making_dev', 'co_creation_earth', 'info_society_security'
+];
+
+test('社会接続12単位を取得しても算入上限により総単位122で未達', () => {
+  const ids = replaceSelected(graduationReadyIds, replaceableAdvancedIds, socialIds);
+  const result = analyzeDirect(ids, officialCourses, definition);
+  assertAllRequirementsExcept(result, ['total']);
+  assert.equal(result.totalCredits.actualCredits, 124);
+  assert.equal(result.socialConnection.actualCredits, 12);
+  assert.equal(result.socialConnection.countedCredits, 10);
+  assert.equal(result.totalCredits.countedCredits, 122);
+});
+
+test('社会接続12単位のうち10単位を算入し、総単位124なら達成', () => {
+  const ids = replaceSelected(graduationReadyIds, replaceableAdvancedIds.slice(0, 5), socialIds);
+  const result = analyzeDirect(ids, officialCourses, definition);
+  assertAllRequirementsExcept(result);
+  assert.equal(result.totalCredits.actualCredits, 126);
+  assert.equal(result.socialConnection.actualCredits, 12);
+  assert.equal(result.socialConnection.countedCredits, 10);
+  assert.equal(result.totalCredits.countedCredits, 124);
+});
+
+test('124単位と世界理解26単位を満たしても産業史がなければ未達', () => {
+  const ids = replaceSelected(graduationReadyIds, ['it_industry_history'], ['macroeconomics']);
+  const result = analyzeDirect(ids, officialCourses, definition);
+  assertAllRequirementsExcept(result, ['worldUnderstanding']);
+  assert.equal(result.totalCredits.countedCredits, 124);
+  assert.ok(result.worldUnderstanding.credits >= 26);
+  assert.equal(result.worldUnderstanding.industryHistory.credits, 0);
+});
+
+test('124単位と他要件を満たしてもプロジェクト実践がなければ未達', () => {
+  const ids = replaceSelected(graduationReadyIds, ['project_practice'], ['category_theory', 'mechanics']);
+  const result = analyzeDirect(ids, officialCourses, definition);
+  assertAllRequirementsExcept(result, ['projectPractice']);
+  assert.equal(result.totalCredits.countedCredits, 124);
+  assert.equal(result.projectPractice.credits, 0);
 });
