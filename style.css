@@ -1031,6 +1031,72 @@ body {
   }
 }
 
+/* 卒業要件v2: 修得済み / 予定込みを並べても、狭い画面では縦に流れるようにする。 */
+.graduation-analysis {
+  border: 2px solid #007bff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #f0f7ff;
+}
+
+.graduation-analysis-legend,
+.graduation-analysis-note {
+  color: #4b5563;
+  font-size: 0.9em;
+}
+
+.graduation-overall-status {
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.graduation-requirement-row {
+  display: grid;
+  grid-template-columns: minmax(12em, 1.2fr) minmax(12em, 1fr) minmax(12em, 1fr);
+  gap: 8px;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 123, 255, 0.12);
+}
+
+.graduation-requirement-row:last-child {
+  border-bottom: 0;
+}
+
+.graduation-requirement-group {
+  margin-left: 12px;
+  padding-left: 12px;
+  border-left: 3px solid rgba(0, 123, 255, 0.2);
+}
+
+.graduation-subrequirement-row {
+  padding-left: 12px;
+}
+
+.graduation-social-row {
+  grid-template-columns: minmax(12em, 1.2fr) minmax(16em, 1fr) minmax(16em, 1fr);
+}
+
+.graduation-analysis-error {
+  color: #9b1c1c;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .graduation-requirement-row,
+  .graduation-social-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .graduation-requirement-group {
+    margin-left: 0;
+    padding-left: 8px;
+  }
+}
+
 @media (max-width: 420px) {
   .input-area {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;

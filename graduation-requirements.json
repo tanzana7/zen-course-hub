@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "version": "2.0",
+  "requirements": {
+    "totalCredits": {
+      "targetCredits": 124,
+      "nonCountingCategories": ["自由"],
+      "nonCountingTags": ["自由科目"]
+    },
+    "introduction": {
+      "targetCredits": 14,
+      "courseIds": [
+        "it_literacy",
+        "academic_literacy",
+        "digital_tools_usage",
+        "economics_intro",
+        "modern_society_math",
+        "ai_practical_usage",
+        "humanities_intro"
+      ]
+    },
+    "foundation": {
+      "targetCredits": 12,
+      "groups": [
+        { "key": "math", "label": "数理", "metadataValue": "数理", "targetCredits": 2 },
+        { "key": "information", "label": "情報", "metadataValue": "情報", "targetCredits": 2 },
+        { "key": "cultureThought", "label": "文化・思想", "metadataValue": "文化思想", "targetCredits": 2 },
+        { "key": "societyNetwork", "label": "社会・ネットワーク", "metadataValue": "社会ネットワーク", "targetCredits": 2 },
+        { "key": "economyMarket", "label": "経済・マーケット", "metadataValue": "経済マーケット", "targetCredits": 2 }
+      ],
+      "multilingualIT": {
+        "label": "多言語ITコミュニケーション",
+        "targetCredits": 2,
+        "courseIds": ["multilingual_it_comm"]
+      }
+    },
+    "advanced": {
+      "targetCredits": 74,
+      "metadataFlag": "advancedRequirement"
+    },
+    "literacy": {
+      "label": "基盤リテラシー",
+      "targetCredits": 8,
+      "metadataFlag": "literacyRequirement",
+      "foundationMetadataValues": ["数理", "情報"]
+    },
+    "multilingualInformation": {
+      "label": "多言語情報理解",
+      "targetCredits": 8,
+      "metadataFlag": "multilingualRequirement",
+      "foundationMetadataValues": ["多言語情報理解"]
+    },
+    "worldUnderstanding": {
+      "label": "世界理解",
+      "targetCredits": 26,
+      "metadataFlag": "globalStudiesRequirement",
+      "foundationMetadataValues": ["文化思想", "社会ネットワーク", "経済マーケット"]
+    },
+    "industryHistory": {
+      "label": "産業史系",
+      "targetCredits": 2,
+      "courseIds": [
+        "it_industry_history",
+        "manga_industry_history",
+        "anime_industry_history",
+        "japanese_game_industry_history"
+      ],
+      "metadataFlag": "digitalIndustryHistoryRequirement",
+      "within": "worldUnderstanding"
+    },
+    "socialConnection": {
+      "label": "社会接続",
+      "tag": "社会接続",
+      "capCredits": 10
+    },
+    "projectPractice": {
+      "label": "プロジェクト実践",
+      "targetCredits": 4,
+      "courseIds": ["project_practice"]
+    }
+  }
+}
