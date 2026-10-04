@@ -2305,6 +2305,8 @@ body.simulator-view-active > #analysis-modal {
 }
 
 .course-sort-current {
+  flex: 1 1 auto;
+  min-width: 0;
   max-width: 18rem;
   overflow: hidden;
   color: #64748b;
