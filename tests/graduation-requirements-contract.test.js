@@ -26,12 +26,37 @@ test('正式卒業要件の数値を実際のdefinitionで固定する', () => {
 });
 
 test('基礎5分野は公式の各2単位要件である', () => {
-  assert.deepEqual(requirements.foundation.groups.map(({ label, targetCredits }) => ({ label, targetCredits })), [
-    { label: '数理', targetCredits: 2 },
-    { label: '情報', targetCredits: 2 },
-    { label: '文化・思想', targetCredits: 2 },
-    { label: '社会・ネットワーク', targetCredits: 2 },
-    { label: '経済・マーケット', targetCredits: 2 }
+  const expectedGroups = [
+    { label: '数理', key: 'math', metadataValue: '数理', targetCredits: 2 },
+    { label: '情報', key: 'information', metadataValue: '情報', targetCredits: 2 },
+    { label: '文化・思想', key: 'cultureThought', metadataValue: '文化思想', targetCredits: 2 },
+    { label: '社会・ネットワーク', key: 'societyNetwork', metadataValue: '社会ネットワーク', targetCredits: 2 },
+    { label: '経済・マーケット', key: 'economyMarket', metadataValue: '経済マーケット', targetCredits: 2 }
+  ];
+
+  const actualGroups = requirements.foundation.groups
+    .map(({ label, key, metadataValue, targetCredits }) => ({ label, key, metadataValue, targetCredits }))
+    .sort((left, right) => left.key.localeCompare(right.key));
+  assert.deepEqual(actualGroups, [...expectedGroups].sort((left, right) => left.key.localeCompare(right.key)));
+  for (const group of expectedGroups) {
+    assert.ok(
+      courses.some((course) => course.foundationRequirement === group.metadataValue),
+      `${group.label} metadataValue resolves to explicit courses.json foundationRequirement metadata`
+    );
+  }
+});
+
+test('多言語ITコミュニケーションは正確な指定ID・名称・単位数へ解決する', () => {
+  const courseIds = requirements.foundation.multilingualIT.courseIds;
+  assert.deepEqual([...courseIds].sort(), ['multilingual_it_comm']);
+
+  const resolvedCourses = courseIds.map((id) => {
+    const course = courseById(id);
+    assert.ok(course, `multilingual IT course ID exists: ${id}`);
+    return { id: course.id, name: course.subject, credits: course.credits };
+  });
+  assert.deepEqual(resolvedCourses, [
+    { id: 'multilingual_it_comm', name: '多言語ITコミュニケーション', credits: 2 }
   ]);
 });
 
