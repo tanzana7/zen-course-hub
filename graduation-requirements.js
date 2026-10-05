@@ -109,14 +109,18 @@
       }
     }
     if (!isNonEmptyString(requirements.socialConnection.tag)) return invalid('社会接続のtagがありません。');
+    // These values are consumed by the total-credit exclusion filter. An empty list
+    // silently turns exclusions off, so unlike optional mappings they must remain
+    // non-empty, trimmed strings with no duplicates. The official values themselves
+    // are locked by the definition contract tests, not duplicated in runtime code.
     for (const field of ['totalCredits']) {
-      if (!Array.isArray(requirements[field].nonCountingCategories) ||
-          requirements[field].nonCountingCategories.some((value) => !isNonEmptyString(value))) {
-        return invalid(`${field}.nonCountingCategoriesが不正です。`);
-      }
-      if (!Array.isArray(requirements[field].nonCountingTags) ||
-          requirements[field].nonCountingTags.some((value) => !isNonEmptyString(value))) {
-        return invalid(`${field}.nonCountingTagsが不正です。`);
+      for (const arrayName of ['nonCountingCategories', 'nonCountingTags']) {
+        const values = requirements[field][arrayName];
+        if (!Array.isArray(values) || values.length === 0 ||
+            values.some((value) => !isNonEmptyString(value) || value.trim() !== value) ||
+            new Set(values).size !== values.length) {
+          return invalid(`${field}.${arrayName}が不正です。`);
+        }
       }
     }
     return { valid: true };
