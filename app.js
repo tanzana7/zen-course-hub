@@ -339,12 +339,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   const calculateCredits = (state) => {
     const courseIds = [...state.completedClasses, ...state.registeredClasses];
     const analysis = analyzeGraduation(courseIds);
-    if (!analysis.valid) return { totalCredits: 0, rawTotalCredits: 0, socialCredits: 0 };
+    // 判定不能を0単位に変換すると、上部ゲージが正常な未履修状態と誤認される。
+    if (!analysis.valid) return { valid: false };
     return {
+      valid: true,
       totalCredits: analysis.totalCredits.countedCredits,
       rawTotalCredits: analysis.totalCredits.actualCredits,
       socialCredits: analysis.totalCredits.socialActualCredits
     };
+  };
+
+  const renderGraduationGauge = (stats, unavailableText = '判定不能') => {
+    const valueElement = document.querySelector('.top-credit-gauge .gauge-value');
+    const fillElement = document.getElementById('top-earned-fill');
+    if (!valueElement || !fillElement) return;
+
+    const barElement = fillElement.parentElement;
+    const targetCredits = state.graduationDefinition?.requirements?.totalCredits?.targetCredits;
+    const canShowProgress = stats.valid && Number.isFinite(targetCredits) && targetCredits > 0;
+    valueElement.textContent = canShowProgress ? `${stats.totalCredits}/${targetCredits}` : unavailableText;
+    if (barElement) {
+      // 判定不能や読み込み中の値を「0%の進捗」として読ませない。
+      barElement.hidden = !canShowProgress;
+      if (canShowProgress) {
+        barElement.setAttribute('aria-valuenow', stats.totalCredits);
+        barElement.setAttribute('aria-valuemax', targetCredits);
+      } else {
+        barElement.removeAttribute('aria-valuenow');
+        barElement.removeAttribute('aria-valuemax');
+      }
+    }
+    if (canShowProgress) {
+      const pct = Math.max(0, Math.min(100, (stats.totalCredits / targetCredits) * 100));
+      fillElement.style.width = `${pct}%`;
+      fillElement.style.background = pct >= 100 ? '#22c55e' : (pct >= 60 ? '#3b82f6' : '#ef4444');
+    }
   };
 
   const graduationStatus = (requirement, planned) => {
@@ -478,24 +507,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('registered-count').textContent = state.registeredClasses.size;
     document.getElementById('registered-credits').textContent = regCredits;
 
-    const topGaugeXEl = document.getElementById('top-earned-x');
-    const topGaugeTargetEl = document.getElementById('top-earned-target');
-    const topGaugeFillEl = document.getElementById('top-earned-fill');
-    if (topGaugeXEl && topGaugeFillEl) {
-      topGaugeXEl.textContent = stats.totalCredits;
-      const targetCredits = state.graduationDefinition?.requirements?.totalCredits?.targetCredits;
-      if (topGaugeTargetEl) topGaugeTargetEl.textContent = Number.isFinite(targetCredits) ? targetCredits : '—';
-      const gaugeBar = topGaugeFillEl.parentElement;
-      if (gaugeBar) {
-        gaugeBar.setAttribute('aria-valuenow', stats.totalCredits);
-        gaugeBar.setAttribute('aria-valuemax', Number.isFinite(targetCredits) ? targetCredits : '0');
-      }
-      const pct = Number.isFinite(targetCredits) && targetCredits > 0
-        ? Math.max(0, Math.min(100, (stats.totalCredits / targetCredits) * 100))
-        : 0;
-      topGaugeFillEl.style.width = `${pct}%`;
-      topGaugeFillEl.style.background = pct >= 100 ? '#22c55e' : (pct >= 60 ? '#3b82f6' : '#ef4444');
-    }
+    renderGraduationGauge(stats);
 
     renderGraduationAnalysis(completedAnalysis, plannedAnalysis);
     return;
@@ -1091,6 +1103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupAnalysisModal();
   setupTutorialModal();
   setupBackToTopButton();
+  renderGraduationGauge({ valid: false }, '—');
 
   // 外部JSONから授業データを読み込む
   let loadErrorTimer = null; // 通信エラーアラートの遅延表示用タイマー
@@ -1153,6 +1166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderAll(); // データロード後にクリーンアップを含めて再描画
   } catch (error) {
     console.error('データの読み込みに失敗しました:', error);
+    renderGraduationGauge({ valid: false });
     if (dataStatus) {
       dataStatus.hidden = false;
       dataStatus.classList.add('is-error');

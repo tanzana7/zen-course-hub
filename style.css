@@ -1054,11 +1054,17 @@ body {
 
 .graduation-requirement-row {
   display: grid;
-  grid-template-columns: minmax(12em, 1.2fr) minmax(12em, 1fr) minmax(12em, 1fr);
+  /* 列の最小幅を内容任せにすると、モーダル内で予定込み列が切れてしまう。 */
+  grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(0, 1fr));
   gap: 8px;
   align-items: baseline;
   padding: 8px 0;
   border-bottom: 1px solid rgba(0, 123, 255, 0.12);
+}
+
+.graduation-requirement-row > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .graduation-requirement-row:last-child {
@@ -1076,7 +1082,7 @@ body {
 }
 
 .graduation-social-row {
-  grid-template-columns: minmax(12em, 1.2fr) minmax(16em, 1fr) minmax(16em, 1fr);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1.4fr);
 }
 
 .graduation-analysis-error {
