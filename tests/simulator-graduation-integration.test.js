@@ -121,6 +121,7 @@ test('App uses the shared projection helper and separates current and four-year 
   assert.match(app, /修得済み＋シミュレーター計画/);
   assert.match(app, /data-sim-graduation-detail/);
   assert.match(app, /buildRequirementDetails/);
+  assert.match(app, /不足を満たす候補/);
   assert.match(index, /id="simulator-graduation-summary"/);
   assert.match(index, /id="simulator-graduation-details-content"/);
   assert.match(index, /卒業見込み/);

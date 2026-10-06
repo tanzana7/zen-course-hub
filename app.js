@@ -621,7 +621,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ${renderCourseLinks(projected.selectedCourseIds, '計画に含まれる対象科目はありません')}
       </div>
       <div class="simulator-graduation-course-detail-section">
-        <strong>不足</strong>
+        <strong>不足を満たす候補</strong>
         ${renderCourseLinks(missing, '不足している対象科目はありません', { collapsible: missing.length > 20, summary: `${missing.length}件を表示` })}
       </div>`;
     panel.querySelector('.simulator-graduation-course-detail-close')?.addEventListener('click', () => {

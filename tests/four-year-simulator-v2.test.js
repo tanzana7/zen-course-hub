@@ -301,6 +301,23 @@ test('every catalog Q value parses, while unrelated numbers and unknown labels f
   }
 });
 
+test('all catalog quarter spellings expose the intended allowed start quarters', () => {
+  const expected = new Map([
+    ['1Q, 3Q', [1, 3]],
+    ['1Q、3Q', [1, 3]],
+    ['2Q, 4Q', [2, 4]],
+    ['2Q、4Q', [2, 4]],
+    ['1-2Q', [1, 2]],
+    ['3-4Q', [3, 4]],
+    ['1-2Q, 3-4Q', [1, 2, 3, 4]],
+    ['1-2Q、3-4Q', [1, 2, 3, 4]],
+    ['通期', [1]]
+  ]);
+  for (const [label, starts] of expected) {
+    assert.deepEqual(simulatorRules.getQuarterInfo({ quarter: label }).allowedStarts, starts, label);
+  }
+});
+
 test('failed add, move, delete, and reset saves preserve the previous plan', () => {
   const course = courses.find((item) => item.id === 'academic_literacy');
   const key = 'fourYearSimulatorPlanV1';
