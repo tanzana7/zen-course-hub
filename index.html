@@ -29,8 +29,8 @@
     <h1>ZEN履修登録Hub</h1>
     <div class="top-credit-gauge" title="卒業要件の総単位進捗">
       <span class="gauge-label">総単位</span>
-      <span class="gauge-value"><span id="top-earned-x">0</span>/124</span>
-      <div class="gauge-bar" role="progressbar" aria-valuemin="0" aria-valuemax="124">
+      <span class="gauge-value"><span id="top-earned-x">0</span>/<span id="top-earned-target">—</span></span>
+      <div class="gauge-bar" role="progressbar" aria-valuemin="0" aria-valuemax="0">
         <div class="gauge-fill" id="top-earned-fill"></div>
       </div>
     </div>
@@ -169,6 +169,15 @@
         <p class="simulator-note simulator-graduation-note">※ 総予定単位だけでは卒業要件を判定できません。科目区分などの個別要件も確認してください。</p>
         <p id="simulator-feedback" class="simulator-feedback" role="status" aria-live="polite" hidden></p>
         <div class="simulator-summary" id="simulator-summary"></div>
+        <section class="simulator-graduation" aria-labelledby="simulator-graduation-title">
+          <h2 id="simulator-graduation-title">卒業見込み</h2>
+          <div id="simulator-graduation-summary" aria-live="polite"></div>
+          <p id="simulator-graduation-unknown" class="simulator-graduation-unknown" role="alert" hidden></p>
+          <details id="simulator-graduation-details">
+            <summary>要件の内訳を確認</summary>
+            <div id="simulator-graduation-details-content"></div>
+          </details>
+        </section>
         <details class="simulator-plan-check" id="simulator-plan-check">
           <summary id="simulator-plan-check-summary" aria-live="polite">✓ 計画チェック</summary>
           <div id="simulator-plan-check-details"></div>
@@ -284,6 +293,7 @@
 
 <script src="simulator-rules.js"></script>
 <script src="course-sorting.js"></script>
+<script src="graduation-requirements.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

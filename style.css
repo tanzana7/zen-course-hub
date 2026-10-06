@@ -489,6 +489,86 @@ body.simulator-view-active > #analysis-modal {
   font-weight: 700;
 }
 
+.simulator-graduation {
+  margin: 16px 0 18px;
+  padding: 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.simulator-graduation h2 {
+  margin: 0 0 10px;
+  color: #1e3a8a;
+  font-size: 1rem;
+}
+
+.simulator-graduation-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.simulator-graduation-status {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px;
+  border: 1px solid #dbeafe;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.simulator-graduation-status span {
+  color: #1e3a8a;
+  font-size: 1.05em;
+  font-weight: 700;
+}
+
+.simulator-graduation-status em {
+  color: #475569;
+  font-size: 0.86em;
+  font-style: normal;
+}
+
+.simulator-graduation-unknown {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border-left: 3px solid #d97706;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 0.86em;
+  line-height: 1.45;
+}
+
+.simulator-graduation-unknown[hidden] {
+  display: none;
+}
+
+#simulator-graduation-details {
+  margin-top: 10px;
+  border-top: 1px solid #dbeafe;
+}
+
+#simulator-graduation-details summary {
+  padding: 8px 0 2px;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 700;
+}
+
+#simulator-graduation-details-content {
+  padding-top: 8px;
+}
+
+#simulator-graduation-details-content .graduation-analysis {
+  border-width: 1px;
+  padding: 10px;
+  font-size: 0.86em;
+}
+
 .simulator-plan-check {
   margin: 12px 0 18px;
   border: 1px solid #dbe3ef;
@@ -2050,6 +2130,82 @@ body.simulator-view-active > #analysis-modal {
     bottom: 14px;
     padding: 9px 14px;
     font-size: 15px;
+  }
+}
+
+/* 卒業要件v2: 修得済み / 予定込みを並べても、狭い画面では縦に流れるようにする。 */
+.graduation-analysis {
+  border: 2px solid #007bff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #f0f7ff;
+}
+
+.graduation-analysis-legend,
+.graduation-analysis-note {
+  color: #4b5563;
+  font-size: 0.9em;
+}
+
+.graduation-overall-status {
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.graduation-requirement-row {
+  display: grid;
+  /* 列の最小幅を内容任せにすると、モーダル内で予定込み列が切れてしまう。 */
+  grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 123, 255, 0.12);
+}
+
+.graduation-requirement-row > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.graduation-requirement-row:last-child {
+  border-bottom: 0;
+}
+
+.graduation-requirement-group {
+  margin-left: 12px;
+  padding-left: 12px;
+  border-left: 3px solid rgba(0, 123, 255, 0.2);
+}
+
+.graduation-subrequirement-row {
+  padding-left: 12px;
+}
+
+.graduation-social-row {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1.4fr);
+}
+
+.graduation-analysis-error {
+  color: #9b1c1c;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .simulator-graduation-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .graduation-requirement-row,
+  .graduation-social-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .graduation-requirement-group {
+    margin-left: 0;
+    padding-left: 8px;
   }
 }
 

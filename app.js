@@ -8,17 +8,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const relatedCourseDetailHost = document.getElementById('related-course-detail-host');
   const dataStatus = document.getElementById('data-status');
 
-  // 卒業要件分析（導入科目）の判定に使用するリストを復活
-  const introSubjects = [
-    'it_literacy',
-    'academic_literacy',
-    'digital_tools_usage',
-    'economics_intro',
-    'modern_society_math',
-    'ai_practical_usage',
-    'humanities_intro'
-  ];
-
   /**
    * localStorageのキー管理
    */
@@ -135,7 +124,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     simulatorPaletteMode: 'all',
     simulatorPaletteDefaulted: false,
     // マイ履修は通常の履修予定（myClasses）を表示するだけで、4年計画とは分離する。
-    simulatorPlacementFilter: 'all'
+    simulatorPlacementFilter: 'all',
+    graduationDefinition: null,
+    courseValidationError: null
   };
 
   /**
@@ -319,6 +310,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       // 難易度は任意情報のため、失敗しても授業データの読み込みを継続する
       console.warn('難易度データを読み込めませんでした。難易度欄を非表示にします:', error);
       return new Map();
+    }
+  };
+
+  const loadGraduationDefinitionData = async () => {
+    try {
+      if (!window.GraduationRequirementsEngine) throw new Error('卒業要件エンジンが読み込まれていません');
+      const response = await fetch('graduation-requirements.json');
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const definition = await response.json();
+      const validation = window.GraduationRequirementsEngine.validateRequirementsDefinition(definition);
+      if (!validation.valid) throw new Error(validation.message);
+      return definition;
+    } catch (error) {
+      console.error('卒業要件定義を読み込めませんでした。判定を無効化します:', error);
+      return null;
     }
   };
 
@@ -549,6 +555,58 @@ document.addEventListener('DOMContentLoaded', async () => {
           </li>
         `).join('')}</ul>`
       : '<p>計画上の注意はありません</p>';
+  };
+
+  const renderSimulatorGraduationProjection = () => {
+    const summary = document.getElementById('simulator-graduation-summary');
+    const details = document.getElementById('simulator-graduation-details-content');
+    const unknownNotice = document.getElementById('simulator-graduation-unknown');
+    if (!summary || !details || !simulatorAvailable) return;
+
+    const knownCourseIds = new Set(state.coursesMap.keys());
+    const placements = state.simulatorPlan.placements;
+    const unknownIds = simulatorRules.getUnknownSimulatorCourseIds(placements, knownCourseIds);
+    const currentIds = [...state.completedClasses];
+    const projectedIds = simulatorRules.buildGraduationProjectionCourseIds(
+      currentIds,
+      placements,
+      knownCourseIds
+    );
+    const currentAnalysis = analyzeGraduation(currentIds);
+    const projectedAnalysis = analyzeGraduation(projectedIds);
+
+    if (unknownNotice) {
+      unknownNotice.hidden = unknownIds.length === 0;
+      unknownNotice.textContent = unknownIds.length
+        ? '計画内に確認が必要な科目があります。この科目は卒業要件の見込み計算には含まれていません。'
+        : '';
+    }
+
+    if (!currentAnalysis.valid || !projectedAnalysis.valid) {
+      summary.innerHTML = '<div class="simulator-graduation-unavailable" role="alert"><strong>卒業見込み：判定不能</strong><span>卒業要件データを確認できないため、計画表示はそのまま利用できます。</span></div>';
+      details.innerHTML = '';
+      return;
+    }
+
+    const target = projectedAnalysis.totalCredits.targetCredits;
+    const totalValue = (analysis) => `${analysis.totalCredits.countedCredits} / ${target}単位`;
+    summary.innerHTML = `
+      <div class="simulator-graduation-status-grid">
+        <div class="simulator-graduation-status">
+          <strong>現在の修得状況</strong>
+          <span>${totalValue(currentAnalysis)}</span>
+          <em>${currentAnalysis.satisfied ? '達成' : '未達'}</em>
+        </div>
+        <div class="simulator-graduation-status">
+          <strong>4年計画完了時</strong>
+          <span>${totalValue(projectedAnalysis)}</span>
+          <em>${projectedAnalysis.satisfied ? '要件充足見込み' : '不足あり'}</em>
+        </div>
+      </div>`;
+    renderGraduationAnalysis(currentAnalysis, projectedAnalysis, details, {
+      plannedLabel: '4年計画完了時',
+      plannedDescription: '履修済み＋シミュレーター計画'
+    });
   };
 
   let simulatorFeedbackTimer = null;
@@ -992,6 +1050,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     renderSimulatorCourseResults();
     renderSimulatorPlanCheck();
+    renderSimulatorGraduationProjection();
   };
 
   const placeSimulatorCourse = (courseId, year, selectedQuarter) => {
@@ -1012,59 +1071,145 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
 
+  const sumCredits = (classes) => classes.reduce((sum, cls) => sum + Number(cls.credits || 0), 0);
+
+  const invalidGraduationResult = (details = []) => ({
+    valid: false,
+    message: '科目データを確認できないため、卒業要件を判定できません。',
+    details
+  });
+
+  const analyzeGraduation = (courseIds) => {
+    if (state.courseValidationError) return invalidGraduationResult([state.courseValidationError]);
+    if (!state.graduationDefinition || !window.GraduationRequirementsEngine) {
+      return invalidGraduationResult(['卒業要件定義を読み込めませんでした。']);
+    }
+    return window.GraduationRequirementsEngine.analyzeGraduationRequirements(
+      courseIds,
+      state.predefinedData,
+      state.graduationDefinition
+    );
+  };
+
   /**
-   * ロジック：単位数や統計の計算
+   * 総単位ゲージは「履修予定込み」の卒業算入単位を表示する。
+   * 詳細モーダルでは修得済みと履修予定込みを別々に表示するため、
+   * 同じ科目を二重加算しない共通エンジンの結果だけを利用する。
    */
   const calculateCredits = (state) => {
-    const allSelected = [
-      ...Array.from(state.registeredClasses),
-      ...Array.from(state.completedClasses)
-    ].map(id => state.coursesMap.get(id)).filter(Boolean);
-
-    let rawTotalCredits = 0;
-    let socialCredits = 0;
-    let otherCredits = 0;
-
-    allSelected.forEach(cls => {
-      const credits = Number(cls.credits || 0);
-      rawTotalCredits += credits;
-      const isSocial = cls.tag === '社会接続' || (Array.isArray(cls.tags) && cls.tags.includes('社会接続'));
-
-      if (isSocial) socialCredits += credits;
-      else otherCredits += credits;
-    });
-
+    const courseIds = [...state.completedClasses, ...state.registeredClasses];
+    const analysis = analyzeGraduation(courseIds);
+    // 判定不能を0単位に変換すると、上部ゲージが正常な未履修状態と誤認される。
+    if (!analysis.valid) return { valid: false };
     return {
-      totalCredits: otherCredits + Math.min(socialCredits, 10),
-      rawTotalCredits,
-      socialCredits
+      valid: true,
+      totalCredits: analysis.totalCredits.countedCredits,
+      rawTotalCredits: analysis.totalCredits.actualCredits,
+      socialCredits: analysis.totalCredits.socialActualCredits
     };
   };
 
-  const sumCredits = (classes) => classes.reduce((sum, cls) => sum + Number(cls.credits || 0), 0);
+  const renderGraduationGauge = (stats, unavailableText = '判定不能') => {
+    // Keep the analyzer optional during the bootstrap path: a minimal host DOM
+    // (and the simulator's isolated test harness) may not expose querySelector.
+    const valueElement = typeof document.querySelector === 'function'
+      ? document.querySelector('.top-credit-gauge .gauge-value')
+      : null;
+    const fillElement = document.getElementById('top-earned-fill');
+    if (!valueElement || !fillElement) return;
 
-  // 基礎科目の「対象科目」選択フォームを、courses.jsonのデータからオプション生成する
-  const renderFoundationTargetOptions = (fieldKey, selectEl) => {
-    if (!selectEl) return;
+    const barElement = fillElement.parentElement;
+    const targetCredits = state.graduationDefinition?.requirements?.totalCredits?.targetCredits;
+    const canShowProgress = stats.valid && Number.isFinite(targetCredits) && targetCredits > 0;
+    valueElement.textContent = canShowProgress ? `${stats.totalCredits}/${targetCredits}` : unavailableText;
+    if (barElement) {
+      // 判定不能や読み込み中の値を「0%の進捗」として読ませない。
+      barElement.hidden = !canShowProgress;
+      if (canShowProgress) {
+        barElement.setAttribute('aria-valuenow', stats.totalCredits);
+        barElement.setAttribute('aria-valuemax', targetCredits);
+      } else {
+        barElement.removeAttribute('aria-valuenow');
+        barElement.removeAttribute('aria-valuemax');
+      }
+    }
+    if (canShowProgress) {
+      const pct = Math.max(0, Math.min(100, (stats.totalCredits / targetCredits) * 100));
+      fillElement.style.width = `${pct}%`;
+      fillElement.style.background = pct >= 100 ? '#22c55e' : (pct >= 60 ? '#3b82f6' : '#ef4444');
+    }
+  };
 
-    const subjectMap = {
-      '数理': ['数学的思考とは何か', '数学史', '現代社会とサイエンス'],
-      '情報': [],
-      '文化思想': [],
-      '社会ネットワーク': [],
-        '経済マーケット': ['企業経営', '地域アントレナーシップ', '地域課題の解決とイノベーション'],
-        '世界理解': []
-    };
+  const graduationStatus = (requirement, planned) => {
+    if (requirement.satisfied) return planned ? '達成見込み' : '達成';
+    return planned ? '不足' : '未達';
+  };
 
-    const targets = subjectMap[fieldKey] || [];
-
-    if (!targets.length) {
-      selectEl.innerHTML = '<option value="">-- 追加する科目を選択 --</option>';
+  const renderGraduationAnalysis = (completedAnalysis, plannedAnalysis, targetElement = null, options = {}) => {
+    const analysisResultElement = targetElement || document.getElementById('analysis-result');
+    if (!analysisResultElement) return;
+    const plannedLabel = options.plannedLabel || '予定込み';
+    const plannedDescription = options.plannedDescription || '履修済み＋履修予定';
+    if (!completedAnalysis.valid || !plannedAnalysis.valid) {
+      analysisResultElement.innerHTML = `<div class="analysis-box graduation-analysis-error" role="alert">${escapeHTML(completedAnalysis.message || plannedAnalysis.message || '科目データを確認できないため、卒業要件を判定できません。')}</div>`;
       return;
     }
 
-    const optionsHtml = targets.map(s => `<option value="${s}">${s}</option>`).join('');
-    selectEl.innerHTML = `<option value="">-- 追加する科目を選択 --</option>${optionsHtml}`;
+    const ratio = (requirement, planned) => {
+      const status = graduationStatus(requirement, planned);
+      const statusClass = requirement.satisfied ? 'requirement-met' : 'requirement-remaining';
+      return `<span class="requirement-progress"><span class="requirement-ratio">${requirement.credits ?? requirement.countedCredits} / ${requirement.targetCredits}単位</span> <span class="${statusClass}">${status}</span></span>`;
+    };
+    const dual = (label, completedRequirement, plannedRequirement) => `
+      <div class="graduation-requirement-row">
+        <strong>${escapeHTML(label)}</strong>
+        <span>修得済み ${ratio(completedRequirement, false)}</span>
+        <span>予定込み ${ratio(plannedRequirement, true)}</span>
+      </div>`;
+    const foundationGroups = completedAnalysis.foundation.groups.map((group, index) => {
+      const plannedGroup = plannedAnalysis.foundation.groups[index];
+      return dual(`基礎：${group.label}`, group, plannedGroup);
+    }).join('');
+
+    const socialRow = `
+      <div class="graduation-requirement-row graduation-social-row">
+        <strong>社会接続</strong>
+        <span>取得：${completedAnalysis.socialConnection.actualCredits}単位 / 算入：${completedAnalysis.socialConnection.countedCredits}単位</span>
+        <span>${plannedLabel}取得：${plannedAnalysis.socialConnection.actualCredits}単位 / 算入：${plannedAnalysis.socialConnection.countedCredits}単位（上限${plannedAnalysis.socialConnection.capCredits}単位）</span>
+      </div>`;
+
+    const projectCompleted = completedAnalysis.projectPractice;
+    const projectPlanned = plannedAnalysis.projectPractice;
+    const industryCompleted = completedAnalysis.worldUnderstanding.industryHistory;
+    const industryPlanned = plannedAnalysis.worldUnderstanding.industryHistory;
+    analysisResultElement.innerHTML = `
+      <div class="analysis-box graduation-analysis" aria-describedby="graduation-analysis-note">
+        <p class="graduation-analysis-legend"><strong>修得済み</strong>は履修済みのみ、<strong>${escapeHTML(plannedLabel)}</strong>は${escapeHTML(plannedDescription)}です。</p>
+        <div class="graduation-overall-status" aria-live="polite">
+          修得済み：<strong>${completedAnalysis.satisfied ? '達成' : '未達'}</strong> ／
+          ${escapeHTML(plannedLabel)}：<strong>${plannedAnalysis.satisfied ? '達成見込み' : '不足'}</strong>
+        </div>
+        ${dual('総卒業算入単位', completedAnalysis.totalCredits, plannedAnalysis.totalCredits)}
+        ${dual('導入科目', completedAnalysis.introduction, plannedAnalysis.introduction)}
+        <div class="graduation-requirement-group">
+          ${dual('基礎科目', completedAnalysis.foundation, plannedAnalysis.foundation)}
+          ${foundationGroups}
+          ${dual('多言語ITコミュニケーション', completedAnalysis.foundation.multilingualIT, plannedAnalysis.foundation.multilingualIT)}
+        </div>
+        ${dual('展開科目', completedAnalysis.advanced, plannedAnalysis.advanced)}
+        ${dual('基盤リテラシー（基礎科目を含む）', completedAnalysis.literacy, plannedAnalysis.literacy)}
+        ${dual('多言語情報理解（基礎科目を含む）', completedAnalysis.multilingualInformation, plannedAnalysis.multilingualInformation)}
+        ${dual('世界理解（基礎科目を含む）', completedAnalysis.worldUnderstanding, plannedAnalysis.worldUnderstanding)}
+        <div class="graduation-requirement-row graduation-subrequirement-row">
+          <strong>世界理解内：産業史系</strong>
+          <span>修得済み ${ratio(industryCompleted, false)}</span>
+          <span>予定込み ${ratio(industryPlanned, true)}</span>
+        </div>
+        ${socialRow}
+        ${dual('プロジェクト実践', projectCompleted, projectPlanned)}
+        <p id="graduation-analysis-note" class="graduation-analysis-note">各要件は重複して充当される場合があるため、内訳の必要単位数を合計しないでください。</p>
+      </div>
+    `;
   };
 
   /**
@@ -1106,8 +1251,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // IDからオブジェクトを復元
     const regObjects = Array.from(state.registeredClasses).map(id => state.coursesMap.get(id)).filter(Boolean);
     const compObjects = Array.from(state.completedClasses).map(id => state.coursesMap.get(id)).filter(Boolean);
-    const allSelected = [...regObjects, ...compObjects];
-
     // 空の一覧でも次の操作が分かるように、データがない状態を明示する。
     if (!regObjects.length) {
       list.innerHTML = '<li class="enrollment-empty-state">履修予定はありません。授業を探して追加できます。</li>';
@@ -1120,239 +1263,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     const regCredits = sumCredits(regObjects);
     const earnedCredits = sumCredits(compObjects);
 
-    const completedIntro = allSelected.filter(c => introSubjects.includes(c.id));
-    const introCredits = sumCredits(completedIntro);
+    // 修得済みと履修予定込みを同じ純粋な判定器へ渡し、表示上も混同しないようにする。
+    const completedAnalysis = analyzeGraduation([...state.completedClasses]);
+    const plannedAnalysis = analyzeGraduation([...state.completedClasses, ...state.registeredClasses]);
 
-
-    const literacyCredits = sumCredits(allSelected.filter(cls => cls.literacyRequirement === true));
-    const multilingualInfoCredits = sumCredits(allSelected.filter(cls => 
-      cls.multilingualRequirement === true || 
-      cls.foundationRequirement === '多言語情報理解' ||
-      cls.subject === '多言語ITコミュニケーション'
-    ));
-    const globalStudiesCredits = sumCredits(allSelected.filter(cls => cls.globalStudiesRequirement === true));
-    // 産業史系は「対象科目数」ではなく卒業要件に算入する単位数を表示する。
-    // 例えば2単位の産業史を1科目履修した場合も、進捗は1/2ではなく2/2となる。
-    const historyCredits = sumCredits(allSelected.filter(cls => cls.digitalIndustryHistoryRequirement === true));
-
-    const advancedCredits = sumCredits(allSelected.filter(cls => cls.advancedRequirement === true));
-    const advancedTarget = 74;
-
-    const foundationConfigs = [
-      { key: '数理', label: '数理' },
-      { key: '情報', label: '情報' },
-      { key: '文化思想', label: '文化思想' },
-      { key: '社会ネットワーク', label: '社会ネットワーク' },
-      { key: '経済マーケット', label: '経済マーケット' },
-      { key: '情報ITコミュニケーション', label: '多言語ITコミュニケーション' },
-    ];
-
-    const foundationStats = allSelected.reduce((acc, cls) => {
-      let field = cls.requirementField || cls.foundationRequirement;
-      // 「多言語ITコミュニケーション」を基礎科目のバケットに強制的に含める
-      if (cls.subject === '多言語ITコミュニケーション') {
-        field = '情報ITコミュニケーション';
-      }
-      if (field) acc[field] = (acc[field] || 0) + Number(cls.credits || 0);
-      return acc;
-    }, {});
-
-    const foundationTotal = foundationConfigs.reduce((sum, config) => {
-      const current = foundationStats[config.key] || 0;
-      return sum + Math.min(current, 2);
-    }, 0);
-
-    const foundationHtml = foundationConfigs.map(config => {
-      const current = foundationStats[config.key] || 0;
-      const min = 2;
-      const isMet = current >= min;
-      const statusIcon = isMet ? '<span style="color: green;">✔</span>' : '<span style="color: red;">✖</span>';
-      const remainingText = isMet
-        ? '<span class="requirement-met">✓ 達成</span>'
-        : `<span class="requirement-remaining">（残り${Math.max(0, min - current)}単位）</span>`;
-
-      // 対象科目欄: 追加UI（select/ボタン）を消して、科目名だけ表示する
-      // 多言語ITコミュニケーション（対象科目の表示自体を不要とする）
-      if (config.key === '情報ITコミュニケーション') {
-        const targetSelectHtml = '';
-        return `
-          <p style="margin: 10px 0; font-size: 0.95em;">
-            ${config.label}：${current} / ${min} ${statusIcon} ${remainingText}
-          </p>
-        `;
-      }
-
-      const initialOptions = {
-        '数理': ['数学的思考とは何か', '数学史', '現代社会とサイエンス'],
-        '情報': ['情報セキュリティ概論', '情報倫理と法', 'データサイエンス概論'],
-        '文化思想': ['日本文学Ⅰ', '文化人類学Ⅰ', '心理学'],
-        '社会ネットワーク': ['社会学Ⅰ', '法学Ⅰ', '伝わる論理とコミュニケーション'],
-'経済マーケット': ['企業経営', '地域アントレナーシップ', '地域課題の解決とイノベーション'],
-'世界理解': [],
-        '情報ITコミュニケーション': [],
-        '世界理解': undefined,
-      }[config.key] || [];
-
-      const targetSelectHtml = `
-        <div style="margin-top: 8px;">
-          <details style="display: inline-block; margin-left: 10px;">
-            <summary style="cursor: pointer; text-decoration: underline; color:#333;">詳細</summary>
-            <div style="margin-top: 8px; color:#111; font-size:0.95em;">
-              ${initialOptions.length ? initialOptions.join(' / ') : '（未設定）'}
-            </div>
-          </details>
-        </div>
-      `;
-
-      return `
-        <p style="margin: 10px 0; font-size: 0.95em;">
-          ${config.label}：${current} / ${min} ${statusIcon} ${remainingText}
-          <span style="font-size: 0.85em; margin-left: 10px; color: #666;">${targetSelectHtml}</span>
-        </p>
-      `;
-    }).join('');
-
-    regObjects.forEach((cls) => {
-      list.appendChild(createClassItem(cls, 'registered'));
-    });
-
-    compObjects.forEach((cls) => {
-      completedList.appendChild(createClassItem(cls, 'completed'));
-    });
-
+    regObjects.forEach((cls) => list.appendChild(createClassItem(cls, 'registered')));
+    compObjects.forEach((cls) => completedList.appendChild(createClassItem(cls, 'completed')));
     document.getElementById('earned-credits').textContent = earnedCredits;
-
-    const topXEl = document.getElementById('top-earned-x');
-    const topFillEl = document.getElementById('top-earned-fill');
-    if (topXEl && topFillEl) {
-      topXEl.textContent = stats.totalCredits;
-      const gaugeBar = topFillEl.parentElement;
-      if (gaugeBar) {
-        gaugeBar.setAttribute("aria-valuenow", stats.totalCredits);
-      }
-      const pct = Math.max(0, Math.min(100, (stats.totalCredits / 124) * 100));
-      topFillEl.style.width = pct + '%';
-      topFillEl.style.background = pct >= 100 ? '#22c55e' : (pct >= 60 ? '#3b82f6' : '#ef4444');
-    }
-
     document.getElementById('registered-count').textContent = state.registeredClasses.size;
     document.getElementById('registered-credits').textContent = regCredits;
 
-    const analysisResult = document.getElementById('analysis-result');
-    if (analysisResult) {
-      const formatRatio = (current, target, unit = '単位') => {
-        const safeCurrent = Math.max(0, Number(current) || 0);
-        const safeTarget = Math.max(0, Number(target) || 0);
-        const isMet = safeCurrent >= safeTarget;
-        const remaining = Math.max(0, safeTarget - safeCurrent);
-        const status = isMet
-          ? '<span class="requirement-met">✓ 達成</span>'
-          : `<span class="requirement-remaining">（残り${remaining}${unit}）</span>`;
-        const color = isMet ? 'green' : 'red';
-        return `<span class="requirement-progress"><span class="requirement-ratio" style="color: ${color}; font-weight: bold;">${safeCurrent} / ${safeTarget}</span> ${status}</span>`;
-      };
+    renderGraduationGauge(stats);
 
-      analysisResult.innerHTML = `
-        <div class="analysis-box" style="border:2px solid #007bff; border-radius:10px; padding:12px 14px; background:#f0f7ff;">
-          <p style="font-size: 1.1em; margin-bottom: 10px;">
-            <strong>総単位：</strong> ${formatRatio(stats.totalCredits, 124)}（卒業要件）
-            ${stats.socialCredits > 10 ? '<span style="color: #ff9900; font-weight: bold; margin-left: 8px;">！</span>' : ''}
-            <span style="font-size: 0.9em; margin-left: 10px; color: #666;">
-              <details style="display: inline-block; margin-left: 6px;">
-                <summary style="cursor: pointer; text-decoration: underline;">詳細</summary>
-                <div style="margin-top: 8px; padding: 10px 12px; background: #f9f9f9; border-radius: 6px; border: 1px solid #eee;">
-                  「社会接続科目から卒業要件に算入できる単位の数は10単位とする」
-                </div>
-              </details>
-            </span>
-          </p>
-          <p style="margin-bottom: 5px;">
-            <strong>導入科目：</strong> ${formatRatio(introCredits, 14)}
-            <details style="display: inline-block; margin-left: 5px;">
-              <summary style="cursor: pointer; color: #007bff; font-size: 0.9em; text-decoration: underline;">詳細</summary>
-              <div style="margin-top: 10px; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 5px; min-width: 220px;">
-                <ul style="margin: 0; padding: 0; list-style: none; font-size: 0.85em;">
-                  ${introSubjects.map(id => state.coursesMap.get(id)?.subject || id)
-                    .map(s => {
-                      const has = allSelected.some(c => c.subject === s || c.id === s);
-                      return `<li style="padding: 3px 0; border-bottom: 1px dashed #eee; display: flex; justify-content: space-between; color: ${has ? '#2c7a7b' : '#e53e3e'};">
-                        <span>${s}</span>
-                        <span>${has ? '〇' : '×'}</span>
-                      </li>`;
-                    }).join('')}
-                </ul>
-              </div>
-            </details>
-          </p>
-          <p style="margin-bottom: 10px;">
-            <strong>基礎科目：</strong> ${formatRatio(foundationTotal, 12)}
-            <details style="display: inline-block; margin-left: 5px;">
-              <summary style="cursor: pointer; color: #007bff; font-size: 0.9em; text-decoration: underline;">詳細</summary>
-              <div style="margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 5px; border-left: 4px solid #ccc; min-width: 220px;">
-                ${foundationHtml}
-              </div>
-            </details>
-          </p>
-          <p style="margin-bottom: 5px;">
-            <strong>展開科目：</strong> ${formatRatio(advancedCredits, advancedTarget)}
-            <details style="display: inline-block; margin-left: 5px;">
-              <summary style="cursor: pointer; color: #007bff; font-size: 0.9em; text-decoration: underline;">詳細</summary>
-              <div style="margin-top: 8px; padding: 8px; background: #fff; border: 1px solid #ddd; border-radius: 5px;">
-                <a href="https://img.zen-univ.jp/studentBook/curriculumtree2026_260310.pdf" target="_blank" rel="noopener noreferrer" style="color:#007bff; font-size: 0.85em;">
-                  カリキュラムツリーで対象科目を確認
-                </a>
-              </div>
-            </details>
-          </p>
-          <p style="margin-bottom: 5px;">
-            <strong>基盤リテラシー：</strong> ${formatRatio(literacyCredits, 8)}
-            <details style="display: inline-block; margin-left: 5px;">
-              <summary style="cursor: pointer; color: #007bff; font-size: 0.9em; text-decoration: underline;">詳細</summary>
-              <div style="margin-top: 8px; padding: 8px; background: #fff; border: 1px solid #ddd; border-radius: 5px;">
-                <a href="https://img.zen-univ.jp/studentBook/curriculumtree2026_260310.pdf" target="_blank" rel="noopener noreferrer" style="color:#007bff; font-size: 0.85em;">
-                  カリキュラムツリーで対象科目を確認
-                </a>
-              </div>
-            </details>
-          </p>
-          <p style="margin-bottom: 5px;">
-            <strong>多言語情報理解科目：</strong> ${formatRatio(multilingualInfoCredits, 8)}
-            <details style="display: inline-block; margin-left: 5px;">
-              <summary style="cursor: pointer; color: #007bff; font-size: 0.9em; text-decoration: underline;">詳細</summary>
-              <div style="margin-top: 8px; padding: 8px; background: #fff; border: 1px solid #ddd; border-radius: 5px; font-size: 0.85em; color: #111;">
-                多言語ITコミュニケーション / 機械翻訳実践(英語読解・作文) / 機械翻訳実践(法学) / 機械翻訳実践(情報) / 機械翻訳実践(異文化理解) / 機械翻訳実践(自然科学) / 機械翻訳実践(日本研究)
-              </div>
-            </details>
-          </p>
-          <p style="margin-bottom: 5px;">
-            <strong>世界理解科目：</strong> ${formatRatio(globalStudiesCredits, 26)} 
-            <details style="display: inline-block; margin-left: 5px;">
-              <summary style="cursor: pointer; color: #007bff; font-size: 0.9em; text-decoration: underline;">詳細</summary>
-              <div style="margin-top: 8px; padding: 8px; background: #fff; border: 1px solid #ddd; border-radius: 5px;">
-                <a href="https://img.zen-univ.jp/studentBook/curriculumtree2026_260310.pdf" target="_blank" rel="noopener noreferrer" style="color:#007bff; font-size: 0.85em;">
-                  カリキュラムツリーで対象科目を確認
-                </a>
-                <span style="font-size: 0.85em; color: #666; margin-left: 8px;">（産業史系 ${formatRatio(historyCredits, 2)}）</span>
-              </div>
-            </details>
-          </p>
-          <p style="margin-bottom: 5px;">
-            <strong>卒業プロジェクト科目：</strong>
-            ${(() => {
-              const projectCredits = sumCredits(allSelected.filter(cls =>
-                cls.graduationRequirement === true ||
-                cls.projectPracticeRequirement === true ||
-                cls.projectPractice === true ||
-                cls.projectPracticeRequirement === 'true'
-              ));
-              const projectTarget = 4;
-              return formatRatio(projectCredits, projectTarget);
-            })()}
-          </p>
-          <p style="color: #666; font-size: 0.9em;"><strong>参考総単位：</strong> ${stats.rawTotalCredits} 単位（制限なしの値）</p>
-        </div>
-      `;
-    }
+    renderGraduationAnalysis(completedAnalysis, plannedAnalysis);
+    renderSimulatorGraduationProjection();
+    return;
+
   };
 
   const clearCourseFilters = () => {
@@ -1539,8 +1465,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const matchRequirement = state.filterRequirement === 'すべて表示' || item.category === state.filterRequirement;
 
-      // 導入科目フィルタ：introSubjectsに含まれるかどうかで判定
-      const matchIntro = state.filterIntro === 'すべて表示' || (state.filterIntro === '該当' ? introSubjects.includes(item.id) : !introSubjects.includes(item.id));
+      // 導入科目フィルタは外部化された卒業要件定義を参照する。
+      const introductionCourseIds = state.graduationDefinition?.requirements?.introduction?.courseIds || [];
+      const matchIntro = state.filterIntro === 'すべて表示' || (state.filterIntro === '該当' ? introductionCourseIds.includes(item.id) : !introductionCourseIds.includes(item.id));
 
       let matchCategory = state.filterCategory === '分野';
       if (!matchCategory) {
@@ -2030,7 +1957,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       closeButton.style.zIndex = '1000';
       closeButton.style.backgroundColor = 'inherit'; // モーダルの背景色を継承して背後の文字を隠す
 
-      const modalContent = modal.querySelector('.modal-content');
+      const modalContent = typeof modal.querySelector === 'function'
+        ? modal.querySelector('.modal-content')
+        : null;
       if (modalContent) {
         modalContent.style.maxHeight = '90vh'; // 画面外に突き抜けないように制限
         modalContent.style.overflowY = 'auto'; // モーダル内部をスクロール可能にする
@@ -2146,21 +2075,33 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupAnalysisModal();
   setupTutorialModal();
   setupBackToTopButton();
+  renderGraduationGauge({ valid: false }, '—');
 
   // 外部JSONから授業データを読み込む
   let loadErrorTimer = null; // 通信エラーアラートの遅延表示用タイマー
   try {
     // 授業データ、任意の難易度データ、前提・後継科目データを並行して読み込む
-    const [coursesRes, difficultyMap, relationsData] = await Promise.all([
+    const [coursesRes, difficultyMap, relationsData, graduationDefinition] = await Promise.all([
       fetch('courses.json'),
       loadDifficultyData(),
-      loadCourseRelationsData()
+      loadCourseRelationsData(),
+      loadGraduationDefinitionData()
     ]);
 
     if (!coursesRes.ok) throw new Error(`授業データが見つかりません (${coursesRes.status})`);
     const data = await coursesRes.json();
 
     state.difficultyMap = difficultyMap;
+    state.graduationDefinition = graduationDefinition;
+    const courseValidation = window.GraduationRequirementsEngine?.validateCourses(data);
+    state.courseValidationError = courseValidation?.valid ? null : (courseValidation?.message || '科目データの検証に失敗しました。');
+    if (!state.courseValidationError && graduationDefinition) {
+      const requirementMappingValidation = window.GraduationRequirementsEngine?.validateRequirementsAgainstCourses(graduationDefinition, data);
+      if (!requirementMappingValidation?.valid) {
+        console.error('卒業要件定義と科目データの対応を検証できません:', requirementMappingValidation?.message);
+        state.graduationDefinition = null;
+      }
+    }
 
     data.sort((a, b) => {
       const getPriority = (cat) => {
@@ -2198,6 +2139,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (simulatorAvailable) renderSimulator();
   } catch (error) {
     console.error('データの読み込みに失敗しました:', error);
+    renderGraduationGauge({ valid: false });
     if (dataStatus) {
       dataStatus.hidden = false;
       dataStatus.classList.add('is-error');

@@ -132,6 +132,31 @@
     return plan;
   };
 
+  // Graduation projection is intentionally limited to IDs that still exist in
+  // the current catalog. Unknown saved placements remain in the plan for
+  // explicit user removal, but must never reach the shared analyzer because it
+  // correctly fails closed on unknown IDs.
+  const getKnownSimulatorCourseIds = (placements, knownCourseIds) => {
+    const known = knownCourseIds instanceof Set ? knownCourseIds : new Set(knownCourseIds || []);
+    return [...new Set((Array.isArray(placements) ? placements : [])
+      .map((placement) => placement?.courseId)
+      .filter((courseId) => typeof courseId === 'string' && known.has(courseId)))];
+  };
+
+  const getUnknownSimulatorCourseIds = (placements, knownCourseIds) => {
+    const known = knownCourseIds instanceof Set ? knownCourseIds : new Set(knownCourseIds || []);
+    return [...new Set((Array.isArray(placements) ? placements : [])
+      .map((placement) => placement?.courseId)
+      .filter((courseId) => typeof courseId === 'string' && courseId && !known.has(courseId)))];
+  };
+
+  const buildGraduationProjectionCourseIds = (completedCourseIds, placements, knownCourseIds) => [
+    ...new Set([
+      ...(Array.isArray(completedCourseIds) ? completedCourseIds : []),
+      ...getKnownSimulatorCourseIds(placements, knownCourseIds)
+    ])
+  ];
+
   return Object.freeze({
     getQuarterInfo,
     canPlaceCourseAt,
@@ -141,6 +166,9 @@
     applyPlacement,
     createEmptyPlan,
     savePlanChange,
-    resetPlanStorage
+    resetPlanStorage,
+    getKnownSimulatorCourseIds,
+    getUnknownSimulatorCourseIds,
+    buildGraduationProjectionCourseIds
   });
 });
