@@ -532,6 +532,78 @@ body.simulator-view-active > #analysis-modal {
   font-style: normal;
 }
 
+.simulator-graduation-course-detail {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2937;
+}
+
+.simulator-graduation-course-detail[hidden] {
+  display: none;
+}
+
+.simulator-graduation-course-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.simulator-graduation-course-detail-head h3 {
+  margin: 0;
+  color: #1e3a8a;
+  font-size: 0.96rem;
+}
+
+.simulator-graduation-course-detail-close {
+  border: 0;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.simulator-graduation-course-detail-section {
+  margin-top: 8px;
+  font-size: 0.86rem;
+}
+
+.simulator-graduation-course-detail-section strong {
+  display: block;
+  margin-bottom: 3px;
+}
+
+.simulator-graduation-course-detail-section ul {
+  margin: 4px 0 0;
+  padding-left: 20px;
+}
+
+.simulator-graduation-course-detail-section details {
+  margin-top: 4px;
+}
+
+.simulator-graduation-course-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1d4ed8;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.simulator-graduation-course-empty {
+  margin: 4px 0 0;
+  color: #64748b;
+}
+
 .simulator-graduation-unknown {
   margin: 10px 0 0;
   padding: 8px 10px;
@@ -2167,6 +2239,23 @@ body.simulator-view-active > #analysis-modal {
 .graduation-requirement-row > * {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.graduation-requirement-row[data-sim-graduation-detail] {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgba(0, 123, 255, 0.12);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.graduation-requirement-row[data-sim-graduation-detail]:hover,
+.graduation-requirement-row[data-sim-graduation-detail]:focus-visible {
+  background: rgba(219, 234, 254, 0.55);
+  outline: 2px solid #60a5fa;
+  outline-offset: -2px;
 }
 
 .graduation-requirement-row:last-child {

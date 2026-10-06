@@ -252,9 +252,21 @@ test('multiple-Q, span alternatives, and full-year courses use only their actual
   assert.deepEqual(simulatorRules.getQuarterInfo(multiple).options.map((option) => option.start), [1, 3]);
   assert.deepEqual(simulatorRules.getQuarterInfo(alternatives).options.map((option) => option.start), [1, 3]);
   assert.equal(simulatorRules.canPlaceCourseAt(alternatives, 2, 1), true);
-  assert.equal(simulatorRules.canPlaceCourseAt(alternatives, 2, 2), false);
+  assert.equal(simulatorRules.canPlaceCourseAt(alternatives, 2, 2), true);
+  assert.equal(simulatorRules.canPlaceCourseAt(multiple, 2, 2), false);
   assert.deepEqual(simulatorRules.getQuarterInfo(fullYear).options.map(({ start, end }) => ({ start, end })), [{ start: 1, end: 4 }]);
   assert.equal(simulatorRules.canPlaceCourseAt(fullYear, 4, 2), false);
+});
+
+test('range opening windows allow every listed start while preserving the legacy first-span layout', () => {
+  const range = courses.find((course) => course.quarter === '1-2Q');
+  assert.ok(range);
+  assert.deepEqual(simulatorRules.getQuarterInfo(range).options.map(({ start, end }) => [start, end]), [[1, 2]]);
+  assert.deepEqual(simulatorRules.getPlacementOptions(range).map(({ start, end }) => [start, end]), [[1, 2], [2, 2]]);
+  assert.equal(simulatorRules.canPlaceCourseAt(range, 1, 1), true);
+  assert.equal(simulatorRules.canPlaceCourseAt(range, 1, 2), true);
+  assert.equal(simulatorRules.canPlaceCourseAt(range, 1, 3), false);
+  assert.equal(simulatorRules.getPlacementIssues(range, { year: 1, selectedQuarter: 2 }).length, 0);
 });
 
 test('placement rejects an invalid move without changing legacy data and prevents duplicate rows', () => {

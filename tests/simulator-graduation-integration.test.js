@@ -85,6 +85,20 @@ test('Project practice is evaluated by the shared explicit course mapping', () =
   assert.equal(result.projectPractice.targetCredits, 4);
 });
 
+test('Simulator requirement details separate current and projected course IDs without unknowns', () => {
+  const current = graduationEngine.buildRequirementDetails(['academic_literacy'], courses, definition);
+  const projected = graduationEngine.buildRequirementDetails(['academic_literacy', 'it_literacy'], courses, definition);
+  assert.equal(current.valid, true);
+  assert.equal(projected.valid, true);
+  assert.deepEqual(current.details.introduction.selectedCourseIds, ['academic_literacy']);
+  assert.deepEqual(projected.details.introduction.selectedCourseIds, ['academic_literacy', 'it_literacy']);
+  assert.equal(new Set(projected.details.introduction.selectedCourseIds).size, projected.details.introduction.selectedCourseIds.length);
+  assert.ok(projected.details.foundation.groups.math.targetCourseIds.length > 0);
+  assert.ok(projected.details.worldUnderstanding.industryHistory.targetCourseIds.includes('it_industry_history'));
+  assert.deepEqual(projected.details.projectPractice.selectedCourseIds, []);
+  assert.equal(projected.details.introduction.targetCourseIds.includes('unknown-legacy-course'), false);
+});
+
 test('Invalid graduation definition disables projection without changing placement data', () => {
   const broken = structuredClone(definition);
   broken.requirements.totalCredits.targetCredits = -1;
@@ -103,8 +117,12 @@ test('App uses the shared projection helper and separates current and four-year 
   assert.match(app, /buildGraduationProjectionCourseIds/);
   assert.match(app, /getUnknownSimulatorCourseIds/);
   assert.match(app, /plannedLabel: '4年計画完了時'/);
-  assert.match(app, /履修済み＋シミュレーター計画/);
+  assert.match(app, /completedLabel: '現在'/);
+  assert.match(app, /修得済み＋シミュレーター計画/);
+  assert.match(app, /data-sim-graduation-detail/);
+  assert.match(app, /buildRequirementDetails/);
   assert.match(index, /id="simulator-graduation-summary"/);
   assert.match(index, /id="simulator-graduation-details-content"/);
   assert.match(index, /卒業見込み/);
+  assert.match(index, /id="simulator-graduation-course-detail"/);
 });

@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const simulatorRules = window.SimulatorRules;
   const simulatorAvailable = Boolean(simulatorRules && [
     'getQuarterInfo', 'canPlaceCourseAt',
-    'getPlacementStart', 'isPrerequisiteSatisfied', 'getPlacementIssues',
+    'getPlacementOptions', 'getPlacementStart', 'isPrerequisiteSatisfied', 'getPlacementIssues',
     'applyPlacement', 'createEmptyPlan', 'savePlanChange'
   ].every((name) => typeof simulatorRules[name] === 'function'));
 
@@ -470,8 +470,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const getQuarterInfo = simulatorRules?.getQuarterInfo;
 
   const getPlacementOption = (course, placement) => {
-    const quarterInfo = getQuarterInfo(course);
-    return quarterInfo.options.find((option) => option.start === placement?.selectedQuarter) || null;
+    return simulatorRules.getPlacementOptions(course)
+      .find((option) => option.start === Number(placement?.selectedQuarter)) || null;
   };
 
   const formatSimulatorPlacement = (course, placement) => {
@@ -557,6 +557,79 @@ document.addEventListener('DOMContentLoaded', async () => {
       : '<p>計画上の注意はありません</p>';
   };
 
+  let simulatorGraduationDetailState = null;
+
+  const simulatorGraduationDetailLabels = {
+    totalCredits: '総卒業算入単位',
+    introduction: '導入科目',
+    foundation: '基礎科目',
+    'foundation.groups.math': '基礎：数理',
+    'foundation.groups.information': '基礎：情報',
+    'foundation.groups.cultureThought': '基礎：文化・思想',
+    'foundation.groups.societyNetwork': '基礎：社会・ネットワーク',
+    'foundation.groups.economyMarket': '基礎：経済・マーケット',
+    'foundation.multilingualIT': '多言語ITコミュニケーション',
+    advanced: '展開科目',
+    literacy: '基盤リテラシー（基礎科目を含む）',
+    multilingualInformation: '多言語情報理解（基礎科目を含む）',
+    worldUnderstanding: '世界理解（基礎科目を含む）',
+    'worldUnderstanding.industryHistory': '世界理解内：産業史系',
+    socialConnection: '社会接続',
+    projectPractice: 'プロジェクト実践'
+  };
+
+  const getRequirementDetail = (details, key) => {
+    const path = key.split('.');
+    return path.reduce((value, segment) => value?.[segment], details);
+  };
+
+  const renderCourseLinks = (courseIds, emptyLabel, { collapsible = false, summary = '一覧を表示' } = {}) => {
+    if (!courseIds.length) return `<p class="simulator-graduation-course-empty">${escapeHTML(emptyLabel)}</p>`;
+    const list = `<ul>${courseIds.map((courseId) => {
+      const course = state.coursesMap.get(courseId);
+      if (!course) return '';
+      return `<li><button type="button" class="simulator-graduation-course-link" data-sim-detail-course="${escapeHTML(course.id)}">${escapeHTML(course.subject)}</button></li>`;
+    }).join('')}</ul>`;
+    return collapsible ? `<details><summary>${escapeHTML(summary)}</summary>${list}</details>` : list;
+  };
+
+  const renderSimulatorGraduationCourseDetail = (key) => {
+    const panel = document.getElementById('simulator-graduation-course-detail');
+    const detailState = simulatorGraduationDetailState;
+    const label = simulatorGraduationDetailLabels[key];
+    if (!panel || !detailState || !label) return;
+    const current = getRequirementDetail(detailState.current, key);
+    const projected = getRequirementDetail(detailState.projected, key);
+    if (!current || !projected) return;
+    const missing = projected.targetCourseIds.filter((courseId) => !projected.selectedCourseIds.includes(courseId));
+    panel.hidden = false;
+    panel.innerHTML = `
+      <div class="simulator-graduation-course-detail-head">
+        <h3>${escapeHTML(label)}</h3>
+        <button type="button" class="simulator-graduation-course-detail-close" aria-label="詳細を閉じる">×</button>
+      </div>
+      <div class="simulator-graduation-course-detail-section">
+        <strong>対象科目（${projected.targetCourseIds.length}件）</strong>
+        ${renderCourseLinks(projected.targetCourseIds, '対象科目はありません', { collapsible: true })}
+      </div>
+      <div class="simulator-graduation-course-detail-section">
+        <strong>現在</strong>
+        ${renderCourseLinks(current.selectedCourseIds, '修得済みの対象科目はありません')}
+      </div>
+      <div class="simulator-graduation-course-detail-section">
+        <strong>4年計画完了時</strong>
+        ${renderCourseLinks(projected.selectedCourseIds, '計画に含まれる対象科目はありません')}
+      </div>
+      <div class="simulator-graduation-course-detail-section">
+        <strong>不足</strong>
+        ${renderCourseLinks(missing, '不足している対象科目はありません', { collapsible: missing.length > 20, summary: `${missing.length}件を表示` })}
+      </div>`;
+    panel.querySelector('.simulator-graduation-course-detail-close')?.addEventListener('click', () => {
+      panel.hidden = true;
+      panel.innerHTML = '';
+    });
+  };
+
   const renderSimulatorGraduationProjection = () => {
     const summary = document.getElementById('simulator-graduation-summary');
     const details = document.getElementById('simulator-graduation-details-content');
@@ -582,7 +655,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         : '';
     }
 
-    if (!currentAnalysis.valid || !projectedAnalysis.valid) {
+    const engine = window.GraduationRequirementsEngine;
+    const currentDetailResult = engine?.buildRequirementDetails?.(currentIds, state.predefinedData, state.graduationDefinition);
+    const projectedDetailResult = engine?.buildRequirementDetails?.(projectedIds, state.predefinedData, state.graduationDefinition);
+    simulatorGraduationDetailState = currentDetailResult?.valid && projectedDetailResult?.valid
+      ? { current: currentDetailResult.details, projected: projectedDetailResult.details }
+      : null;
+    const courseDetailPanel = document.getElementById('simulator-graduation-course-detail');
+    if (courseDetailPanel) {
+      courseDetailPanel.hidden = true;
+      courseDetailPanel.innerHTML = '';
+    }
+
+    if (!currentAnalysis.valid || !projectedAnalysis.valid || !simulatorGraduationDetailState) {
       summary.innerHTML = '<div class="simulator-graduation-unavailable" role="alert"><strong>卒業見込み：判定不能</strong><span>卒業要件データを確認できないため、計画表示はそのまま利用できます。</span></div>';
       details.innerHTML = '';
       return;
@@ -604,8 +689,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       </div>`;
     renderGraduationAnalysis(currentAnalysis, projectedAnalysis, details, {
+      completedLabel: '現在',
+      completedDescription: '実際に修得済みの科目のみ',
       plannedLabel: '4年計画完了時',
-      plannedDescription: '履修済み＋シミュレーター計画'
+      plannedDescription: '修得済み＋シミュレーター計画',
+      interactive: true
     });
   };
 
@@ -659,7 +747,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!course || !dialog || !info || !optionsContainer) return;
 
     const existingPlacement = getSimulatorPlacement(courseId);
-    const quarterOptions = getQuarterInfo(course).options;
+    const quarterOptions = simulatorRules.getPlacementOptions(course);
     info.textContent = `${course.subject} · 開講Q: ${course.quarter || '未定'} · ${course.credits || 0}単位${existingPlacement ? ` · 現在: ${formatSimulatorPlacement(course, existingPlacement)}` : ''}`;
     // Materialize destinations only for the selected course; keeping choices out
     // of every palette card avoids multiplying the 275-course view by year/Q slots.
@@ -1148,6 +1236,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const renderGraduationAnalysis = (completedAnalysis, plannedAnalysis, targetElement = null, options = {}) => {
     const analysisResultElement = targetElement || document.getElementById('analysis-result');
     if (!analysisResultElement) return;
+    const completedLabel = options.completedLabel || '修得済み';
+    const completedDescription = options.completedDescription || '履修済みのみ';
     const plannedLabel = options.plannedLabel || '予定込み';
     const plannedDescription = options.plannedDescription || '履修済み＋履修予定';
     if (!completedAnalysis.valid || !plannedAnalysis.valid) {
@@ -1160,22 +1250,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       const statusClass = requirement.satisfied ? 'requirement-met' : 'requirement-remaining';
       return `<span class="requirement-progress"><span class="requirement-ratio">${requirement.credits ?? requirement.countedCredits} / ${requirement.targetCredits}単位</span> <span class="${statusClass}">${status}</span></span>`;
     };
-    const dual = (label, completedRequirement, plannedRequirement) => `
-      <div class="graduation-requirement-row">
+    const interactiveRow = (label, key) => options.interactive
+      ? ` data-sim-graduation-detail="${escapeHTML(key)}" role="button" tabindex="0" aria-label="${escapeHTML(label)}の詳細を表示"`
+      : '';
+    const dual = (label, completedRequirement, plannedRequirement, key) => `
+      <div class="graduation-requirement-row"${interactiveRow(label, key)}>
         <strong>${escapeHTML(label)}</strong>
-        <span>修得済み ${ratio(completedRequirement, false)}</span>
-        <span>予定込み ${ratio(plannedRequirement, true)}</span>
+        <span>${escapeHTML(completedLabel)} ${ratio(completedRequirement, false)}</span>
+        <span>${escapeHTML(plannedLabel)} ${ratio(plannedRequirement, true)}</span>
       </div>`;
     const foundationGroups = completedAnalysis.foundation.groups.map((group, index) => {
       const plannedGroup = plannedAnalysis.foundation.groups[index];
-      return dual(`基礎：${group.label}`, group, plannedGroup);
+      return dual(`基礎：${group.label}`, group, plannedGroup, `foundation.groups.${group.key}`);
     }).join('');
 
     const socialRow = `
-      <div class="graduation-requirement-row graduation-social-row">
+      <div class="graduation-requirement-row graduation-social-row"${interactiveRow('社会接続', 'socialConnection')}>
         <strong>社会接続</strong>
-        <span>取得：${completedAnalysis.socialConnection.actualCredits}単位 / 算入：${completedAnalysis.socialConnection.countedCredits}単位</span>
-        <span>${plannedLabel}取得：${plannedAnalysis.socialConnection.actualCredits}単位 / 算入：${plannedAnalysis.socialConnection.countedCredits}単位（上限${plannedAnalysis.socialConnection.capCredits}単位）</span>
+        <span>${escapeHTML(completedLabel)}取得：${completedAnalysis.socialConnection.actualCredits}単位 / 算入：${completedAnalysis.socialConnection.countedCredits}単位</span>
+        <span>${escapeHTML(plannedLabel)}取得：${plannedAnalysis.socialConnection.actualCredits}単位 / 算入：${plannedAnalysis.socialConnection.countedCredits}単位（上限${plannedAnalysis.socialConnection.capCredits}単位）</span>
       </div>`;
 
     const projectCompleted = completedAnalysis.projectPractice;
@@ -1184,29 +1277,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     const industryPlanned = plannedAnalysis.worldUnderstanding.industryHistory;
     analysisResultElement.innerHTML = `
       <div class="analysis-box graduation-analysis" aria-describedby="graduation-analysis-note">
-        <p class="graduation-analysis-legend"><strong>修得済み</strong>は履修済みのみ、<strong>${escapeHTML(plannedLabel)}</strong>は${escapeHTML(plannedDescription)}です。</p>
+        <p class="graduation-analysis-legend"><strong>${escapeHTML(completedLabel)}</strong>は${escapeHTML(completedDescription)}、<strong>${escapeHTML(plannedLabel)}</strong>は${escapeHTML(plannedDescription)}です。</p>
         <div class="graduation-overall-status" aria-live="polite">
-          修得済み：<strong>${completedAnalysis.satisfied ? '達成' : '未達'}</strong> ／
+          ${escapeHTML(completedLabel)}：<strong>${completedAnalysis.satisfied ? '達成' : '未達'}</strong> ／
           ${escapeHTML(plannedLabel)}：<strong>${plannedAnalysis.satisfied ? '達成見込み' : '不足'}</strong>
         </div>
-        ${dual('総卒業算入単位', completedAnalysis.totalCredits, plannedAnalysis.totalCredits)}
-        ${dual('導入科目', completedAnalysis.introduction, plannedAnalysis.introduction)}
+        ${dual('総卒業算入単位', completedAnalysis.totalCredits, plannedAnalysis.totalCredits, 'totalCredits')}
+        ${dual('導入科目', completedAnalysis.introduction, plannedAnalysis.introduction, 'introduction')}
         <div class="graduation-requirement-group">
-          ${dual('基礎科目', completedAnalysis.foundation, plannedAnalysis.foundation)}
+          ${dual('基礎科目', completedAnalysis.foundation, plannedAnalysis.foundation, 'foundation')}
           ${foundationGroups}
-          ${dual('多言語ITコミュニケーション', completedAnalysis.foundation.multilingualIT, plannedAnalysis.foundation.multilingualIT)}
+          ${dual('多言語ITコミュニケーション', completedAnalysis.foundation.multilingualIT, plannedAnalysis.foundation.multilingualIT, 'foundation.multilingualIT')}
         </div>
-        ${dual('展開科目', completedAnalysis.advanced, plannedAnalysis.advanced)}
-        ${dual('基盤リテラシー（基礎科目を含む）', completedAnalysis.literacy, plannedAnalysis.literacy)}
-        ${dual('多言語情報理解（基礎科目を含む）', completedAnalysis.multilingualInformation, plannedAnalysis.multilingualInformation)}
-        ${dual('世界理解（基礎科目を含む）', completedAnalysis.worldUnderstanding, plannedAnalysis.worldUnderstanding)}
-        <div class="graduation-requirement-row graduation-subrequirement-row">
+        ${dual('展開科目', completedAnalysis.advanced, plannedAnalysis.advanced, 'advanced')}
+        ${dual('基盤リテラシー（基礎科目を含む）', completedAnalysis.literacy, plannedAnalysis.literacy, 'literacy')}
+        ${dual('多言語情報理解（基礎科目を含む）', completedAnalysis.multilingualInformation, plannedAnalysis.multilingualInformation, 'multilingualInformation')}
+        ${dual('世界理解（基礎科目を含む）', completedAnalysis.worldUnderstanding, plannedAnalysis.worldUnderstanding, 'worldUnderstanding')}
+        <div class="graduation-requirement-row graduation-subrequirement-row"${interactiveRow('世界理解内：産業史系', 'worldUnderstanding.industryHistory')}>
           <strong>世界理解内：産業史系</strong>
-          <span>修得済み ${ratio(industryCompleted, false)}</span>
-          <span>予定込み ${ratio(industryPlanned, true)}</span>
+          <span>${escapeHTML(completedLabel)} ${ratio(industryCompleted, false)}</span>
+          <span>${escapeHTML(plannedLabel)} ${ratio(industryPlanned, true)}</span>
         </div>
         ${socialRow}
-        ${dual('プロジェクト実践', projectCompleted, projectPlanned)}
+        ${dual('プロジェクト実践', projectCompleted, projectPlanned, 'projectPractice')}
         <p id="graduation-analysis-note" class="graduation-analysis-note">各要件は重複して充当される場合があるため、内訳の必要単位数を合計しないでください。</p>
       </div>
     `;
@@ -1736,6 +1829,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const closePlacementButton = document.getElementById('close-simulator-placement');
     const paletteResults = document.getElementById('sim-course-results');
     const yearGrid = document.getElementById('simulator-year-grid');
+    const graduationDetails = document.getElementById('simulator-graduation-details-content');
+    const graduationCourseDetail = document.getElementById('simulator-graduation-course-detail');
     const button = document.getElementById('simulator-btn');
     const closeButton = document.getElementById('close-simulator');
     const searchInput = document.getElementById('sim-course-search');
@@ -1826,6 +1921,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       const card = detailButton.closest('[data-sim-drag-course]');
       if (card?.dataset.simSkipClick === 'true' || card?.dataset.simDragging === 'true') return;
       openSimulatorCourseDetail(detailButton.dataset.simDetailCourse);
+    });
+    graduationDetails?.addEventListener('click', (event) => {
+      const trigger = event.target.closest('[data-sim-graduation-detail]');
+      if (trigger) renderSimulatorGraduationCourseDetail(trigger.dataset.simGraduationDetail);
+    });
+    graduationDetails?.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const trigger = event.target.closest('[data-sim-graduation-detail]');
+      if (!trigger) return;
+      event.preventDefault();
+      renderSimulatorGraduationCourseDetail(trigger.dataset.simGraduationDetail);
+    });
+    graduationCourseDetail?.addEventListener('click', (event) => {
+      const courseButton = event.target.closest('[data-sim-detail-course]');
+      if (!courseButton) return;
+      openSimulatorCourseDetail(courseButton.dataset.simDetailCourse);
     });
     paletteResults?.addEventListener('dragstart', (event) => {
       const item = event.target.closest('[data-sim-drag-course]');

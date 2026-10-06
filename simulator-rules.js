@@ -11,6 +11,7 @@
         label,
         quarters: [1, 2, 3, 4],
         options: [{ start: 1, end: 4, label: '1-4Q', contiguous: true }],
+        allowedStarts: [1],
         start: 1,
         end: 4,
         contiguous: true
@@ -32,11 +33,17 @@
       return { start, end, label: `${start}-${end}Q`, contiguous: true };
     });
     if (!label || options.some((option) => !option || !Number.isInteger(option.start))) {
-      return { label: label || 'Q未定', quarters: [], options: [], start: null, end: null, contiguous: false };
+      return { label: label || 'Q未定', quarters: [], options: [], allowedStarts: [], start: null, end: null, contiguous: false };
     }
 
     const uniqueOptions = options.filter((option, index, list) => list.findIndex((candidate) => candidate.start === option.start) === index);
     const quarters = [...new Set(uniqueOptions.flatMap((option) => Array.from(
+      { length: option.end - option.start + 1 }, (_, index) => option.start + index
+    )))].sort((a, b) => a - b);
+    // A range is an opening window. Keep its first start as the legacy span,
+    // while exposing later listed quarters as single-Q starts so a course can
+    // be placed in every explicitly advertised opening quarter.
+    const allowedStarts = [...new Set(options.flatMap((option) => Array.from(
       { length: option.end - option.start + 1 }, (_, index) => option.start + index
     )))].sort((a, b) => a - b);
     const firstOption = uniqueOptions[0];
@@ -44,6 +51,7 @@
       label,
       quarters,
       options: uniqueOptions,
+      allowedStarts,
       start: firstOption?.start || null,
       end: firstOption?.end || null,
       contiguous: uniqueOptions.length === 1 && firstOption.contiguous
@@ -56,7 +64,7 @@
       course
       && Number.isInteger(year) && year >= 1 && year <= 4
       && Number.isInteger(q)
-      && getQuarterInfo(course).options.some((option) => option.start === q)
+      && getQuarterInfo(course).allowedStarts.includes(q)
     );
   };
 
@@ -66,7 +74,7 @@
     const year = Number(placement?.year);
     const quarter = Number(placement?.selectedQuarter);
     if (!Number.isInteger(year) || year < 1 || year > 4) return null;
-    const option = getQuarterInfo(course).options.find((candidate) => candidate.start === quarter);
+    const option = getPlacementOptions(course).find((candidate) => candidate.start === quarter);
     return option ? ((year - 1) * 4) + option.start : null;
   };
 
@@ -79,7 +87,7 @@
   const getPlacementIssues = (course, placement) => {
     if (!course || !placement) return [];
     const issues = [];
-    if (!getQuarterInfo(course).options.some((option) => option.start === Number(placement.selectedQuarter))) {
+    if (!getQuarterInfo(course).allowedStarts.includes(Number(placement.selectedQuarter))) {
       const q = Number(placement.selectedQuarter);
       issues.push({
         type: 'quarter',
@@ -132,6 +140,16 @@
     return plan;
   };
 
+  const getPlacementOptions = (course) => {
+    const info = getQuarterInfo(course);
+    return info.allowedStarts.map((start) => info.options.find((option) => option.start === start) || {
+      start,
+      end: start,
+      label: `${start}Q`,
+      contiguous: true
+    });
+  };
+
   // Graduation projection is intentionally limited to IDs that still exist in
   // the current catalog. Unknown saved placements remain in the plan for
   // explicit user removal, but must never reach the shared analyzer because it
@@ -159,6 +177,7 @@
 
   return Object.freeze({
     getQuarterInfo,
+    getPlacementOptions,
     canPlaceCourseAt,
     getPlacementStart,
     isPrerequisiteSatisfied,
