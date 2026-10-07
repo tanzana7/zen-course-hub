@@ -40,6 +40,7 @@
   <div class="input-area">
     <input id="search-bar" type="text" placeholder="授業名や教員名で検索...">
     <div class="filter-actions">
+      <button id="curriculum-tree-nav" type="button" aria-pressed="false">カリキュラムツリー</button>
       <button id="filter-options-toggle" class="filter-options-toggle" type="button" aria-expanded="false" aria-controls="filter-options-panel">
         絞り込み <span id="filter-active-count" class="filter-active-count" hidden aria-live="polite"></span>
       </button>
@@ -119,6 +120,45 @@
       <ul id="predefined-classes-list">
       </ul>
     </div>
+
+    <section id="curriculum-tree-view" class="curriculum-tree-view" hidden aria-labelledby="curriculum-tree-title">
+      <div class="curriculum-tree-heading">
+        <div>
+          <h2 id="curriculum-tree-title">カリキュラムツリー</h2>
+          <p class="curriculum-tree-note">学年は推奨年次です。線は前提科目から後継科目への関係を示します。</p>
+        </div>
+        <button id="curriculum-tree-close" class="curriculum-tree-close" type="button">一覧に戻る</button>
+      </div>
+      <div class="curriculum-tree-toolbar" role="search">
+        <label class="curriculum-search-label" for="curriculum-tree-search">科目を検索</label>
+        <input id="curriculum-tree-search" type="search" placeholder="科目名・教員名">
+        <label for="curriculum-tree-year">学年
+          <select id="curriculum-tree-year">
+            <option value="すべて表示">すべて表示</option>
+            <option value="1年次">1年次</option>
+            <option value="2年次">2年次</option>
+            <option value="3年次">3年次</option>
+            <option value="4年次">4年次</option>
+          </select>
+        </label>
+        <label for="curriculum-tree-field">分野
+          <select id="curriculum-tree-field">
+            <option value="すべて表示">すべて表示</option>
+          </select>
+        </label>
+        <span id="curriculum-tree-count" class="curriculum-tree-count" aria-live="polite"></span>
+      </div>
+      <div class="curriculum-tree-status" id="curriculum-tree-status" role="status" aria-live="polite"></div>
+      <div class="curriculum-tree-workspace">
+        <div class="curriculum-graph-scroll" id="curriculum-graph-scroll" tabindex="0" aria-label="カリキュラムツリー図">
+          <div class="curriculum-graph" id="curriculum-graph">
+            <svg class="curriculum-edges" id="curriculum-edges" aria-hidden="true"></svg>
+            <div class="curriculum-lanes" id="curriculum-lanes"></div>
+          </div>
+        </div>
+        <aside id="curriculum-course-detail" class="curriculum-course-detail" hidden aria-label="科目詳細"></aside>
+      </div>
+    </section>
   </section>
 
   <!-- 右カラム: 自分が選択した授業の確認リスト -->
@@ -131,6 +171,11 @@
       <div>取得単位：<span id="earned-credits">0</span></div>
       <div>履修予定(科目)：<span id="registered-count">0</span></div>
       <div>履修予定(単位)：<span id="registered-credits">0</span></div>
+    </div>
+
+    <div id="curriculum-drop-zone" class="curriculum-drop-zone" hidden tabindex="0" role="region" aria-label="マイ履修に追加">
+      <strong>マイ履修に追加</strong>
+      <span>科目をここへドロップ</span>
     </div>
 
     <h3 class="scheduled-title">履修予定</h3>
