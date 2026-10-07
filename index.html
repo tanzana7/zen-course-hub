@@ -29,8 +29,8 @@
     <h1>ZEN履修登録Hub</h1>
     <div class="top-credit-gauge" title="卒業要件の総単位進捗">
       <span class="gauge-label">総単位</span>
-      <span class="gauge-value"><span id="top-earned-x">0</span>/124</span>
-      <div class="gauge-bar" role="progressbar" aria-valuemin="0" aria-valuemax="124">
+      <span class="gauge-value"><span id="top-earned-x">0</span>/<span id="top-earned-target">—</span></span>
+      <div class="gauge-bar" role="progressbar" aria-valuemin="0" aria-valuemax="0">
         <div class="gauge-fill" id="top-earned-fill"></div>
       </div>
     </div>
@@ -42,11 +42,17 @@
     <div class="filter-actions">
       <button id="curriculum-tree-nav" type="button" aria-pressed="false">カリキュラムツリー</button>
       <button id="filter-options-toggle" class="filter-options-toggle" type="button" aria-expanded="false" aria-controls="filter-options-panel">
-        絞り込み・並び替え <span id="filter-active-count" class="filter-active-count" hidden aria-live="polite"></span>
+        絞り込み <span id="filter-active-count" class="filter-active-count" hidden aria-live="polite"></span>
       </button>
+      <div class="course-sort-control" data-course-sort-control>
+        <button id="course-sort-toggle" class="course-sort-toggle" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="course-sort-menu">
+          <span aria-hidden="true">↕</span><span>並べ替え</span><span class="course-sort-current" aria-live="polite"></span>
+        </button>
+        <div id="course-sort-menu" class="course-sort-menu" role="menu" aria-label="並べ替え" hidden></div>
+      </div>
       <button id="analysis-btn" type="button">卒業要件分析</button>
     </div>
-    <section id="filter-options-panel" class="filter-options-panel" hidden aria-label="絞り込み・並び替え">
+    <section id="filter-options-panel" class="filter-options-panel" hidden aria-label="絞り込み">
       <div class="filter-options-section">
         <h2>絞り込み</h2>
         <div class="filter-options-grid">
@@ -86,17 +92,6 @@
           <span>pixiv関連科目を除外</span>
         </label>
       </div>
-      <div class="filter-options-section sort-options-section">
-        <h2>並び替え</h2>
-        <div class="sort-control">
-          <span class="sort-control-label" aria-hidden="true">↕ 難易度順</span>
-          <select id="sort-filter" aria-label="難易度順">
-            <option value="default">標準</option>
-            <option value="difficulty-asc">難易度：低い順</option>
-            <option value="difficulty-desc">難易度：高い順</option>
-          </select>
-        </div>
-      </div>
       <button id="clear-course-filters" class="clear-filter-btn" type="button" hidden>条件をすべて解除</button>
     </section>
   </div>
@@ -115,7 +110,9 @@
     </div>
     <div class="course-list-toolbar">
       <div id="search-count" class="search-count"></div>
+      <button id="simulator-btn" class="simulator-launch-btn" type="button">4年間履修シミュレーター</button>
     </div>
+    <p id="simulator-unavailable" class="data-status is-error" role="alert" hidden>履修シミュレーターを読み込めませんでした。ページを再読み込みしてください。</p>
     <section id="related-course-detail-host" class="related-course-detail-host" hidden aria-label="関連科目の詳細" aria-live="polite"></section>
     <div class="predefined-classes-section">
       <!-- ここに JavaScript (app.js) で生成された授業リストが入ります -->
@@ -201,6 +198,116 @@
   </div>
 </div>
 
+<!-- 4年間履修シミュレーター（全画面ビュー） -->
+<div id="simulator-modal" class="simulator-view" hidden role="dialog" aria-modal="true" aria-labelledby="simulator-modal-title" tabindex="-1" data-simulator-title="4年間履修シミュレーター β">
+  <div class="simulator-shell">
+    <header class="simulator-toolbar">
+      <button id="close-simulator" class="simulator-back" type="button">← 履修管理に戻る</button>
+      <h1 id="simulator-modal-title" tabindex="-1">4年間履修シミュレーター β</h1>
+      <div id="simulator-total-summary" class="simulator-total-summary" aria-live="polite"></div>
+    </header>
+
+    <div class="simulator-layout">
+      <section class="simulator-plan-panel" aria-labelledby="simulator-plan-title">
+        <p class="simulator-note">計画は「履修予定」と別に保存します。履修済みは前提判定に反映され、複数Q科目の単位は開始Qに計上します。</p>
+        <p class="simulator-note simulator-beta-note">β版です。開講情報は変更される場合があります。実際の履修登録時は最新のシラバスを確認してください。</p>
+        <p class="simulator-note simulator-graduation-note">※ 4年間の計画単位だけでは卒業要件を判定できません。科目区分などの個別要件も確認してください。</p>
+        <p id="simulator-feedback" class="simulator-feedback" role="status" aria-live="polite" hidden></p>
+        <div class="simulator-summary" id="simulator-summary"></div>
+        <section class="simulator-graduation" aria-labelledby="simulator-graduation-title">
+          <h2 id="simulator-graduation-title">卒業見込み</h2>
+          <div id="simulator-graduation-summary" aria-live="polite"></div>
+          <p id="simulator-graduation-unknown" class="simulator-graduation-unknown" role="alert" hidden></p>
+          <details id="simulator-graduation-details">
+            <summary>要件の内訳を確認</summary>
+            <div id="simulator-graduation-details-content"></div>
+          </details>
+          <div id="simulator-graduation-course-detail" class="simulator-graduation-course-detail" hidden aria-live="polite"></div>
+        </section>
+        <details class="simulator-plan-check" id="simulator-plan-check">
+          <summary id="simulator-plan-check-summary" aria-live="polite">✓ 計画チェック</summary>
+          <div id="simulator-plan-check-details"></div>
+        </details>
+
+        <section class="simulator-plan" aria-labelledby="simulator-plan-title">
+          <div class="simulator-plan-heading">
+            <h2 id="simulator-plan-title">4年間の計画</h2>
+            <button type="button" id="open-simulator-reset" class="simulator-reset-open">計画をリセット</button>
+          </div>
+          <div id="simulator-year-grid" class="simulator-year-grid"></div>
+          <div id="simulator-unknown-courses" class="simulator-unknown-courses" hidden></div>
+        </section>
+      </section>
+
+      <aside class="simulator-scheduled-panel" aria-labelledby="sim-scheduled-title">
+        <h2 id="sim-scheduled-title">科目一覧</h2>
+        <p class="simulator-note">科目をドラッグするか「配置」から配置先を選べます。</p>
+        <div class="simulator-palette-tabs" role="tablist" aria-label="科目一覧の表示対象">
+          <button type="button" id="sim-palette-scheduled" data-sim-palette-mode="scheduled" role="tab" aria-selected="false">マイ履修</button>
+          <button type="button" class="is-active" id="sim-palette-all" data-sim-palette-mode="all" role="tab" aria-selected="true">すべての教科</button>
+        </div>
+        <div class="simulator-palette-filters">
+          <input id="sim-course-search" type="search" placeholder="科目名や教員名で検索..." aria-label="シミュレーター科目検索">
+          <div class="simulator-palette-filter-grid">
+            <select id="sim-course-year-filter" aria-label="シミュレーター学年フィルター">
+              <option value="すべて表示">学年</option>
+              <option value="1年次">1年次</option>
+              <option value="2年次">2年次</option>
+              <option value="3年次">3年次</option>
+              <option value="4年次">4年次</option>
+            </select>
+            <select id="sim-course-quarter-filter" aria-label="シミュレーター学期フィルター">
+              <option value="すべて表示">学期</option>
+              <option value="1Q">1Q</option>
+              <option value="2Q">2Q</option>
+              <option value="3Q">3Q</option>
+              <option value="4Q">4Q</option>
+            </select>
+            <select id="sim-course-category-filter" aria-label="シミュレーター分野フィルター">
+              <option value="すべて表示">分野</option>
+            </select>
+            <select id="sim-course-placement-filter" aria-label="シミュレーター配置状態フィルター">
+              <option value="all">配置状態</option>
+              <option value="unplaced">未配置</option>
+              <option value="placed">配置済み</option>
+            </select>
+          </div>
+          <div class="course-sort-control simulator-palette-sort" data-course-sort-control>
+            <button id="sim-course-sort-toggle" class="course-sort-toggle" type="button" aria-expanded="false" aria-haspopup="menu" aria-controls="sim-course-sort-menu">
+              <span aria-hidden="true">↕</span><span>並べ替え</span><span class="course-sort-current" aria-live="polite"></span>
+            </button>
+            <div id="sim-course-sort-menu" class="course-sort-menu" role="menu" aria-label="並べ替え" hidden></div>
+          </div>
+        </div>
+        <div id="sim-course-results" class="sim-course-results simulator-palette-list" aria-live="polite"></div>
+      </aside>
+    </div>
+    <div id="simulator-course-detail" class="simulator-course-detail" hidden role="dialog" aria-modal="true" aria-labelledby="simulator-course-detail-title">
+      <div class="simulator-course-detail-panel">
+        <button type="button" id="close-simulator-course-detail" class="simulator-course-detail-close" aria-label="科目詳細を閉じる">×</button>
+        <h2 id="simulator-course-detail-title" tabindex="-1">科目詳細</h2>
+        <div id="simulator-course-detail-content"></div>
+      </div>
+    </div>
+    <dialog id="simulator-reset-dialog" class="simulator-placement-dialog simulator-reset-dialog" aria-labelledby="simulator-reset-title" aria-describedby="simulator-reset-description">
+      <h2 id="simulator-reset-title">計画をリセット</h2>
+      <p id="simulator-reset-description">4年間の計画をすべて削除します。この操作は元に戻せません。</p>
+      <div class="simulator-reset-actions">
+        <button type="button" id="cancel-simulator-reset" class="simulator-reset-cancel">キャンセル</button>
+        <button type="button" id="confirm-simulator-reset" class="simulator-reset-confirm">リセット</button>
+      </div>
+    </dialog>
+    <dialog id="simulator-placement-dialog" class="simulator-placement-dialog" aria-labelledby="simulator-placement-title" aria-describedby="simulator-placement-course-info">
+      <div class="simulator-placement-heading">
+        <h2 id="simulator-placement-title">配置先を選択</h2>
+        <button type="button" id="close-simulator-placement" class="simulator-placement-close" aria-label="配置先選択を閉じる">×</button>
+      </div>
+      <p id="simulator-placement-course-info"></p>
+      <div id="simulator-placement-options" class="simulator-placement-options"></div>
+    </dialog>
+  </div>
+</div>
+
 <footer class="app-footer">
   <p>ZEN Course Planner (Unofficial) は非公式の履修管理支援ツールです。</p>
   <p>卒業要件分析、単位計算、履修判定結果は参考情報であり、正確性や完全性を保証するものではありません。</p>
@@ -230,6 +337,9 @@
   </div>
 </div>
 
+<script src="simulator-rules.js"></script>
+<script src="course-sorting.js"></script>
+<script src="graduation-requirements.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
