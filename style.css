@@ -69,25 +69,6 @@ body {
   background: white;
 }
 
-.sort-control {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.sort-control-label {
-  color: #2d3748;
-  font-size: 0.9rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.sort-control select {
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
 .input-row {
   display: flex;
   gap: 10px;
@@ -321,6 +302,1213 @@ body {
   width: 90%;
   max-width: 600px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+.simulator-launch-btn {
+  margin: 0 0 14px;
+  padding: 9px 14px;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.simulator-launch-btn:hover:not(:disabled) {
+  background: #dbeafe;
+}
+
+.simulator-launch-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.simulator-view {
+  display: none;
+  position: fixed;
+  z-index: 5000;
+  inset: 0;
+  overflow-y: auto;
+  background: #f8fafc;
+}
+
+.simulator-view.is-active {
+  display: block;
+}
+
+body.simulator-view-active {
+  overflow: hidden;
+}
+
+body.simulator-view-active > header,
+body.simulator-view-active > .filter-container,
+body.simulator-view-active > .main-container,
+body.simulator-view-active > .app-footer,
+body.simulator-view-active > #tutorial-btn,
+body.simulator-view-active > #back-to-top-btn,
+body.simulator-view-active > #analysis-modal {
+  display: none !important;
+}
+
+.simulator-shell {
+  width: min(1480px, 100%);
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 20px clamp(16px, 3vw, 42px) 42px;
+  box-sizing: border-box;
+}
+
+.simulator-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 18px;
+  padding: 14px 0;
+  border-bottom: 1px solid #dbe3ef;
+}
+
+.simulator-toolbar h1 {
+  margin: 0;
+  color: #1e3a8a;
+  font-size: clamp(1.25rem, 2.4vw, 1.8rem);
+}
+
+.simulator-back {
+  padding: 9px 13px;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  background: #fff;
+  color: #1d4ed8;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.simulator-back:hover {
+  background: #eff6ff;
+}
+
+.simulator-total-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  white-space: nowrap;
+}
+
+.simulator-total-summary strong {
+  font-size: 1.1em;
+}
+
+.simulator-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(280px, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+
+.simulator-plan-panel,
+.simulator-scheduled-panel {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+}
+
+.simulator-scheduled-panel {
+  position: sticky;
+  top: 18px;
+  max-height: calc(100vh - 36px);
+  overflow: hidden;
+}
+
+.simulator-scheduled-panel h2,
+.simulator-plan-panel h2 {
+  margin: 0 0 10px;
+  color: #1e3a8a;
+  font-size: 1.15rem;
+}
+
+.simulator-note {
+  margin: 6px 0 14px;
+  color: #64748b;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+.simulator-beta-note {
+  margin-top: -6px;
+  color: #475569;
+}
+
+.simulator-feedback {
+  margin: -6px 0 12px;
+  padding: 8px 10px;
+  border-left: 3px solid #b45309;
+  background: #fffbeb;
+  color: #78350f;
+  font-size: 0.9em;
+}
+
+.simulator-feedback[hidden] {
+  display: none;
+}
+
+.simulator-feedback.is-error {
+  border-color: #b91c1c;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.simulator-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.simulator-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px;
+  border: 1px solid #dbeafe;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+.simulator-summary span {
+  font-weight: 700;
+}
+
+.simulator-graduation {
+  margin: 16px 0 18px;
+  padding: 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.simulator-graduation h2 {
+  margin: 0 0 10px;
+  color: #1e3a8a;
+  font-size: 1rem;
+}
+
+.simulator-graduation-status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.simulator-graduation-status {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px;
+  border: 1px solid #dbeafe;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.simulator-graduation-status span {
+  color: #1e3a8a;
+  font-size: 1.05em;
+  font-weight: 700;
+}
+
+.simulator-graduation-status em {
+  color: #475569;
+  font-size: 0.86em;
+  font-style: normal;
+}
+
+.simulator-graduation-course-detail {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  background: #fff;
+  color: #1f2937;
+}
+
+.simulator-graduation-course-detail[hidden] {
+  display: none;
+}
+
+.simulator-graduation-course-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.simulator-graduation-course-detail-head h3 {
+  margin: 0;
+  color: #1e3a8a;
+  font-size: 0.96rem;
+}
+
+.simulator-graduation-course-detail-close {
+  border: 0;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.simulator-graduation-course-detail-section {
+  margin-top: 8px;
+  font-size: 0.86rem;
+}
+
+.simulator-graduation-course-detail-section strong {
+  display: block;
+  margin-bottom: 3px;
+}
+
+.simulator-graduation-course-detail-section ul {
+  margin: 4px 0 0;
+  padding-left: 20px;
+}
+
+.simulator-graduation-course-detail-section details {
+  margin-top: 4px;
+}
+
+.simulator-graduation-course-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1d4ed8;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.simulator-graduation-course-empty {
+  margin: 4px 0 0;
+  color: #64748b;
+}
+
+.simulator-graduation-unknown {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border-left: 3px solid #d97706;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 0.86em;
+  line-height: 1.45;
+}
+
+.simulator-graduation-unknown[hidden] {
+  display: none;
+}
+
+#simulator-graduation-details {
+  margin-top: 10px;
+  border-top: 1px solid #dbeafe;
+}
+
+#simulator-graduation-details summary {
+  padding: 8px 0 2px;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 700;
+}
+
+#simulator-graduation-details-content {
+  padding-top: 8px;
+}
+
+#simulator-graduation-details-content .graduation-analysis {
+  border-width: 1px;
+  padding: 10px;
+  font-size: 0.86em;
+}
+
+.simulator-plan-check {
+  margin: 12px 0 18px;
+  border: 1px solid #dbe3ef;
+  border-radius: 6px;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.simulator-plan-check summary {
+  padding: 9px 11px;
+  color: #1e3a8a;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.simulator-plan-check[open] summary {
+  border-bottom: 1px solid #dbe3ef;
+}
+
+#simulator-plan-check-details {
+  padding: 9px 12px 10px;
+  font-size: 0.86em;
+  line-height: 1.45;
+}
+
+#simulator-plan-check-details p {
+  margin: 0;
+  color: #64748b;
+}
+
+#simulator-plan-check-details ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+#simulator-plan-check-details li {
+  margin: 4px 0;
+}
+
+#simulator-plan-check-details li strong {
+  margin-right: 4px;
+  color: #1e3a8a;
+}
+
+.simulator-picker,
+.simulator-plan,
+.simulator-scheduled-panel {
+  margin-top: 18px;
+}
+
+.simulator-palette-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 12px 0 10px;
+}
+
+.simulator-palette-tabs button {
+  flex: 1 1 0;
+  padding: 7px 9px;
+  border: 1px solid #bfdbfe;
+  border-radius: 5px;
+  background: #fff;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.simulator-palette-tabs button.is-active,
+.simulator-palette-tabs button:hover {
+  background: #dbeafe;
+}
+
+.simulator-palette-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.simulator-palette-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.simulator-palette-filter-grid select {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 7px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  background: #fff;
+}
+
+.simulator-picker h2,
+.simulator-plan h2 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.simulator-plan-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.simulator-plan-heading h2 {
+  min-width: 0;
+  margin: 0;
+}
+
+.simulator-reset-open,
+.simulator-reset-cancel,
+.simulator-reset-confirm {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.simulator-reset-open {
+  flex: 0 0 auto;
+  color: #475569;
+}
+
+.simulator-reset-open:hover,
+.simulator-reset-cancel:hover {
+  background: #f1f5f9;
+}
+
+.simulator-reset-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.simulator-reset-confirm {
+  border-color: #b91c1c;
+  background: #b91c1c;
+  color: #fff;
+}
+
+.simulator-reset-confirm:hover,
+.simulator-reset-confirm:focus-visible {
+  background: #991b1b;
+}
+
+#sim-course-search {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 2px solid #93c5fd;
+  border-radius: 6px;
+}
+
+.sim-course-results,
+.sim-unplaced-list,
+.sim-scheduled-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.simulator-palette-list {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.sim-course-picker-item,
+.sim-unplaced-item,
+.sim-scheduled-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.sim-course-picker-item {
+  cursor: grab;
+}
+
+.sim-course-picker-item:active {
+  cursor: grabbing;
+}
+
+.sim-course-picker-item.is-placed {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+  opacity: 0.76;
+  cursor: default;
+}
+
+.sim-course-picker-info,
+.sim-unplaced-item > span,
+.sim-scheduled-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sim-course-picker-info span,
+.sim-unplaced-item small,
+.sim-scheduled-info > span {
+  color: #64748b;
+  font-size: 0.76em;
+}
+
+.sim-course-picker-info small {
+  color: #475569;
+  font-size: 0.74em;
+}
+
+.sim-placement-status {
+  margin-top: 3px;
+  font-size: 0.82em;
+  font-weight: 700;
+}
+
+.sim-placement-status.is-placed {
+  color: #166534;
+}
+
+.sim-placement-status.is-unplaced {
+  color: #64748b;
+}
+
+.sim-course-detail-trigger {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1e3a8a;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sim-course-detail-trigger:hover,
+.sim-course-detail-trigger:focus-visible {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.sim-course-placement-controls {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.sim-course-placement-open {
+  min-height: 36px;
+  padding: 6px 9px;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  background: #fff;
+  color: #1d4ed8;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sim-course-placement-open:hover,
+.sim-course-placement-open:focus-visible {
+  background: #dbeafe;
+}
+
+.simulator-placement-dialog {
+  width: min(34rem, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
+  max-height: min(80vh, 42rem);
+  margin: auto;
+  padding: 18px;
+  overflow-y: auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #fff;
+  color: #1e293b;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.25);
+}
+
+.simulator-placement-dialog::backdrop {
+  background: rgba(15, 23, 42, 0.56);
+}
+
+.simulator-placement-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.simulator-placement-heading h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.simulator-placement-close {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #475569;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+#simulator-placement-course-info {
+  margin: 8px 0 14px;
+  color: #475569;
+  overflow-wrap: anywhere;
+}
+
+.simulator-placement-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.simulator-placement-year {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.simulator-placement-year h3 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+}
+
+.simulator-placement-year > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.simulator-placement-option {
+  min-width: 0;
+  min-height: 44px;
+  padding: 7px 5px;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  background: #fff;
+  color: #1d4ed8;
+  font: inherit;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.simulator-placement-option:hover,
+.simulator-placement-option:focus-visible {
+  background: #dbeafe;
+}
+
+.simulator-empty {
+  margin: 8px 0;
+  color: #64748b;
+  font-size: 0.9em;
+}
+
+.simulator-year-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.simulator-unknown-courses {
+  margin-top: 14px;
+  padding: 10px;
+  border: 1px solid #facc15;
+  border-radius: 6px;
+  background: #fffbeb;
+}
+
+.simulator-unknown-courses[hidden] {
+  display: none;
+}
+
+.simulator-unknown-courses h3 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.simulator-unknown-course {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  overflow-wrap: anywhere;
+}
+
+.simulator-unknown-course span {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+.simulator-year-row {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  gap: 8px;
+  align-items: stretch;
+  border-radius: 7px;
+  transition: box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.simulator-year-row.is-drop-target {
+  background: #eff6ff;
+  box-shadow: 0 0 0 2px #60a5fa;
+}
+
+.simulator-year-label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 6px;
+  background: #1e3a8a;
+  color: #fff;
+  text-align: center;
+}
+
+.simulator-year-label span {
+  font-size: 0.8em;
+}
+
+.simulator-quarter-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  min-width: 0;
+}
+
+.simulator-quarter-cell {
+  position: relative;
+  z-index: 0;
+  min-width: 0;
+  min-height: 0;
+  padding: 0 4px 5px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 5px;
+  background: #f8fafc;
+  color: #94a3b8;
+  font-size: 0.78em;
+  overflow: hidden;
+  transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+
+.simulator-quarter-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 3px;
+  box-sizing: border-box;
+  height: 24px;
+  min-height: 24px;
+  padding: 3px 3px 2px;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.simulator-quarter-header small {
+  color: #64748b;
+  font-size: 0.72em;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.simulator-quarter-cell.is-drop-allowed {
+  border-color: #60a5fa;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.simulator-quarter-cell.is-drop-forbidden {
+  opacity: 0.55;
+}
+
+.simulator-quarter-cell.is-drop-active {
+  border-style: solid;
+  background: #dbeafe;
+  box-shadow: 0 0 0 2px #2563eb;
+}
+
+.simulator-quarter-card-layer {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: 4px;
+  row-gap: 3px;
+  min-width: 0;
+  pointer-events: none;
+}
+
+.sim-course-card {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-width: 0;
+  align-self: start;
+  column-gap: 4px;
+  row-gap: 0;
+  box-sizing: border-box;
+  height: 36px;
+  min-height: 34px;
+  max-height: 48px;
+  margin: 1px 1px;
+  padding: 2px 64px 2px 5px;
+  border: 1px solid #60a5fa;
+  border-left: 3px solid #2563eb;
+  border-radius: 5px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
+  overflow-wrap: anywhere;
+  overflow: hidden;
+  pointer-events: auto;
+  cursor: grab;
+  container: sim-course-card / inline-size;
+}
+
+.sim-course-card:active {
+  cursor: grabbing;
+}
+
+.sim-course-card.is-quarter-invalid {
+  border-color: #fca5a5;
+  border-left-color: #b91c1c;
+}
+
+.sim-course-card-title {
+  display: block;
+  grid-column: 1;
+  grid-row: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1e3a8a;
+  font: inherit;
+  font-size: 0.76rem;
+  line-height: 1.1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.sim-course-card-title:hover,
+.sim-course-card-title:focus-visible {
+  text-decoration: underline;
+}
+
+.sim-course-credits {
+  grid-column: 2;
+  grid-row: 1;
+  white-space: nowrap;
+  color: #475569;
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
+.sim-course-quarter-warning {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  max-width: 100%;
+  color: #991b1b;
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sim-course-remove {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.sim-course-remove:hover,
+.sim-course-remove:focus-visible {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.sim-course-detail-view {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  font-size: 0.82rem;
+  line-height: 1;
+}
+
+.sim-course-detail-view:hover,
+.sim-course-detail-view:focus-visible {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.sim-warning-badge {
+  width: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #b45309;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sim-course-card-actions {
+  display: flex;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-height: 28px;
+  justify-content: flex-end;
+  gap: 0;
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
+.sim-course-card-actions button {
+  flex: 0 0 28px;
+}
+
+.sim-warning-badge.is-strong {
+  color: #b91c1c;
+}
+
+.sim-warning-badge:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+  border-radius: 3px;
+}
+
+.simulator-course-detail {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.simulator-course-detail[hidden] {
+  display: none;
+}
+
+.simulator-course-detail-panel {
+  position: relative;
+  width: min(480px, 100%);
+  max-height: min(80vh, 620px);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid #dbe3ef;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.22);
+}
+
+.simulator-course-detail-panel h2 {
+  margin: 0 34px 16px 0;
+  color: #1e3a8a;
+  font-size: 1.2rem;
+  overflow-wrap: anywhere;
+}
+
+.simulator-course-detail-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.simulator-course-detail-close:hover,
+.simulator-course-detail-close:focus-visible {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.simulator-course-detail-list {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 18px;
+}
+
+.simulator-course-detail-list > div {
+  display: grid;
+  grid-template-columns: 5em minmax(0, 1fr);
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.simulator-course-detail-list dt {
+  color: #64748b;
+  font-weight: 700;
+}
+
+.simulator-course-detail-list dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.simulator-course-detail-description {
+  margin: 0 0 18px;
+}
+
+.simulator-course-detail-description h3 {
+  margin: 0 0 6px;
+  color: #1e3a8a;
+  font-size: 0.95rem;
+}
+
+.simulator-course-detail-description p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.88em;
+  line-height: 1.55;
+}
+
+.simulator-course-detail-warnings h3 {
+  margin: 0 0 7px;
+  color: #1e3a8a;
+  font-size: 0.95rem;
+}
+
+.simulator-course-detail-warnings ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.simulator-course-detail-warnings p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.86em;
+}
+
+.simulator-course-detail-relations {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #eef2f7;
+}
+
+.simulator-course-detail-relations h3 {
+  margin: 0 0 8px;
+  color: #1e3a8a;
+  font-size: 0.95rem;
+}
+
+.simulator-course-detail-relations > div + div {
+  margin-top: 10px;
+}
+
+.simulator-course-detail-relations ul {
+  display: grid;
+  gap: 5px;
+  margin: 5px 0 0;
+  padding-left: 1.1em;
+}
+
+.simulator-related-course {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1d4ed8;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.simulator-course-detail-remove {
+  width: 100%;
+  margin-top: 18px;
+  padding: 9px 12px;
+  border: 1px solid #bfdbfe;
+  border-radius: 5px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.simulator-course-detail-remove:hover,
+.simulator-course-detail-remove:focus-visible {
+  border-color: #2563eb;
+  background: #dbeafe;
+}
+
+.simulator-warning {
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: #475569;
+  background: #f1f5f9;
+  font-size: 0.76em;
+  line-height: 1.35;
+}
+
+.simulator-warning.strong {
+  color: #92400e;
+  background: #fef3c7;
+  font-weight: 700;
 }
 
 .close-btn {
@@ -768,15 +1956,6 @@ body {
     white-space: nowrap;
   }
 
-  .sort-control {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .sort-control select {
-    width: 100%;
-  }
-
   .main-container {
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
@@ -860,11 +2039,6 @@ body {
 
   #search-bar {
     grid-column: 1 / -1;
-  }
-
-  .sort-control {
-    grid-column: 1 / -1;
-    width: 100%;
   }
 
   #search-bar,
@@ -1067,6 +2241,23 @@ body {
   overflow-wrap: anywhere;
 }
 
+.graduation-requirement-row[data-sim-graduation-detail] {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgba(0, 123, 255, 0.12);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.graduation-requirement-row[data-sim-graduation-detail]:hover,
+.graduation-requirement-row[data-sim-graduation-detail]:focus-visible {
+  background: rgba(219, 234, 254, 0.55);
+  outline: 2px solid #60a5fa;
+  outline-offset: -2px;
+}
+
 .graduation-requirement-row:last-child {
   border-bottom: 0;
 }
@@ -1091,6 +2282,10 @@ body {
 }
 
 @media (max-width: 640px) {
+  .simulator-graduation-status-grid {
+    grid-template-columns: 1fr;
+  }
+
   .graduation-requirement-row,
   .graduation-social-row {
     grid-template-columns: 1fr;
@@ -1271,6 +2466,20 @@ body {
   }
 }
 
+/* Reserve the full warning/eye/delete cluster on desktop cards so the
+   subject and credits never occupy the same pixels as an action button. */
+@media screen and (min-width: 769px) {
+  .sim-course-card.has-warning {
+    padding-right: 92px;
+  }
+}
+
+@media screen and (min-width: 769px) and (max-width: 900px) {
+  .sim-course-credits {
+    display: none;
+  }
+}
+
 /* 絞り込み・並び替えを一つの入口へまとめるための共通レイアウト。 */
 .input-area {
   display: grid !important;
@@ -1289,11 +2498,129 @@ body {
 }
 
 .filter-actions {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(180px, auto);
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
   gap: 10px;
   width: 100%;
   min-width: 0;
+}
+
+.filter-actions #analysis-btn {
+  width: auto;
+  flex: 0 1 auto;
+}
+
+/* 並べ替えは絞り込みとは独立した操作として、必要なときだけメニューを開く。 */
+.course-sort-control {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.course-sort-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 48px;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 2px solid #64748b;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.course-sort-toggle:hover,
+.course-sort-toggle[aria-expanded="true"] {
+  border-color: #1d4ed8;
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+.course-sort-toggle:focus-visible,
+.course-sort-option:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.course-sort-current {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 18rem;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 0.88em;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.course-sort-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: max-content;
+  min-width: min(18rem, calc(100vw - 24px));
+  max-width: calc(100vw - 24px);
+  padding: 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+}
+
+.course-sort-menu[hidden] {
+  display: none;
+}
+
+.course-sort-option {
+  display: block;
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #334155;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.course-sort-option:hover,
+.course-sort-option.is-selected {
+  background: #dbeafe;
+  color: #1e3a8a;
+  font-weight: 700;
+}
+
+.course-sort-option.is-selected::before {
+  content: "✓ ";
+}
+
+.simulator-palette-sort {
+  align-self: stretch;
+  width: 100%;
+}
+
+.simulator-palette-sort .course-sort-toggle {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.simulator-scheduled-panel {
+  /* The result list owns its scroll area; allow the sort popover to escape the panel. */
+  overflow: visible;
 }
 
 .filter-options-toggle {
@@ -1413,8 +2740,7 @@ body {
   font-weight: 700;
 }
 
-.filter-options-grid select,
-.filter-options-panel .sort-control select {
+.filter-options-grid select {
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
@@ -1437,15 +2763,6 @@ body {
   margin: 0;
 }
 
-.sort-options-section {
-  padding-left: 18px;
-  border-left: 1px solid #e5e7eb;
-}
-
-.filter-options-panel .sort-control {
-  width: 100%;
-}
-
 .filter-options-panel .clear-filter-btn {
   grid-column: 1 / -1;
   justify-self: start;
@@ -1457,24 +2774,28 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .sort-options-section {
-    padding-top: 14px;
-    padding-left: 0;
-    border-top: 1px solid #e5e7eb;
-    border-left: 0;
-  }
 }
 
 @media screen and (max-width: 768px) {
   .filter-actions {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .filter-actions #analysis-btn,
-  .filter-actions .filter-options-toggle {
+  .filter-actions .filter-options-toggle,
+  .filter-actions .course-sort-control {
     width: 100%;
     min-width: 0;
     min-height: 48px;
+  }
+
+  .filter-actions #analysis-btn {
+    grid-column: 1 / -1;
+  }
+
+  .filter-actions .course-sort-toggle {
+    width: 100%;
   }
 
   .filter-options-panel {
@@ -1485,13 +2806,6 @@ body {
 
   .filter-options-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .sort-options-section {
-    padding-top: 12px;
-    padding-left: 0;
-    border-top: 1px solid #e5e7eb;
-    border-left: 0;
   }
 
   .filter-options-panel .clear-filter-btn {
@@ -1539,6 +2853,166 @@ body {
 }
 
 @media screen and (max-width: 768px) {
+  .simulator-shell {
+    padding: 10px 12px 28px;
+  }
+
+  .simulator-toolbar {
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    padding: 10px 0;
+  }
+
+  .simulator-toolbar h1 {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    font-size: 1.35rem;
+  }
+
+  .simulator-back {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .simulator-total-summary {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    padding: 7px 9px;
+  }
+
+  .simulator-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .simulator-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .simulator-scheduled-panel {
+    position: static;
+    margin-top: 0;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .simulator-palette-list {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .simulator-year-row {
+    display: block;
+  }
+
+  .simulator-year-label {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    text-align: left;
+  }
+
+  .simulator-quarter-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .sim-course-picker-item,
+  .sim-unplaced-item,
+  .sim-scheduled-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sim-course-placement-controls,
+  .sim-course-placement-open {
+    width: 100%;
+  }
+
+  .sim-course-placement-open {
+    min-height: 44px;
+  }
+
+  .simulator-placement-dialog {
+    width: calc(100vw - 1rem);
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100vh - 1rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    padding: 12px;
+  }
+
+  .sim-course-card {
+    display: block;
+    min-width: 0;
+    height: 44px;
+    min-height: 44px;
+    max-height: 52px;
+    padding: 3px 5px;
+  }
+
+  .sim-course-card-title {
+    width: 100%;
+    height: 16px;
+    padding-right: 0;
+  }
+
+  .sim-course-credits {
+    display: none;
+  }
+
+  .sim-course-card.has-inline-issue {
+    height: 52px;
+  }
+
+  .sim-course-card.has-inline-issue .sim-course-credits {
+    bottom: 18px;
+  }
+
+  .sim-course-quarter-warning {
+    position: absolute;
+    right: 2px;
+    bottom: 22px;
+    left: 5px;
+  }
+
+  .sim-course-card-actions {
+    top: auto;
+    right: 1px;
+    bottom: 1px;
+    height: 24px;
+    min-height: 24px;
+    background: #fff;
+  }
+
+  .sim-course-card-actions button {
+    flex-basis: 21px;
+    width: 21px;
+    min-width: 21px;
+    min-height: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+
+  .simulator-placement-options {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .simulator-placement-year {
+    padding: 8px;
+  }
+
+  .simulator-course-detail {
+    align-items: end;
+    padding: 0;
+  }
+
+  .simulator-course-detail-panel {
+    width: 100%;
+    max-height: 76vh;
+    padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+    border-radius: 12px 12px 0 0;
+  }
+
   .section-heading-row {
     align-items: center;
   }
@@ -1572,6 +3046,43 @@ body {
   .actions button,
   .delete-btn {
     min-height: 42px;
+  }
+}
+
+/* Keep the subject recognizable when a single-Q card becomes narrower than the
+   action cluster. Credits are secondary in that case; the title gets its own
+   line and the actions remain independently tappable below it. */
+@container sim-course-card (max-width: 50px) {
+  .sim-course-card {
+    padding: 2px 4px;
+  }
+
+  .sim-course-card-title {
+    width: 100%;
+    height: 15px;
+    line-height: 1.1;
+  }
+
+  .sim-course-credits {
+    display: none;
+  }
+
+  .sim-course-card-actions {
+    top: auto;
+    right: 1px;
+    bottom: 1px;
+    height: 19px;
+    min-height: 19px;
+    background: #fff;
+  }
+
+  .sim-course-card-actions button {
+    flex-basis: 21px;
+    width: 21px;
+    min-width: 21px;
+    height: 19px;
+    min-height: 19px;
+    font-size: 0.72rem;
   }
 }
 

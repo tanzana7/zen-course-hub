@@ -175,6 +175,61 @@
 
   const sum = (courses) => courses.reduce((total, course) => total + course.credits, 0);
 
+  // Requirement detail views use the exact same metadata predicates as the
+  // analyzer, but return IDs instead of duplicating any graduation thresholds.
+  const buildRequirementDetails = (courseIds, courses, definition) => {
+    const mappingResult = validateRequirementsAgainstCourses(definition, courses);
+    if (!mappingResult.valid) return invalid('科目データを確認できないため、卒業要件の詳細を表示できません。', [mappingResult.message]);
+    if (!Array.isArray(courseIds) || courseIds.some((id) => !isNonEmptyString(id))) {
+      return invalid('選択科目IDが不正なため、卒業要件の詳細を表示できません。');
+    }
+
+    const uniqueIds = [...new Set(courseIds)];
+    const courseMap = new Map(courses.map((course) => [course.id, course]));
+    const unknownIds = uniqueIds.filter((id) => !courseMap.has(id));
+    if (unknownIds.length) return invalid('科目データを確認できないため、卒業要件の詳細を表示できません。', [`未知の科目ID: ${unknownIds.join(', ')}`]);
+
+    const req = definition.requirements;
+    const isNonCounting = (course) => req.totalCredits.nonCountingCategories.includes(course.category) ||
+      req.totalCredits.nonCountingTags.includes(course.tag);
+    const countable = courses.filter((course) => !isNonCounting(course));
+    const selectedSet = new Set(uniqueIds);
+    const byIds = (ids) => countable.filter((course) => ids.includes(course.id));
+    const byFlagOrFoundation = (metadataFlag, foundationValues) => countable.filter((course) =>
+      course[metadataFlag] === true || foundationValues.includes(course.foundationRequirement)
+    );
+    const detail = (targetCourses) => ({
+      targetCourseIds: targetCourses.map((course) => course.id),
+      selectedCourseIds: targetCourses.filter((course) => selectedSet.has(course.id)).map((course) => course.id)
+    });
+    const foundationGroups = Object.fromEntries(req.foundation.groups.map((group) => [
+      group.key,
+      detail(countable.filter((course) => course.foundationRequirement === group.metadataValue))
+    ]));
+
+    return {
+      valid: true,
+      details: {
+        totalCredits: detail(countable),
+        introduction: detail(byIds(req.introduction.courseIds)),
+        foundation: {
+          ...detail(countable.filter((course) => req.foundation.groups.some((group) => course.foundationRequirement === group.metadataValue))),
+          groups: foundationGroups,
+          multilingualIT: detail(byIds(req.foundation.multilingualIT.courseIds))
+        },
+        advanced: detail(countable.filter((course) => course[req.advanced.metadataFlag] === true)),
+        literacy: detail(byFlagOrFoundation(req.literacy.metadataFlag, req.literacy.foundationMetadataValues)),
+        multilingualInformation: detail(byFlagOrFoundation(req.multilingualInformation.metadataFlag, req.multilingualInformation.foundationMetadataValues)),
+        worldUnderstanding: {
+          ...detail(byFlagOrFoundation(req.worldUnderstanding.metadataFlag, req.worldUnderstanding.foundationMetadataValues)),
+          industryHistory: detail(byIds(req.industryHistory.courseIds))
+        },
+        socialConnection: detail(countable.filter((course) => course.tag === req.socialConnection.tag)),
+        projectPractice: detail(byIds(req.projectPractice.courseIds))
+      }
+    };
+  };
+
   const analyzeGraduationRequirements = (courseIds, courses, definition) => {
     // 呼び出し元に事前検証を要求しない。将来Simulatorから直接使っても、
     // 定義が参照する未登録IDを見逃して卒業達成を返さないための入口検証。
@@ -273,7 +328,7 @@
     return result;
   };
 
-  const api = { validateRequirementsDefinition, validateCourses, validateRequirementsAgainstCourses, analyzeGraduationRequirements };
+  const api = { validateRequirementsDefinition, validateCourses, validateRequirementsAgainstCourses, analyzeGraduationRequirements, buildRequirementDetails };
   root.GraduationRequirementsEngine = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);
