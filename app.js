@@ -130,6 +130,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   /**
+   * 一覧・ツリー・4年計画は同格の入口だが、既存の画面実装は独立している。
+   * ナビゲーションの見た目だけをここで同期し、各画面の保存状態や表示ロジックは変更しない。
+   */
+  const syncPrimaryViewNavigation = (activeView) => {
+    document.querySelectorAll('.primary-view-button').forEach((button) => {
+      const isActive = button.dataset.view === activeView;
+      button.setAttribute('aria-pressed', String(isActive));
+      button.classList.toggle('is-active', isActive);
+    });
+  };
+
+  /**
    * Main Hubとシミュレーターで同じ並べ替えメニューを使う。
    * 選択肢をHTMLへ複製せず、COURSE_SORT_OPTIONSを唯一の定義として描画することで、
    * 片方だけ選択肢や並び順が古くなることを防ぐ。
@@ -2007,7 +2019,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       view.hidden = !enabled;
       dropZone.hidden = !enabled;
       nav.setAttribute('aria-pressed', String(enabled));
-      nav.textContent = enabled ? '履修一覧' : 'カリキュラムツリー';
+      syncPrimaryViewNavigation(enabled ? 'tree' : 'list');
       if (enabled) {
         renderCurriculumGraph();
         search.focus({ preventScroll: true });
@@ -2019,6 +2031,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     nav.addEventListener('click', () => setMode(!document.body.classList.contains('curriculum-tree-mode')));
+    document.getElementById('course-list-nav')?.addEventListener('click', () => setMode(false));
     close?.addEventListener('click', () => setMode(false));
     search.addEventListener('input', () => {
       curriculumState.search = search.value;
@@ -2199,7 +2212,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const searchInput = document.getElementById('sim-course-search');
     if (!modal || !button) return;
     const simulatorTitle = modal.dataset.simulatorTitle || '4年間履修シミュレーター';
-    button.textContent = simulatorTitle;
+    // Keep the compact navigation label and beta badge authored in HTML; the
+    // fallback preserves the existing title wiring for minimal test hosts.
+    if (!button.querySelector('.view-beta-badge')) button.textContent = simulatorTitle;
     const title = document.getElementById('simulator-modal-title');
     let simulatorResetTriggerElement = null;
     if (title) title.textContent = simulatorTitle;
@@ -2208,6 +2223,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Disabling the entry point is safer than allowing placements without Q validation.
       console.error('シミュレーターのルールを読み込めませんでした。');
       button.disabled = true;
+      button.setAttribute('aria-disabled', 'true');
       const notice = document.getElementById('simulator-unavailable');
       if (notice) notice.hidden = false;
       return;
@@ -2219,15 +2235,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       modal.classList.remove('is-active');
       modal.hidden = true;
       document.body.classList.remove('simulator-view-active');
+      syncPrimaryViewNavigation('list');
       focusElement(simulatorTriggerElement || button);
       simulatorTriggerElement = null;
     };
 
     button.onclick = () => {
       simulatorTriggerElement = button;
+      // The three entries are peers, so opening the simulator always leaves
+      // the tree mode before the fullscreen view is shown.
+      document.body.classList.remove('curriculum-tree-mode');
+      document.getElementById('curriculum-tree-view')?.setAttribute('hidden', '');
+      document.getElementById('curriculum-drop-zone')?.setAttribute('hidden', '');
       modal.hidden = false;
       modal.classList.add('is-active');
       document.body.classList.add('simulator-view-active');
+      syncPrimaryViewNavigation('simulator');
       renderSimulator();
       title?.focus();
     };
