@@ -31,11 +31,11 @@ ZEN大学生向けの非公式履修管理ツールです。
 
 ## 利用方法
 
-GitHub Pages
+公開版は以下から利用できます。
 
-https://tanzana7.github.io/zen-course-hub/
+https://zencoursehub.netlify.app/
 
-またはリポジトリをクローンして利用してください。
+またはリポジトリをクローンして、静的HTTPサーバーで利用してください。
 
 ```bash
 git clone https://github.com/tanzana7/zen-course-hub.git
