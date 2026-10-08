@@ -2561,6 +2561,10 @@ body.simulator-view-active > #analysis-modal {
   white-space: nowrap;
 }
 
+.course-sort-toggle > span:not(.course-sort-current) {
+  white-space: nowrap;
+}
+
 .course-sort-menu {
   position: absolute;
   top: calc(100% + 6px);
@@ -3189,4 +3193,150 @@ body.curriculum-tree-mode .input-area { justify-content: flex-end; }
   .curriculum-tree-toolbar select { flex: 1; }
   .curriculum-tree-count { margin-left: 0; }
   .curriculum-graph-scroll { max-height: 60vh; }
+}
+
+/* Primary views share one navigation group; list tools stay visually secondary. */
+.primary-view-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.primary-view-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 800;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+}
+
+.primary-view-button.view-list {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.primary-view-button.view-tree {
+  border-color: #99f6e4;
+  background: #f0fdfa;
+  color: #0f766e;
+}
+
+.primary-view-button.view-simulator {
+  border-color: #c4b5fd;
+  background: #f5f3ff;
+  color: #6d28d9;
+  margin: 0;
+}
+
+.primary-view-button.view-list[aria-pressed="true"] {
+  border-color: #1d4ed8;
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 5px 12px rgba(37, 99, 235, 0.2);
+}
+
+.primary-view-button.view-tree[aria-pressed="true"] {
+  border-color: #0f766e;
+  background: #0d9488;
+  color: #fff;
+  box-shadow: 0 5px 12px rgba(13, 148, 136, 0.2);
+}
+
+.primary-view-button.view-simulator[aria-pressed="true"] {
+  border-color: #6d28d9;
+  background: #7c3aed;
+  color: #fff;
+  box-shadow: 0 5px 12px rgba(124, 58, 237, 0.25);
+}
+
+.primary-view-button:not([aria-pressed="true"]):hover {
+  filter: brightness(0.97);
+  transform: translateY(-1px);
+}
+
+.primary-view-button:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.view-beta-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 2px 5px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.78em;
+  line-height: 1;
+}
+
+.view-simulator[aria-pressed="true"] .view-beta-badge {
+  border-color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.filter-actions {
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.filter-actions #analysis-btn {
+  min-height: 48px;
+  border: 2px solid #818cf8;
+  background: #eef2ff;
+  color: #3730a3;
+  box-shadow: none;
+}
+
+.filter-actions #analysis-btn:hover {
+  background: #e0e7ff;
+  transform: translateY(-1px);
+}
+
+body.curriculum-tree-mode .filter-actions {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  .primary-view-navigation {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .primary-view-button {
+    width: 100%;
+    min-height: 48px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .primary-view-button.view-simulator {
+    grid-column: 1 / -1;
+  }
+
+  .filter-actions {
+    padding-top: 10px;
+  }
+
+  .filter-actions .course-sort-toggle {
+    gap: 4px;
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: 0.86rem;
+  }
 }
