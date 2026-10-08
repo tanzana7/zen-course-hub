@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const predefinedList = document.getElementById('predefined-classes-list');
   const relatedCourseDetailHost = document.getElementById('related-course-detail-host');
   const dataStatus = document.getElementById('data-status');
+  const storageWarning = document.getElementById('storage-warning');
 
   /**
    * localStorageのキー管理
@@ -14,7 +15,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   const STORAGE_KEYS = {
     REGISTERED: 'myClasses',
     COMPLETED: 'completedClasses',
-    FILTER_PREFERENCES: 'courseFilterPreferences'
+    FILTER_PREFERENCES: 'courseFilterPreferences',
+    SCHEMA_VERSION: 'zenCourseHubStorageSchemaVersion'
+  };
+  const enrollmentStorageBackend = (() => {
+    try {
+      if (typeof localStorage === 'undefined') throw new Error('localStorage unavailable');
+      return localStorage;
+    } catch (error) {
+      return {
+        getItem: () => { throw error; },
+        setItem: () => { throw error; },
+        removeItem: () => { throw error; }
+      };
+    }
+  })();
+  const qualityUtils = window.ZenQualityUtils || {
+    escapeHTML: (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[character])),
+    sanitizeExternalUrl: (value) => {
+      if (typeof value !== 'string' || !/^https?:\/\//i.test(value.trim())) return null;
+      try {
+        const parsed = new URL(value.trim());
+        return ['http:', 'https:'].includes(parsed.protocol) ? parsed.href : null;
+      } catch (error) {
+        return null;
+      }
+    },
+    readEnrollmentState: () => ({
+      registered: { status: 'unavailable', ids: [] },
+      completed: { status: 'unavailable', ids: [] },
+      schema: { status: 'unavailable', version: null },
+      writable: false
+    }),
+    saveEnrollmentState: () => ({ saved: false, rollbackSucceeded: true, error: new Error('保存ユーティリティを読み込めませんでした') })
   };
   const SIMULATOR_STORAGE_KEY = 'fourYearSimulatorPlanV1';
   const courseSorting = window.CourseSorting;
@@ -68,45 +103,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
   };
 
-  /**
-   * HTML文字列のエスケープ処理（セキュリティ対策）
-   */
-  const escapeHTML = (str) => {
-    if (!str) return '';
-    return str.replace(/[&<>"']/g, (m) => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;',
-      '"': '&quot;', "'": '&#39;'
-    }[m]));
-  };
-
-  /**
-   * localStorageから安全にデータを取得・パースする関数
-   */
-  const safeParse = (key) => {
-    try {
-      const item = localStorage.getItem(key);
-      if (!item || item === 'undefined' || item === 'null' || item === '[]') return [];
-      let parsed = JSON.parse(item);
-      if (!Array.isArray(parsed)) parsed = [];
-
-      // IDのみを抽出（不正データは排除）
-      return parsed
-        .map(i => (typeof i === 'object' && i !== null) ? i.id : i)
-        .filter(val => typeof val === 'string')
-        .map(s => s.trim())
-        .filter(s => s && s.length > 0);
-    } catch (e) {
-      return [];
-    }
-  };
+  const enrollmentStorage = qualityUtils.readEnrollmentState(enrollmentStorageBackend, {
+    registered: STORAGE_KEYS.REGISTERED,
+    completed: STORAGE_KEYS.COMPLETED,
+    schemaVersion: STORAGE_KEYS.SCHEMA_VERSION
+  });
 
   /**
    * アプリケーションの状態（State）
    */
   const state = {
     // 科目IDの配列として管理
-    registeredClasses: new Set(safeParse(STORAGE_KEYS.REGISTERED)), 
-    completedClasses: new Set(safeParse(STORAGE_KEYS.COMPLETED)),
+    registeredClasses: new Set(enrollmentStorage.registered.ids),
+    completedClasses: new Set(enrollmentStorage.completed.ids),
     // 全科目データを id キーで高速検索するためのMap
     coursesMap: new Map(), 
     predefinedData: [],
@@ -126,8 +135,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // マイ履修は通常の履修予定（myClasses）を表示するだけで、4年計画とは分離する。
     simulatorPlacementFilter: 'all',
     graduationDefinition: null,
-    courseValidationError: null
+    courseValidationError: null,
+    coursesReady: false,
+    rawRelations: [],
+    storageWritable: enrollmentStorage.writable,
+    storageIssues: [enrollmentStorage.registered, enrollmentStorage.completed, enrollmentStorage.schema]
+      .filter((item) => ['corrupt', 'invalid', 'future', 'unavailable'].includes(item.status))
   };
+  const escapeHTML = qualityUtils.escapeHTML;
+  const sanitizeExternalUrl = qualityUtils.sanitizeExternalUrl;
 
   /**
    * 一覧・ツリー・4年計画は同格の入口だが、既存の画面実装は独立している。
@@ -287,8 +303,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const sourceLabel = typeof entry?.sourceLabel === 'string' && entry.sourceLabel.trim()
         ? entry.sourceLabel.trim()
         : `${sourceName || '出典'}${sourceAuthor ? `（運営：${sourceAuthor}）` : ''}`;
-      const parsedSourceUrl = sourceUrl ? new URL(sourceUrl, window.location.href) : null;
-      const hasSafeSourceUrl = parsedSourceUrl && ['http:', 'https:'].includes(parsedSourceUrl.protocol);
+      const safeSourceUrl = sanitizeExternalUrl(sourceUrl);
 
       if (
         !id ||
@@ -297,13 +312,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         average > 10 ||
         !Number.isInteger(votes) ||
         votes < 0 ||
-        !hasSafeSourceUrl
+        !safeSourceUrl
       ) {
         console.warn('不正な難易度データを除外しました:', entry);
         return null;
       }
 
-      return { id, average, votes, sourceUrl, sourceLabel };
+      return { id, average, votes, sourceUrl: safeSourceUrl, sourceLabel };
     } catch (error) {
       console.warn('難易度データの検証に失敗しました:', error);
       return null;
@@ -410,44 +425,78 @@ document.addEventListener('DOMContentLoaded', async () => {
     return map;
   };
 
+  const updateStorageWarning = () => {
+    if (!storageWarning) return;
+    const unknownIds = new Set(
+      [...state.registeredClasses, ...state.completedClasses]
+        .filter((id) => state.coursesMap.size > 0 && !state.coursesMap.has(id))
+    );
+    const hasStorageIssue = state.storageIssues.length > 0 || !state.storageWritable;
+    if (hasStorageIssue || unknownIds.size > 0) {
+      const messages = [];
+      if (hasStorageIssue) messages.push('保存データを安全に更新できないため、履修状態の変更を一時停止しています。');
+      if (unknownIds.size > 0) messages.push(`${unknownIds.size}件の保存済み科目は現在の授業データにないため保持しています。`);
+      storageWarning.textContent = messages.join(' ');
+      storageWarning.hidden = false;
+      return;
+    }
+    storageWarning.textContent = '';
+    storageWarning.hidden = true;
+  };
+
+  const showStorageWarning = (message) => {
+    if (!storageWarning) return;
+    storageWarning.textContent = message;
+    storageWarning.hidden = false;
+  };
+
   /**
    * 状態変更のコミット（追加・削除・移動をここで一括管理）
    * @param {string} id - 科目ID
    * @param {'REGISTER'|'COMPLETE'|'DELETE'} action - アクション
    */
   const commitStateChange = (id, action) => {
+    if (typeof id !== 'string' || !id.trim()) return false;
+    const nextRegistered = new Set(state.registeredClasses);
+    const nextCompleted = new Set(state.completedClasses);
     switch (action) {
       case 'REGISTER':
-        state.completedClasses.delete(id);
-        state.registeredClasses.add(id);
+        nextCompleted.delete(id);
+        nextRegistered.add(id);
         break;
       case 'COMPLETE':
-        state.registeredClasses.delete(id);
-        state.completedClasses.add(id);
+        nextRegistered.delete(id);
+        nextCompleted.add(id);
         break;
       case 'DELETE':
-        state.registeredClasses.delete(id);
-        state.completedClasses.delete(id);
+        nextRegistered.delete(id);
+        nextCompleted.delete(id);
         break;
+      default:
+        return false;
     }
 
-    saveState();
+    const result = saveState(nextRegistered, nextCompleted);
+    if (!result.saved) {
+      showStorageWarning(result.rollbackSucceeded === false
+        ? '履修データの保存状態を確認できません。再読み込みして確認してください。'
+        : '履修データを保存できませんでした。変更は確定していません。');
+      return false;
+    }
+    state.registeredClasses = nextRegistered;
+    state.completedClasses = nextCompleted;
     renderAll();
+    return true;
   };
 
   /**
-   * データの整合性チェックとクリーンアップ
+   * データの整合性チェックとクリーンアップ。
+   * 未知IDは、後から科目データが追加された場合に復元できるよう保存したままにする。
    */
   const cleanupState = () => {
-    const validate = (set) => {
-      const validArray = Array.from(set).filter(id => id && state.coursesMap.has(id));
-      set.clear();
-      validArray.forEach(id => set.add(id));
-    };
-    validate(state.registeredClasses);
-    validate(state.completedClasses);
     // 排他制御の再確認
     state.registeredClasses.forEach(id => state.completedClasses.delete(id));
+    updateStorageWarning();
   };
 
   /**
@@ -460,12 +509,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   /**
    * localStorageへの保存（Setを配列に戻して保存、IDベースで保存）
    */
-  const saveState = () => {
-    const reg = Array.from(state.registeredClasses).filter(id => id && state.coursesMap.has(id));
-    const comp = Array.from(state.completedClasses).filter(id => id && state.coursesMap.has(id));
-    
-    localStorage.setItem(STORAGE_KEYS.REGISTERED, JSON.stringify(reg));
-    localStorage.setItem(STORAGE_KEYS.COMPLETED, JSON.stringify(comp));
+  const saveState = (registeredClasses = state.registeredClasses, completedClasses = state.completedClasses) => {
+    if (!state.storageWritable) {
+      return { saved: false, rollbackSucceeded: true, error: new Error('保存対象のストレージデータを安全に移行できません') };
+    }
+    const result = qualityUtils.saveEnrollmentState(enrollmentStorageBackend, {
+      registered: STORAGE_KEYS.REGISTERED,
+      completed: STORAGE_KEYS.COMPLETED,
+      schemaVersion: STORAGE_KEYS.SCHEMA_VERSION
+    }, registeredClasses, completedClasses);
+    if (!result.saved && result.rollbackSucceeded === false) state.storageWritable = false;
+    return result;
   };
 
   const saveSimulatorPlan = (nextPlan) => {
@@ -1339,11 +1393,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     li.innerHTML = `
       <div class="class-info">
-        <strong>${cls.subject}</strong>
+        <strong>${escapeHTML(cls.subject)}</strong>
         <div class="class-meta">
-          ${(cls.category === '必修' || cls.category === '選択必修') ? `<span class="badge required">${cls.category}</span>` : ''}
-          ${cls.year ? `<span class="badge">${cls.year}</span>` : ''}
-          ${cls.quarter ? cls.quarter.replace(/\s*([〜～ー－–—\-])\s*/g, '$1').split(/[・,、，\s]+/).filter(Boolean).map(q => `<span class="badge">${q}</span>`).join('') : ''}
+          ${(cls.category === '必修' || cls.category === '選択必修') ? `<span class="badge required">${escapeHTML(cls.category)}</span>` : ''}
+          ${cls.year ? `<span class="badge">${escapeHTML(cls.year)}</span>` : ''}
+          ${cls.quarter ? cls.quarter.replace(/\s*([〜～ー－–—\-])\s*/g, '$1').split(/[・,、，\s]+/).filter(Boolean).map(q => `<span class="badge">${escapeHTML(q)}</span>`).join('') : ''}
         </div>
       </div>
       <div class="actions">
@@ -1388,7 +1442,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     regObjects.forEach((cls) => list.appendChild(createClassItem(cls, 'registered')));
     compObjects.forEach((cls) => completedList.appendChild(createClassItem(cls, 'completed')));
     document.getElementById('earned-credits').textContent = earnedCredits;
-    document.getElementById('registered-count').textContent = state.registeredClasses.size;
+    // Unknown IDs are retained for recovery but are not counted as visible courses.
+    document.getElementById('registered-count').textContent = regObjects.length;
     document.getElementById('registered-credits').textContent = regCredits;
 
     renderGraduationGauge(stats);
@@ -1445,6 +1500,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!data || typeof data.id !== 'string' || !data.id) return '';
 
     const difficulty = state.difficultyMap.get(data.id);
+    const safeSyllabusUrl = sanitizeExternalUrl(data.url);
+    const teacher = String(data.teacher || '');
+    const teacherParts = teacher.split(', ');
+    const displayTeacher = teacherParts.length > 1
+      ? `${teacherParts[0]} 他${teacherParts.length - 1}名`
+      : teacher;
     const difficultyHtml = difficulty ? `
       <section class="difficulty-section" aria-label="授業難易度">
         <h5 class="difficulty-title">📊 授業難易度</h5>
@@ -1467,26 +1528,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       </section>
     ` : '';
 
-    const teacherParts = data.teacher.split(', ');
-    const displayTeacher = teacherParts.length > 1
-      ? `${teacherParts[0]} 他${teacherParts.length - 1}名`
-      : data.teacher;
-
     return `
-      <h4 class="detail-subject" tabindex="-1">${data.subject}</h4>
+      <h4 class="detail-subject" tabindex="-1">${escapeHTML(data.subject)}</h4>
       <div class="detail-badges">
-        <span class="badge-cat ${data.category === '必修' || data.category === '選択必修' ? 'important' : ''}">${data.category}</span>
-        <span class="badge-item">${data.credits}単位</span>
-        <span class="badge-item">${data.year}</span>
-        <span class="badge-item">${data.quarter}</span>
+        <span class="badge-cat ${data.category === '必修' || data.category === '選択必修' ? 'important' : ''}">${escapeHTML(data.category)}</span>
+        <span class="badge-item">${escapeHTML(data.credits)}単位</span>
+        <span class="badge-item">${escapeHTML(data.year)}</span>
+        <span class="badge-item">${escapeHTML(data.quarter)}</span>
       </div>
       <div class="detail-sections">
-        <p><strong>科目区分:</strong> ${data.method || '-'} ${data.remarks ? `(${data.remarks})` : ''}</p>
-        <p><strong>タグ:</strong> ${data.tag ? `#${data.tag}` : '-'}</p>
-        <p><strong>教員情報:</strong> ${displayTeacher}</p>
-        <p class="evaluation"><strong>評価方法:</strong> ${data.evaluation}</p>
-        ${data.url ? `<p><a href="${data.url}" target="_blank" rel="noopener noreferrer" class="syllabus-link" title="ZEN大学シラバスサイトの該当ページを開きます">ZEN大学シラバスで詳細を確認</a></p>` : ''}
-        <p class="description"><strong>授業概要:</strong> ${data.description}</p>
+        <p><strong>科目区分:</strong> ${escapeHTML(data.method || '-')} ${data.remarks ? `(${escapeHTML(data.remarks)})` : ''}</p>
+        <p><strong>タグ:</strong> ${data.tag ? `#${escapeHTML(data.tag)}` : '-'}</p>
+        <p><strong>教員情報:</strong> ${escapeHTML(displayTeacher)}</p>
+        <p class="evaluation"><strong>評価方法:</strong> ${escapeHTML(data.evaluation)}</p>
+        ${safeSyllabusUrl ? `<p><a href="${escapeHTML(safeSyllabusUrl)}" target="_blank" rel="noopener noreferrer" class="syllabus-link" title="ZEN大学シラバスサイトの該当ページを開きます">ZEN大学シラバスで詳細を確認</a></p>` : ''}
+        <p class="description"><strong>授業概要:</strong> ${escapeHTML(data.description)}</p>
         ${difficultyHtml}
         ${relationsHtml}
       </div>
@@ -1692,11 +1748,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
           <div class="class-info">
-            <strong>${data.subject}</strong>
+            <strong>${escapeHTML(data.subject)}</strong>
             <div class="class-meta">
-              ${(data.category === '必修' || data.category === '選択必修') ? `<span class="badge required">${data.category}</span>` : ''}
-              ${data.year ? `<span class="badge">${data.year}</span>` : ''}
-              ${data.quarter ? data.quarter.replace(/\s*([〜～ー－–—\-])\s*/g, '$1').split(/[・,、，\s]+/).filter(Boolean).map(q => `<span class="badge">${q}</span>`).join('') : ''}
+              ${(data.category === '必修' || data.category === '選択必修') ? `<span class="badge required">${escapeHTML(data.category)}</span>` : ''}
+              ${data.year ? `<span class="badge">${escapeHTML(data.year)}</span>` : ''}
+              ${data.quarter ? data.quarter.replace(/\s*([〜～ー－–—\-])\s*/g, '$1').split(/[・,、，\s]+/).filter(Boolean).map(q => `<span class="badge">${escapeHTML(q)}</span>`).join('') : ''}
               ${difficulty ? `<span class="badge difficulty-badge">難易度 ${difficulty.average.toFixed(1)}</span>` : ''}
             </div>
           </div>
@@ -2575,32 +2631,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupCurriculumTree();
   renderGraduationGauge({ valid: false }, '—');
 
-  // 外部JSONから授業データを読み込む
-  let loadErrorTimer = null; // 通信エラーアラートの遅延表示用タイマー
-  try {
-    // 授業データ、任意の難易度データ、前提・後継科目データを並行して読み込む
-    const [coursesRes, difficultyMap, relationsData, graduationDefinition] = await Promise.all([
-      fetch('courses.json'),
-      loadDifficultyData(),
-      loadCourseRelationsData(),
-      loadGraduationDefinitionData()
-    ]);
-
-    if (!coursesRes.ok) throw new Error(`授業データが見つかりません (${coursesRes.status})`);
-    const data = await coursesRes.json();
-
-    state.difficultyMap = difficultyMap;
-    state.graduationDefinition = graduationDefinition;
-    const courseValidation = window.GraduationRequirementsEngine?.validateCourses(data);
-    state.courseValidationError = courseValidation?.valid ? null : (courseValidation?.message || '科目データの検証に失敗しました。');
-    if (!state.courseValidationError && graduationDefinition) {
-      const requirementMappingValidation = window.GraduationRequirementsEngine?.validateRequirementsAgainstCourses(graduationDefinition, data);
-      if (!requirementMappingValidation?.valid) {
-        console.error('卒業要件定義と科目データの対応を検証できません:', requirementMappingValidation?.message);
-        state.graduationDefinition = null;
-      }
-    }
-
+  // 科目本体を先に描画し、難易度・関係・卒業要件は到着した順に後付けする。
+  // 任意データの遅延や失敗で、最初の検索・フィルター操作をブロックしない。
+  const sortCourseData = (data) => {
     data.sort((a, b) => {
       const getPriority = (cat) => {
         if (cat === '必修') return 1;
@@ -2620,23 +2653,77 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (a.tag !== b.tag) return (a.tag || '').localeCompare(b.tag || '', 'ja');
       return a.subject.localeCompare(b.subject, 'ja');
     });
+    return data;
+  };
 
-    // データの正規化
-    const normalizedData = data.map(normalizeClass).filter(Boolean);
+  const refreshOptionalData = ({ difficulty = false, relations = false, graduation = false } = {}) => {
+    if (!state.coursesReady) return;
+    if (relations) state.relationsMap = buildRelationsMap(state.rawRelations, state.coursesMap);
+    updateStorageWarning();
+    if (difficulty || relations) renderPredefinedList();
+    if (relations && document.body.classList.contains('curriculum-tree-mode')) renderCurriculumGraph();
+    if (graduation) renderList();
+    if (simulatorAvailable && (difficulty || relations || graduation)) renderSimulator();
+  };
+
+  const applyCourseData = (data) => {
+    const normalizedSource = Array.isArray(data) ? sortCourseData(data) : [];
+    const normalizedData = normalizedSource.map(normalizeClass).filter(Boolean);
     state.predefinedData = normalizedData;
     state.coursesMap = new Map(normalizedData.map(item => [item.id, item]));
-    state.relationsMap = buildRelationsMap(relationsData, state.coursesMap);
+    state.coursesReady = true;
+    state.relationsMap = buildRelationsMap(state.rawRelations, state.coursesMap);
     populateCurriculumFieldFilter();
     curriculumState.layout = null;
-
-    // 3秒以内に読み込みが完了した場合は、もし予約されていたエラーアラートがあればキャンセルする
-    if (loadErrorTimer) clearTimeout(loadErrorTimer);
+    cleanupState();
     if (dataStatus) {
       dataStatus.hidden = true;
       dataStatus.classList.remove('is-error');
     }
-    renderAll(); // データロード後にクリーンアップを含めて再描画
+    renderAll();
     if (simulatorAvailable) renderSimulator();
+  };
+
+  const applyGraduationDefinition = (definition, courses) => {
+    state.graduationDefinition = definition;
+    if (definition && !state.courseValidationError) {
+      const mappingValidation = window.GraduationRequirementsEngine?.validateRequirementsAgainstCourses(definition, courses);
+      if (!mappingValidation?.valid) {
+        console.error('卒業要件定義と科目データの対応を検証できません:', mappingValidation?.message);
+        state.graduationDefinition = null;
+      }
+    }
+  };
+
+  let loadErrorTimer = null; // 通信エラーアラートの遅延表示用タイマー
+  try {
+    // 任意データの通信は先に開始するが、最初の描画は courses.json の到着を待たない。
+    // Promiseの完了処理は coursesReady 後にのみ画面へ反映する。
+    const difficultyPromise = loadDifficultyData();
+    const relationsPromise = loadCourseRelationsData();
+    const graduationPromise = loadGraduationDefinitionData();
+    const coursesRes = await fetch('courses.json');
+    if (!coursesRes.ok) throw new Error(`授業データが見つかりません (${coursesRes.status})`);
+    const data = await coursesRes.json();
+    if (!Array.isArray(data) || data.length === 0) throw new TypeError('授業データの形式が不正です');
+    const courseValidation = window.GraduationRequirementsEngine?.validateCourses(data);
+    state.courseValidationError = courseValidation?.valid ? null : (courseValidation?.message || '科目データの検証に失敗しました。');
+    if (courseValidation && !courseValidation.valid) throw new TypeError(state.courseValidationError);
+    applyCourseData(data);
+
+    // 任意データは独立して読み込み、各レスポンス後に表示を更新する。
+    difficultyPromise.then((difficultyMap) => {
+      state.difficultyMap = difficultyMap;
+      refreshOptionalData({ difficulty: true });
+    });
+    relationsPromise.then((relationsData) => {
+      state.rawRelations = relationsData;
+      refreshOptionalData({ relations: true });
+    });
+    graduationPromise.then((graduationDefinition) => {
+      applyGraduationDefinition(graduationDefinition, data);
+      refreshOptionalData({ graduation: true });
+    });
   } catch (error) {
     console.error('データの読み込みに失敗しました:', error);
     renderGraduationGauge({ valid: false });

@@ -122,6 +122,7 @@
     <div class="predefined-classes-section">
       <!-- ここに JavaScript (app.js) で生成された授業リストが入ります -->
       <div id="data-status" class="data-status" role="status" aria-live="polite">授業データを読み込み中…</div>
+      <p id="storage-warning" class="data-status storage-warning" role="alert" aria-live="polite" hidden></p>
       <ul id="predefined-classes-list">
       </ul>
     </div>
@@ -342,6 +343,7 @@
   </div>
 </div>
 
+<script src="quality-utils.js"></script>
 <script src="simulator-rules.js"></script>
 <script src="course-sorting.js"></script>
 <script src="graduation-requirements.js"></script>

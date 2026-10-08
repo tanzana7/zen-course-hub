@@ -1857,6 +1857,12 @@ body.simulator-view-active > #analysis-modal {
   line-height: 1.5;
 }
 
+.storage-warning {
+  border-color: #fcd34d;
+  background: #fffbeb;
+  color: #92400e;
+}
+
 .badge {
   display: inline-block;
   padding: 1px 8px;
