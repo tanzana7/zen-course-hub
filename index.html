@@ -41,7 +41,8 @@
     <input id="search-bar" type="text" placeholder="授業名や教員名で検索...">
     <nav class="primary-view-navigation" aria-label="主要ビュー">
       <button id="course-list-nav" class="primary-view-button view-list" type="button" data-view="list" aria-pressed="true">一覧</button>
-      <button id="curriculum-tree-nav" class="primary-view-button view-tree" type="button" data-view="tree" aria-pressed="false">カリキュラムツリー</button>
+      <!-- 監修完了まで公開導線だけを非表示にし、既存のツリー実装・データは保持する。 -->
+      <button id="curriculum-tree-nav" class="primary-view-button view-tree" type="button" data-view="tree" aria-pressed="false" hidden>カリキュラムツリー</button>
       <button id="simulator-btn" class="primary-view-button view-simulator simulator-launch-btn" type="button" data-view="simulator" aria-pressed="false" aria-label="4年計画 β">
         <span>4年計画</span><span class="view-beta-badge" aria-hidden="true">β</span>
       </button>
