@@ -260,7 +260,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     field: 'すべて表示',
     selectedId: '',
     didDrag: false,
-    layout: null
+    layout: null,
+    zoom: 1
   };
 
   // 探索一覧の表示設定だけを独立保存し、履修データのlocalStorage形式へ混ぜない。
@@ -1788,53 +1789,75 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   /**
-   * 既存の科目データから、学年レーンを持つDAG表示用の座標を作る。
-   * 公式の配置データは存在しないため、yearは推奨年次として扱い、relationは
-   * 元データの向きをそのままSVGの矢印へ反映する。複数前提・複数後継は維持する。
+   * PDFのCP1〜CP4の情報構造を、既存courses.jsonの年次メタデータへ対応させる。
+   * PDF上の矢印は公式の履修前提条件とは明記されていないため、線は既存の
+   * relationデータを「参考関係」としてのみ表示し、履修可否の判定には使わない。
    */
+  const getCurriculumStage = (course) => {
+    const stage = String(course?.year || '').trim();
+    return ['1年次', '2年次', '3年次', '4年次'].includes(stage) ? stage : '未分類';
+  };
+
+  const getCurriculumField = (course) => String(course?.tag || '未分類').trim() || '未分類';
+
+  const getCurriculumTrack = (course) => {
+    if (course?.tag === '卒業プロジェクト') return 'プロジェクト実践';
+    if (course?.category === '必修') return '導入科目';
+    if (course?.foundationRequirement) return '基礎科目';
+    if (course?.tag === '社会接続') return '社会接続';
+    if (course?.category === '自由' || course?.tag === '自由科目') return '自由科目';
+    return '展開科目';
+  };
+
   const buildCurriculumLayout = () => {
-    const laneNames = ['1年次', '2年次', '3年次', '4年次'];
-    const laneWidth = 310;
-    const nodeHeight = 82;
-    const graphTop = 54;
+    const stageNames = ['1年次', '2年次', '3年次', '4年次', '未分類'];
+    const stageLabels = { '1年次': 'CP1・導入', '2年次': 'CP2・基礎', '3年次': 'CP3・展開', '4年次': 'CP4・実践', '未分類': '年次未分類' };
+    const preferredFields = ['必修', '情報', '数理', '多言語', '文化・思想', '社会・ネットワーク', '経済・マーケット', '社会接続', 'デジタル産業', '自由科目', '卒業プロジェクト'];
+    const fields = [...new Set(state.predefinedData.map(getCurriculumField))];
+    const laneNames = [...preferredFields.filter((field) => fields.includes(field)), ...fields.filter((field) => !preferredFields.includes(field)).sort((a, b) => a.localeCompare(b, 'ja'))];
+    const laneWidth = 252;
+    const axisWidth = 112;
+    const nodeHeight = 112;
     const nodeGap = 8;
+    const graphTop = 58;
+    const stageHeaderHeight = 30;
     const positions = new Map();
-    const laneItems = new Map(laneNames.map((lane) => [lane, []]));
-    const fallbackItems = [];
+    const byFieldStage = new Map(laneNames.map((field) => [field, new Map(stageNames.map((stage) => [stage, []]))]));
+    const compareCourses = (a, b) => String(a.subject || '').localeCompare(String(b.subject || ''), 'ja');
 
     state.predefinedData.forEach((course) => {
-      if (laneItems.has(course.year)) laneItems.get(course.year).push(course);
-      else fallbackItems.push(course);
+      const field = getCurriculumField(course);
+      if (!byFieldStage.has(field)) byFieldStage.set(field, new Map(stageNames.map((stage) => [stage, []])));
+      byFieldStage.get(field).get(getCurriculumStage(course)).push(course);
     });
+    byFieldStage.forEach((stages) => stages.forEach((items) => items.sort(compareCourses)));
 
-    const compareCourses = (a, b) => {
-      const fieldCompare = String(a.tag || '').localeCompare(String(b.tag || ''), 'ja');
-      return fieldCompare || String(a.subject || '').localeCompare(String(b.subject || ''), 'ja');
-    };
+    const rowHeights = stageNames.map((stage) => {
+      const maxItems = Math.max(1, ...laneNames.map((field) => byFieldStage.get(field)?.get(stage)?.length || 0));
+      return stageHeaderHeight + maxItems * (nodeHeight + nodeGap) + 18;
+    });
+    const rowOffsets = [];
+    let offset = graphTop;
+    rowHeights.forEach((height) => { rowOffsets.push(offset); offset += height; });
+    const graphWidth = axisWidth + Math.max(1, laneNames.length) * laneWidth;
+    const graphHeight = offset + 24;
 
-    laneItems.forEach((items) => items.sort(compareCourses));
-    fallbackItems.sort(compareCourses);
-    if (fallbackItems.length) laneItems.set('未分類', fallbackItems);
-
-    const lanes = Array.from(laneItems.entries());
-    const maxRows = Math.max(1, ...lanes.map(([, items]) => items.length));
-    const graphWidth = Math.max(4, lanes.length) * laneWidth;
-    const graphHeight = graphTop + maxRows * (nodeHeight + nodeGap) + 24;
-
-    lanes.forEach(([laneName, items], laneIndex) => {
-      items.forEach((course, index) => {
-        positions.set(course.id, {
-          x: laneIndex * laneWidth + laneWidth / 2,
-          y: graphTop + index * (nodeHeight + nodeGap) + nodeHeight / 2,
-          lane: laneName
+    laneNames.forEach((laneName, laneIndex) => {
+      stageNames.forEach((stage, stageIndex) => {
+        const items = byFieldStage.get(laneName)?.get(stage) || [];
+        items.forEach((course, index) => {
+          positions.set(course.id, {
+            x: axisWidth + laneIndex * laneWidth + laneWidth / 2,
+            y: rowOffsets[stageIndex] + stageHeaderHeight + index * (nodeHeight + nodeGap) + nodeHeight / 2,
+            lane: laneName,
+            stage
+          });
         });
       });
     });
 
-    return { lanes, laneWidth, nodeHeight, graphWidth, graphHeight, positions };
+    return { lanes: laneNames.map((name) => [name, byFieldStage.get(name)]), axisWidth, laneWidth, nodeHeight, nodeGap, graphTop, stageHeaderHeight, stageNames, stageLabels, rowHeights, rowOffsets, graphWidth, graphHeight, positions, byFieldStage };
   };
-
-  const getCurriculumField = (course) => String(course?.tag || '未分類').trim() || '未分類';
 
   const getCurriculumMatch = (course) => {
     const search = curriculumState.search.trim().toLowerCase();
@@ -1879,16 +1902,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!course || !detail) return;
 
     curriculumState.selectedId = courseId;
+    const isRegistered = state.registeredClasses.has(courseId);
+    const isCompleted = state.completedClasses.has(courseId);
+    const actionLabel = isRegistered ? '通常履修から削除' : isCompleted ? '履修予定に戻す' : '通常履修に追加';
     detail.innerHTML = `
       <div class="curriculum-course-detail-heading">
         <h3>科目詳細</h3>
         <button type="button" class="curriculum-detail-close" aria-label="科目詳細を閉じる">×</button>
       </div>
       <div class="class-detail open">${renderCourseDetailMarkup(course)}</div>
+      <div class="curriculum-detail-actions">
+        <button type="button" class="curriculum-enrollment-action">${actionLabel}</button>
+      </div>
     `;
     detail.hidden = false;
     detail.querySelector('.curriculum-detail-close')?.addEventListener('click', () => {
       clearCurriculumFocus();
+    });
+    detail.querySelector('.curriculum-enrollment-action')?.addEventListener('click', () => {
+      commitStateChange(courseId, isRegistered ? 'DELETE' : 'REGISTER');
+      openCurriculumCourseDetail(courseId);
+      setCurriculumStatus(`${course.subject}の通常履修状態を更新しました。`);
     });
     detail.querySelectorAll('.related-course-link').forEach((link) => {
       link.addEventListener('click', (event) => {
@@ -1910,6 +1944,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const graph = document.getElementById('curriculum-graph');
     const lanesHost = document.getElementById('curriculum-lanes');
     const edgesHost = document.getElementById('curriculum-edges');
+    const stageAxis = document.getElementById('curriculum-stage-axis');
     const count = document.getElementById('curriculum-tree-count');
     if (!graph || !lanesHost || !edgesHost || !count || !state.predefinedData.length) return;
 
@@ -1918,7 +1953,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       curriculumState.layout = layout;
       graph.style.width = `${layout.graphWidth}px`;
       graph.style.height = `${layout.graphHeight}px`;
+      graph.style.setProperty('--curriculum-lane-width', `${layout.laneWidth}px`);
+      graph.style.transform = `scale(${curriculumState.zoom})`;
+      graph.style.transformOrigin = 'top left';
       lanesHost.innerHTML = '';
+      if (stageAxis) stageAxis.innerHTML = '';
       edgesHost.innerHTML = `
         <defs>
           <marker id="curriculum-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
@@ -1935,15 +1974,32 @@ document.addEventListener('DOMContentLoaded', async () => {
       const coursesById = state.coursesMap;
       const matchesById = new Map();
       let matchCount = 0;
+      const hasActiveFilter = Boolean(curriculumState.search.trim() || curriculumState.year !== 'すべて表示' || curriculumState.field !== 'すべて表示');
 
-      layout.lanes.forEach(([laneName, courses], laneIndex) => {
+      layout.stageNames.forEach((stage, stageIndex) => {
+        if (!stageAxis) return;
+        const band = document.createElement('div');
+        band.className = `curriculum-stage-band stage-${stageIndex + 1}`;
+        band.style.top = `${layout.rowOffsets[stageIndex]}px`;
+        band.style.height = `${layout.rowHeights[stageIndex]}px`;
+        band.innerHTML = `<span>${escapeHTML(layout.stageLabels[stage])}</span>`;
+        stageAxis.appendChild(band);
+      });
+
+      layout.lanes.forEach(([laneName, stages], laneIndex) => {
         const lane = document.createElement('section');
         lane.className = 'curriculum-lane';
-        lane.style.left = `${laneIndex * layout.laneWidth}px`;
+        lane.style.left = `${layout.axisWidth + laneIndex * layout.laneWidth}px`;
         lane.style.width = `${layout.laneWidth}px`;
-        lane.innerHTML = `<h3>${escapeHTML(laneName)}</h3>`;
+        lane.style.height = `${layout.graphHeight}px`;
+        // A field lane can contain several curriculum tracks; keep the header
+        // neutral instead of deriving a potentially misleading track label
+        // from whichever course happens to be first in the lane.
+        lane.innerHTML = `<h3><span>${escapeHTML(laneName)}</span><small>科目群</small></h3>`;
 
-        courses.forEach((course) => {
+        layout.stageNames.forEach((stage, stageIndex) => {
+          const courses = stages.get(stage) || [];
+          courses.forEach((course, index) => {
           const matches = getCurriculumMatch(course);
           matchesById.set(course.id, matches);
           if (matches) matchCount += 1;
@@ -1966,11 +2022,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           const statusLabel = isCompleted ? '履修済み' : isRegistered ? 'マイ履修' : '';
           const addLabel = isRegistered ? 'マイ履修 ✓' : isCompleted ? 'マイ履修に戻す' : 'マイ履修に追加';
+          node.style.top = `${layout.rowOffsets[stageIndex] + layout.stageHeaderHeight + index * (layout.nodeHeight + layout.nodeGap)}px`;
+          node.style.left = '12px';
+          node.style.width = `${layout.laneWidth - 24}px`;
           node.innerHTML = `
             <div class="curriculum-node-title">${escapeHTML(course.subject)}</div>
             <div class="curriculum-node-meta">
-              <span>${escapeHTML(getCurriculumField(course))}</span>
-              <span>${escapeHTML(course.quarter || '')}</span>
+              <span class="curriculum-node-track">${escapeHTML(getCurriculumTrack(course))}</span>
+              <span>${escapeHTML(course.credits)}単位</span>
+              <span>${escapeHTML(course.quarter || '開講Q未登録')}</span>
               ${statusLabel ? `<span class="curriculum-node-status">${statusLabel}</span>` : ''}
             </div>
             <div class="curriculum-node-actions">
@@ -2014,6 +2074,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.setTimeout(() => { curriculumState.didDrag = false; }, 0);
           });
           lane.appendChild(node);
+          });
         });
         lanesHost.appendChild(lane);
       });
@@ -2028,7 +2089,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           const edge = document.createElementNS('http://www.w3.org/2000/svg', 'path');
           edge.setAttribute('d', createCurriculumEdgePath(from, to));
           edge.setAttribute('class', `curriculum-edge ${relation.strength === 'strongly_recommended' ? 'is-strong' : 'is-recommended'}`);
-          const hasActiveFilter = Boolean(curriculumState.search.trim() || curriculumState.year !== 'すべて表示' || curriculumState.field !== 'すべて表示');
           if (hasActiveFilter && !matchesById.get(sourceId) && !matchesById.get(relation.id)) edge.classList.add('is-filter-dimmed');
           if (hasFocus && (sourceId === curriculumState.selectedId || relation.id === curriculumState.selectedId)) edge.classList.add('is-focused');
           if (hasFocus && !(focusIds.has(sourceId) && focusIds.has(relation.id))) edge.classList.add('is-out-of-focus');
@@ -2037,7 +2097,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
       edges.forEach((edge) => edgesHost.appendChild(edge));
       count.textContent = `${matchCount} / ${state.predefinedData.length}科目`;
-      const hasActiveFilter = Boolean(curriculumState.search.trim() || curriculumState.year !== 'すべて表示' || curriculumState.field !== 'すべて表示');
       if (hasActiveFilter && matchCount === 0) {
         setCurriculumStatus('該当する科目はありません。条件を解除してください。', true);
       } else if (hasActiveFilter) {
@@ -2068,7 +2127,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     const year = document.getElementById('curriculum-tree-year');
     const field = document.getElementById('curriculum-tree-field');
     const graph = document.getElementById('curriculum-graph');
+    const graphScroll = document.getElementById('curriculum-graph-scroll');
+    const zoomOut = document.getElementById('curriculum-zoom-out');
+    const zoomIn = document.getElementById('curriculum-zoom-in');
+    const zoomFit = document.getElementById('curriculum-zoom-fit');
+    const zoomLevel = document.getElementById('curriculum-zoom-level');
     if (!nav || !view || !dropZone || !search || !year || !field) return;
+
+    // The tree stays unpublished on production. A local-only query flag is used for
+    // review so the public Netlify host cannot expose the unfinished navigation entry.
+    const previewEnabled = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+      && new URLSearchParams(window.location.search).get('curriculumPreview') === '1';
+    nav.hidden = !previewEnabled;
+
+    const updateZoom = (nextZoom) => {
+      curriculumState.zoom = Math.min(1.45, Math.max(0.62, Number(nextZoom.toFixed(2))));
+      if (zoomLevel) zoomLevel.value = `${Math.round(curriculumState.zoom * 100)}%`;
+      if (zoomLevel) zoomLevel.textContent = `${Math.round(curriculumState.zoom * 100)}%`;
+      if (document.body.classList.contains('curriculum-tree-mode')) renderCurriculumGraph();
+    };
 
     const setMode = (enabled) => {
       document.body.classList.toggle('curriculum-tree-mode', enabled);
@@ -2093,6 +2170,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       curriculumState.search = search.value;
       renderCurriculumGraph();
     });
+    search.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+      const course = state.predefinedData.find((item) => getCurriculumMatch(item));
+      if (!course) return;
+      event.preventDefault();
+      openCurriculumCourseDetail(course.id);
+      document.querySelector(`.curriculum-node[data-course-id="${CSS.escape(course.id)}"]`)?.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
+    });
     year.addEventListener('change', () => {
       curriculumState.year = year.value;
       renderCurriculumGraph();
@@ -2101,6 +2186,38 @@ document.addEventListener('DOMContentLoaded', async () => {
       curriculumState.field = field.value;
       renderCurriculumGraph();
     });
+    zoomOut?.addEventListener('click', () => updateZoom(curriculumState.zoom - 0.1));
+    zoomIn?.addEventListener('click', () => updateZoom(curriculumState.zoom + 0.1));
+    zoomFit?.addEventListener('click', () => {
+      updateZoom(1);
+      if (graphScroll) {
+        graphScroll.scrollLeft = 0;
+        graphScroll.scrollTop = 0;
+      }
+    });
+    graphScroll?.addEventListener('wheel', (event) => {
+      if (!event.ctrlKey) return;
+      event.preventDefault();
+      updateZoom(curriculumState.zoom + (event.deltaY < 0 ? 0.08 : -0.08));
+    }, { passive: false });
+    let panState = null;
+    graphScroll?.addEventListener('pointerdown', (event) => {
+      if (event.target.closest('.curriculum-node, button, input, select')) return;
+      panState = { x: event.clientX, y: event.clientY, left: graphScroll.scrollLeft, top: graphScroll.scrollTop };
+      graphScroll.classList.add('is-panning');
+      graphScroll.setPointerCapture?.(event.pointerId);
+    });
+    graphScroll?.addEventListener('pointermove', (event) => {
+      if (!panState) return;
+      graphScroll.scrollLeft = panState.left - (event.clientX - panState.x);
+      graphScroll.scrollTop = panState.top - (event.clientY - panState.y);
+    });
+    const stopPan = () => {
+      panState = null;
+      graphScroll?.classList.remove('is-panning');
+    };
+    graphScroll?.addEventListener('pointerup', stopPan);
+    graphScroll?.addEventListener('pointercancel', stopPan);
     graph?.addEventListener('click', (event) => {
       if (!event.target.closest('.curriculum-node')) clearCurriculumFocus();
     });

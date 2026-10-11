@@ -132,9 +132,17 @@
       <div class="curriculum-tree-heading">
         <div>
           <h2 id="curriculum-tree-title">カリキュラムツリー</h2>
-          <p class="curriculum-tree-note">学年は推奨年次です。線は前提科目から後継科目への関係を示します。</p>
+          <p class="curriculum-tree-note">公式カリキュラムツリーの区分構造を参考にした、科目確認用の非公式プレビューです。線は登録上の前提条件を保証しません。</p>
         </div>
         <button id="curriculum-tree-close" class="curriculum-tree-close" type="button">一覧に戻る</button>
+      </div>
+      <div class="curriculum-structure-bar" aria-label="カリキュラム構造">
+        <span class="curriculum-structure-label">学修段階</span>
+        <span class="curriculum-track-badge is-intro">導入科目</span>
+        <span class="curriculum-track-badge is-foundation">基礎科目</span>
+        <span class="curriculum-track-badge is-advanced">展開科目</span>
+        <span class="curriculum-track-badge is-project">プロジェクト実践</span>
+        <span class="curriculum-structure-credit">卒業要件：124単位以上</span>
       </div>
       <div class="curriculum-tree-toolbar" role="search">
         <label class="curriculum-search-label" for="curriculum-tree-search">科目を検索</label>
@@ -156,10 +164,18 @@
         <span id="curriculum-tree-count" class="curriculum-tree-count" aria-live="polite"></span>
       </div>
       <div class="curriculum-tree-status" id="curriculum-tree-status" role="status" aria-live="polite"></div>
+      <div class="curriculum-tree-controls" aria-label="ツリー表示操作">
+        <button id="curriculum-zoom-out" type="button" aria-label="縮小">−</button>
+        <output id="curriculum-zoom-level" for="curriculum-zoom-out curriculum-zoom-in">100%</output>
+        <button id="curriculum-zoom-in" type="button" aria-label="拡大">＋</button>
+        <button id="curriculum-zoom-fit" type="button">全体表示</button>
+        <span>背景をドラッグして移動</span>
+      </div>
       <div class="curriculum-tree-workspace">
         <div class="curriculum-graph-scroll" id="curriculum-graph-scroll" tabindex="0" aria-label="カリキュラムツリー図">
           <div class="curriculum-graph" id="curriculum-graph">
             <svg class="curriculum-edges" id="curriculum-edges" aria-hidden="true"></svg>
+            <div class="curriculum-stage-axis" id="curriculum-stage-axis" aria-hidden="true"></div>
             <div class="curriculum-lanes" id="curriculum-lanes"></div>
           </div>
         </div>
