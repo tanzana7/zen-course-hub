@@ -19,7 +19,12 @@ test('phase 4 records the PDF rendering and visual inspection contract', () => {
     tileSizePx: 1950,
     stepPx: 1800,
     overlapPx: 150,
-    method: 'visual tile inspection'
+    method: 'visual tile inspection',
+    highResolution: {
+      renderDpi: 150,
+      regions: 16,
+      method: 'direct PDF regional render, visual inspection'
+    }
   });
   assert.deepEqual(definition.canvas, { width: 2400, height: 2388 });
   assert.deepEqual(definition.legend.creditColors.map((entry) => entry.credits), [1, 2, 4]);
@@ -37,12 +42,12 @@ test('phase 4 placements are unique, normalized, and mapped to existing courses'
         `${placement.courseId}.${key} must be normalized`);
     }
     assert.equal(placement.confidence, 'confirmed');
-    assert.equal(placement.verificationMethod, 'visual-tile-72dpi');
+    assert.match(placement.verificationMethod, /^visual-tile-(72|150)dpi$/);
   }
 });
 
 test('phase 4 keeps PDF-only subjects explicit instead of inventing IDs', () => {
-  assert.ok(definition.pdfOnlySubjects.includes('コンピュータサイエンス概論'));
+  assert.ok(definition.pdfOnlySubjects.includes('日本文学Ⅱ'));
   for (const subject of definition.pdfOnlySubjects) assert.equal(typeof subject, 'string');
 });
 

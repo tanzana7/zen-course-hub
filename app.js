@@ -265,7 +265,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     zoom: 1,
     panX: 0,
     panY: 0,
-    fullscreen: false
+    fullscreen: false,
+    enrollmentOpen: false,
+    enrollmentManualOpen: false,
+    enrollmentAutoOpened: false,
+    autoFit: true
+  };
+
+  // The map card handlers live outside setupCurriculumTree, so the drawer
+  // transition helper must be shared at this scope. Keeping the existing
+  // enrollment content and drop zone untouched preserves the normal
+  // myClasses storage path while allowing drag registration to reveal them.
+  const setCurriculumEnrollmentOpen = (open, { manual = false, auto = false } = {}) => {
+    const nextOpen = Boolean(open);
+    const enrollmentContent = document.getElementById('my-enrollment-content');
+    const dropZone = document.getElementById('curriculum-drop-zone');
+    const enrollmentDrawerToggle = document.getElementById('curriculum-enrollment-drawer-toggle');
+    const mobileEnrollmentToggle = document.getElementById('curriculum-mobile-enrollment-toggle');
+    curriculumState.enrollmentOpen = nextOpen;
+    if (manual) curriculumState.enrollmentManualOpen = nextOpen;
+    curriculumState.enrollmentAutoOpened = auto && nextOpen;
+    document.body.classList.toggle('curriculum-enrollment-open', nextOpen);
+    if (enrollmentContent) enrollmentContent.hidden = !nextOpen;
+    if (dropZone) dropZone.hidden = !nextOpen;
+    if (enrollmentDrawerToggle) {
+      enrollmentDrawerToggle.setAttribute('aria-expanded', String(nextOpen));
+      enrollmentDrawerToggle.textContent = nextOpen ? '通常履修を閉じる' : '通常履修';
+    }
+    if (mobileEnrollmentToggle) {
+      mobileEnrollmentToggle.hidden = !document.body.classList.contains('curriculum-tree-mode');
+      mobileEnrollmentToggle.setAttribute('aria-expanded', String(nextOpen));
+    }
   };
 
   // 探索一覧の表示設定だけを独立保存し、履修データのlocalStorage形式へ混ぜない。
@@ -1882,6 +1912,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       .map((placement) => [placement.courseId, placement]));
     const getPlacementColumn = (course) => {
       const placement = placementMap.get(course.id);
+      if (placement?.confidence === 'confirmed' && Number.isFinite(Number(placement.x))) {
+        const pdfX = Number(placement.x) * canvasWidth;
+        const nearest = columns.reduce((best, column) => {
+          const center = Number(column.x) + Number(column.width) / 2;
+          if (!best || Math.abs(center - pdfX) < best.distance) return { column, distance: Math.abs(center - pdfX) };
+          return best;
+        }, null);
+        if (nearest?.column) return nearest.column;
+      }
       // The PDF's orange introduction band spans the foundation columns. Use
       // the manually inspected horizontal coordinate for those cards instead
       // of routing every required course into the first semantic lane.
@@ -2139,6 +2178,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           node.addEventListener('keydown', (event) => { if (event.target === node && ['Enter', ' '].includes(event.key)) { event.preventDefault(); openDetail(); } });
           node.addEventListener('dragstart', (event) => {
             curriculumState.didDrag = true;
+            if (!curriculumState.enrollmentManualOpen) {
+              setCurriculumEnrollmentOpen(true, { auto: true });
+            }
             node.classList.add('is-dragging');
             event.dataTransfer?.setData('text/plain', course.id);
             event.dataTransfer?.setData('application/x-zen-course-id', course.id);
@@ -2148,7 +2190,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           node.addEventListener('dragend', () => {
             node.classList.remove('is-dragging');
             document.getElementById('curriculum-drop-zone')?.classList.remove('is-dragging', 'is-over');
-            window.setTimeout(() => { curriculumState.didDrag = false; }, 0);
+            window.setTimeout(() => {
+              curriculumState.didDrag = false;
+              if (curriculumState.enrollmentAutoOpened && !curriculumState.enrollmentManualOpen) {
+                setCurriculumEnrollmentOpen(false);
+              }
+            }, 120);
           });
           lane.appendChild(node);
         });
@@ -2204,6 +2251,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const zoomFit = document.getElementById('curriculum-zoom-fit');
     const zoomReset = document.getElementById('curriculum-zoom-reset');
     const fullscreen = document.getElementById('curriculum-fullscreen');
+    const enrollmentDrawerToggle = document.getElementById('curriculum-enrollment-drawer-toggle');
     const zoomLevel = document.getElementById('curriculum-zoom-level');
     if (!nav || !view || !dropZone || !search || !year || !field) return;
     let renderFrame = null;
@@ -2233,11 +2281,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!definition) return;
         state.curriculumLayoutDefinition = definition;
         curriculumState.layout = null;
-        if (document.body.classList.contains('curriculum-tree-mode')) renderCurriculumGraph();
+        if (document.body.classList.contains('curriculum-tree-mode')) {
+          renderCurriculumGraph();
+          window.requestAnimationFrame(() => fitCurriculumToViewport());
+        }
       });
     }
 
     const updateZoom = (nextZoom, anchor = null) => {
+      curriculumState.autoFit = false;
       const viewportRect = graphScroll?.getBoundingClientRect();
       const previousZoom = curriculumState.zoom;
       const next = Math.min(2.4, Math.max(0.25, Number(nextZoom.toFixed(2))));
@@ -2263,28 +2315,28 @@ document.addEventListener('DOMContentLoaded', async () => {
       curriculumState.zoom = Math.min(2.4, Math.max(0.25, Number(scale.toFixed(2))));
       curriculumState.panX = Math.max(14, (rect.width - layout.graphWidth * curriculumState.zoom) / 2);
       curriculumState.panY = Math.max(14, (rect.height - layout.graphHeight * curriculumState.zoom) / 2);
+      curriculumState.autoFit = true;
       scheduleCurriculumTransform();
     };
 
     const setMode = (enabled) => {
       document.body.classList.toggle('curriculum-tree-mode', enabled);
       view.hidden = !enabled;
-      dropZone.hidden = !enabled;
       if (enrollmentTitle) enrollmentTitle.textContent = enabled ? '通常履修' : 'マイ履修';
-      if (enrollmentContent) {
-        enrollmentContent.hidden = enabled && window.matchMedia('(max-width: 768px)').matches;
-      }
-      if (mobileEnrollmentToggle) {
-        mobileEnrollmentToggle.hidden = !enabled;
-        mobileEnrollmentToggle.setAttribute('aria-expanded', String(!enrollmentContent?.hidden));
-      }
+      setCurriculumEnrollmentOpen(enabled ? false : true);
       nav.setAttribute('aria-pressed', String(enabled));
       syncPrimaryViewNavigation(enabled ? 'tree' : 'list');
       if (enabled) {
-        curriculumState.panX = 14;
-        curriculumState.panY = 14;
+        curriculumState.enrollmentManualOpen = false;
+        curriculumState.enrollmentAutoOpened = false;
+        curriculumState.autoFit = true;
+        curriculumState.panX = 0;
+        curriculumState.panY = 0;
         renderCurriculumGraph();
-        search.focus({ preventScroll: true });
+        window.requestAnimationFrame(() => {
+          fitCurriculumToViewport();
+          search.focus({ preventScroll: true });
+        });
       } else {
         const detail = document.getElementById('curriculum-course-detail');
         if (detail) detail.hidden = true;
@@ -2296,9 +2348,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('course-list-nav')?.addEventListener('click', () => setMode(false));
     close?.addEventListener('click', () => setMode(false));
     mobileEnrollmentToggle?.addEventListener('click', () => {
-      if (!enrollmentContent) return;
-      enrollmentContent.hidden = !enrollmentContent.hidden;
-      mobileEnrollmentToggle.setAttribute('aria-expanded', String(!enrollmentContent.hidden));
+      setCurriculumEnrollmentOpen(!curriculumState.enrollmentOpen, { manual: true });
+    });
+    enrollmentDrawerToggle?.addEventListener('click', () => {
+      setCurriculumEnrollmentOpen(!curriculumState.enrollmentOpen, { manual: true });
     });
     search.addEventListener('input', () => {
       curriculumState.search = search.value;
@@ -2371,6 +2424,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!panState || pointers.size !== 1) return;
       curriculumState.panX = panState.panX + event.clientX - panState.x;
       curriculumState.panY = panState.panY + event.clientY - panState.y;
+      curriculumState.autoFit = false;
       scheduleCurriculumTransform();
     });
     const stopPan = (event) => {
@@ -2383,6 +2437,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     graphScroll?.addEventListener('pointercancel', stopPan);
     graph?.addEventListener('click', (event) => {
       if (!event.target.closest('.curriculum-node')) clearCurriculumFocus();
+    });
+    window.addEventListener('resize', () => {
+      if (!document.body.classList.contains('curriculum-tree-mode') || !curriculumState.autoFit) return;
+      window.requestAnimationFrame(() => fitCurriculumToViewport());
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && document.body.classList.contains('curriculum-tree-mode') && curriculumState.selectedId) {
