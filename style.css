@@ -3264,6 +3264,13 @@ body.curriculum-tree-explorer-mode .curriculum-graph-scroll { height: calc(100vh
 .curriculum-node.is-match { border-left-color: #0f766e; }
 .curriculum-node.is-registered { background: #eff6ff; border-left-color: #2563eb; }
 .curriculum-node.is-completed { background: #f0fdf4; border-left-color: #16a34a; }
+.curriculum-node.curriculum-credit-1 { background: #a7d8e6; }
+.curriculum-node.curriculum-credit-2 { background: #fff; }
+.curriculum-node.curriculum-credit-4 { background: #fff6bf; }
+.curriculum-node.is-provisional { border-style: dashed; opacity: .78; }
+.curriculum-node.is-provisional.is-match { opacity: .9; }
+.curriculum-node.is-registered, .curriculum-node.is-completed { background: #eff6ff; }
+.curriculum-node.is-completed { background: #f0fdf4; }
 .curriculum-node-title { overflow: hidden; font-size: 0.85rem; font-weight: 700; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
 .curriculum-node-meta { display: flex; gap: 5px; margin-top: 4px; overflow: hidden; color: #64748b; font-size: 0.72rem; white-space: nowrap; }
 .curriculum-node-meta span { overflow: hidden; text-overflow: ellipsis; }
@@ -3308,6 +3315,11 @@ body.curriculum-tree-mode .input-area { justify-content: flex-end; }
 .curriculum-track-badge.is-advanced { background: #d8f4f4; color: #0f6b70; }
 .curriculum-track-badge.is-project { background: #ffe1e8; color: #a51d43; }
 .curriculum-structure-credit { margin-left: auto; color: #475569; font-weight: 700; }
+.curriculum-map-legend { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; color: #475569; font-size: .75rem; white-space: nowrap; }
+.curriculum-credit-key { display: inline-flex; align-items: center; min-height: 22px; padding: 2px 6px; border: 1px solid #94a3b8; border-radius: 4px; color: #1e293b; font-weight: 700; }
+.curriculum-credit-key.credit-1 { background: #a7d8e6; }
+.curriculum-credit-key.credit-2 { background: #fff; }
+.curriculum-credit-key.credit-4 { background: #fff6bf; }
 .curriculum-tree-controls { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; color: #64748b; font-size: 0.78rem; }
 .curriculum-tree-controls button { min-width: 34px; min-height: 34px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; color: #334155; cursor: pointer; }
 .curriculum-tree-controls button:hover, .curriculum-tree-controls button:focus-visible { border-color: #2563eb; outline: 2px solid rgba(37, 99, 235, 0.2); }

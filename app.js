@@ -1834,7 +1834,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   const fallbackCurriculumDefinition = {
-    canvas: { width: 2400, height: 2100 },
+    canvas: { width: 2400, height: 2388 },
     bands: [],
     columns: [
       { id: 'foundation', label: '基盤リテラシー・数理', x: 178, width: 360, group: 'foundation', tags: ['情報', '数理'] },
@@ -1875,8 +1875,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   const buildCurriculumLayout = () => {
     const definition = getCurriculumDefinition();
     const canvasWidth = Number(definition.canvas?.width) || 2400;
-    const canvasHeight = Number(definition.canvas?.height) || 2100;
+    const canvasHeight = Number(definition.canvas?.height) || 2388;
     const columns = definition.columns?.length ? definition.columns : fallbackCurriculumDefinition.columns;
+    const placementMap = new Map((definition.coursePlacements || [])
+      .filter((placement) => placement && placement.courseId)
+      .map((placement) => [placement.courseId, placement]));
+    const getPlacementColumn = (course) => {
+      const placement = placementMap.get(course.id);
+      // The PDF's orange introduction band spans the foundation columns. Use
+      // the manually inspected horizontal coordinate for those cards instead
+      // of routing every required course into the first semantic lane.
+      if (placement?.category === '導入科目') {
+        const x = Number(placement.x);
+        const columnId = x < 0.225 ? 'foundation' : x < 0.375 ? 'foundation-social' : x < 0.44 ? 'multilingual' : x < 0.575 ? 'culture' : x < 0.715 ? 'social' : x < 0.85 ? 'economy' : 'free';
+        return columns.find((column) => column.id === columnId) || getOfficialColumn(course, definition);
+      }
+      return getOfficialColumn(course, definition);
+    };
     const positions = new Map();
     const byColumn = new Map(columns.map((column) => [column.id, []]));
     const compareCourses = (a, b) => {
@@ -1885,7 +1900,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return yearA - yearB || String(a.subject || '').localeCompare(String(b.subject || ''), 'ja');
     };
     state.predefinedData.forEach((course) => {
-      const column = getOfficialColumn(course, definition) || columns[0];
+      const column = getPlacementColumn(course) || columns[0];
       if (column && byColumn.has(column.id)) byColumn.get(column.id).push(course);
     });
     byColumn.forEach((items) => items.sort((a, b) => {
@@ -1906,7 +1921,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         const bucket = course.tag === '卒業プロジェクト' ? 3 : course.category === '必修' ? 0 : course.foundationRequirement ? 1 : 2;
         const bucketOffset = bucket === 0 ? 0 : bucket === 1 ? 132 : bucket === 2 ? 312 : 1760;
         const y = Math.min(bottom - cardHeight, top + bucketOffset + row * (cardHeight + 10));
-        positions.set(course.id, { x: x + cardWidth / 2, y: y + cardHeight / 2, left: x, top: y, lane: column.id, officialGroup: column.group, stage: getCurriculumStage(course) });
+        const placement = placementMap.get(course.id);
+        const requestedX = placement ? Number(placement.x) * canvasWidth : null;
+        const requestedY = placement ? Number(placement.y) * canvasHeight : null;
+        const requestedWidth = placement ? Number(placement.width) * canvasWidth : null;
+        const requestedHeight = placement ? Number(placement.height) * canvasHeight : null;
+        const nodeWidth = Number.isFinite(requestedWidth) && requestedWidth > 72 ? Math.min(170, requestedWidth) : cardWidth;
+        const nodeHeight = Number.isFinite(requestedHeight) && requestedHeight > 48 ? Math.min(96, requestedHeight) : cardHeight;
+        // PDF coordinates are global. Clamp only the final card box to its
+        // semantic lane so narrow metadata columns never leak into neighbors.
+        const laneLeft = Number(column.x) + 9;
+        const laneRight = Number(column.x) + Number(column.width) - nodeWidth - 9;
+        const positionedX = Number.isFinite(requestedX)
+          ? Math.min(laneRight, Math.max(laneLeft, requestedX))
+          : x;
+        const positionedY = Number.isFinite(requestedY)
+          ? Math.min(canvasHeight - nodeHeight - 18, Math.max(150, requestedY))
+          : Math.min(bottom - cardHeight, y);
+        positions.set(course.id, {
+          x: positionedX + nodeWidth / 2,
+          y: positionedY + nodeHeight / 2,
+          left: positionedX,
+          top: positionedY,
+          width: nodeWidth,
+          height: nodeHeight,
+          lane: column.id,
+          officialGroup: column.group,
+          stage: getCurriculumStage(course),
+          officialConfidence: placement?.confidence || 'provisional',
+          verificationMethod: placement?.verificationMethod || 'structure-fallback'
+        });
       });
     });
     return { definition, columns, positions, byColumn, graphWidth: canvasWidth, graphHeight: canvasHeight, nodeWidth: cardWidth, nodeHeight: cardHeight };
@@ -2066,8 +2110,14 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (course.id === curriculumState.selectedId) node.classList.add('is-selected');
           if (isRegistered) node.classList.add('is-registered');
           if (isCompleted) node.classList.add('is-completed');
+          node.classList.add(`curriculum-credit-${String(course.credits || '').replace(/[^0-9]/g, '') || 'unknown'}`);
+          if (position.officialConfidence !== 'confirmed') node.classList.add('is-provisional');
           node.dataset.courseId = course.id;
-          node.dataset.officialConfidence = 'structure-only';
+          node.dataset.officialConfidence = position.officialConfidence;
+          node.dataset.verificationMethod = position.verificationMethod;
+          node.title = position.officialConfidence === 'confirmed'
+            ? '公式PDFで配置を確認済み'
+            : '公式PDF上の位置未確認（暫定配置）';
           node.draggable = true;
           node.tabIndex = 0;
           node.setAttribute('role', 'button');
@@ -2075,8 +2125,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           const statusLabel = isCompleted ? '履修済み' : isRegistered ? 'マイ履修' : '';
           node.style.top = `${position.top}px`;
           node.style.left = `${position.left - column.x}px`;
-          node.style.width = `${layout.nodeWidth}px`;
-          node.style.height = `${layout.nodeHeight}px`;
+          node.style.width = `${position.width || layout.nodeWidth}px`;
+          node.style.height = `${position.height || layout.nodeHeight}px`;
           node.innerHTML = `<div class="curriculum-node-title">${escapeHTML(course.subject)}</div><div class="curriculum-node-meta"><span class="curriculum-node-track">${escapeHTML(getCurriculumTrack(course))}</span><span>${escapeHTML(course.credits)}単位</span><span>${escapeHTML(course.quarter || '開講Q未登録')}</span>${statusLabel ? `<span class="curriculum-node-status">${statusLabel}</span>` : ''}</div>`;
           const openDetail = () => {
             if (curriculumState.didDrag) return;
