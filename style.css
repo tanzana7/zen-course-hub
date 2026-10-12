@@ -2211,6 +2211,81 @@ body.simulator-view-active > #analysis-modal {
   }
 }
 
+/* Phase 3: the official-map canvas uses one stable coordinate system.  The
+   viewport is the only clipped surface; the map itself is transformed for
+   pan/zoom so card positions never change when the zoom level changes. */
+.curriculum-graph-scroll {
+  position: relative;
+  height: min(76vh, 920px);
+  max-height: none;
+  overflow: hidden;
+  touch-action: none;
+  background: #eef2f7;
+  cursor: grab;
+}
+.curriculum-graph-scroll.is-panning { cursor: grabbing; }
+.curriculum-graph-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.curriculum-graph {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, .12);
+  border: 1px solid #cbd5e1;
+}
+.curriculum-graph::before {
+  content: "公式図を参考にした非公式プレビュー";
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  z-index: 5;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+}
+.curriculum-tree-controls { flex-wrap: wrap; }
+.curriculum-tree-controls button { padding-inline: 10px; }
+.curriculum-tree-controls button#curriculum-fullscreen { margin-left: auto; }
+.curriculum-lane { border-right: 1px solid rgba(100, 116, 139, .28); }
+.curriculum-lane[data-official-group="foundation"] { background: rgba(37, 84, 173, .08); }
+.curriculum-lane[data-official-group="multilingual"] { background: rgba(244, 63, 94, .08); }
+.curriculum-lane[data-official-group="world"] { background: rgba(20, 184, 166, .08); }
+.curriculum-lane[data-official-group="social"] { background: rgba(161, 161, 74, .08); }
+.curriculum-lane[data-official-group="free"] { background: rgba(126, 87, 153, .08); }
+.curriculum-node { border-radius: 3px; box-shadow: 0 1px 2px rgba(15,23,42,.10); }
+.curriculum-node[data-official-confidence="unverified"] { border-style: dashed; }
+.curriculum-edge.is-reference { stroke-dasharray: 4 4; opacity: .28; }
+body.curriculum-tree-explorer-mode { overflow: hidden; }
+body.curriculum-tree-explorer-mode .curriculum-tree-view {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  overflow: auto;
+  padding: 16px 20px 20px;
+  background: #eef2f7;
+}
+body.curriculum-tree-explorer-mode .curriculum-tree-heading { margin-bottom: 8px; }
+body.curriculum-tree-explorer-mode .curriculum-tree-note { display: none; }
+body.curriculum-tree-explorer-mode .curriculum-tree-workspace { min-height: calc(100vh - 190px); }
+body.curriculum-tree-explorer-mode .curriculum-graph-scroll { height: calc(100vh - 190px); }
+body.curriculum-tree-explorer-mode #curriculum-tree-close { position: sticky; top: 0; z-index: 10; }
+@media (max-width: 1100px) {
+  .curriculum-tree-controls button#curriculum-fullscreen { margin-left: 0; }
+}
+@media (max-width: 640px) {
+  .curriculum-graph-scroll { height: 68vh; min-height: 420px; }
+  .curriculum-tree-controls span { display: none; }
+  .curriculum-tree-controls button#curriculum-fullscreen { margin-left: 0; }
+  body.curriculum-tree-explorer-mode .curriculum-tree-view { padding: 8px; }
+  body.curriculum-tree-explorer-mode .curriculum-graph-scroll { height: calc(100vh - 148px); }
+}
+
 /* 卒業要件v2: 修得済み / 予定込みを並べても、狭い画面では縦に流れるようにする。 */
 .graduation-analysis {
   border: 2px solid #007bff;
@@ -2823,6 +2898,31 @@ body.simulator-view-active > #analysis-modal {
   }
 }
 
+/* Phase 3 final overrides: transformed official-map canvas. */
+.curriculum-graph-scroll { position: relative; height: min(76vh, 920px); max-height: none; overflow: hidden; touch-action: none; background: #eef2f7; cursor: grab; }
+.curriculum-tree-workspace { grid-template-columns: minmax(0, 1fr); }
+.curriculum-tree-workspace:has(.curriculum-course-detail:not([hidden])) { grid-template-columns: minmax(0, 1fr) 300px; }
+body.curriculum-tree-mode .curriculum-mobile-enrollment-toggle { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 6px 10px; border: 1px solid #2563eb; border-radius: 7px; background: #eff6ff; color: #1d4ed8; font: inherit; font-size: .82rem; font-weight: 700; }
+.curriculum-graph-scroll.is-panning { cursor: grabbing; user-select: none; }
+.curriculum-graph-viewport { position: absolute; inset: 0; overflow: hidden; }
+.curriculum-graph { position: absolute; top: 0; left: 0; transform-origin: 0 0; background: #fff; border: 1px solid #cbd5e1; box-shadow: 0 10px 28px rgba(15, 23, 42, .12); }
+.curriculum-graph::before { content: "公式図を参考にした非公式プレビュー"; position: absolute; top: 18px; right: 24px; z-index: 5; color: #64748b; font-size: 12px; font-weight: 700; pointer-events: none; }
+.curriculum-official-band { position: absolute; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(30,41,59,.24); color: #fff; font-size: 22px; font-weight: 800; opacity: .9; }
+.curriculum-official-band span { text-shadow: 0 1px 2px rgba(15,23,42,.25); }
+.curriculum-official-band.introduction, .curriculum-official-band.project { color: #5f3700; }
+.curriculum-official-band.foundation, .curriculum-official-band.advanced { opacity: .1; }
+.curriculum-lane[data-official-group="foundation"] { background: rgba(37, 84, 173, .08); }
+.curriculum-lane[data-official-group="multilingual"] { background: rgba(244, 63, 94, .08); }
+.curriculum-lane[data-official-group="world"] { background: rgba(20, 184, 166, .08); }
+.curriculum-lane[data-official-group="free"] { background: rgba(126, 87, 153, .08); }
+.curriculum-node { border-radius: 3px; box-shadow: 0 1px 2px rgba(15,23,42,.10); }
+.curriculum-edge.is-reference { stroke-dasharray: 4 4; opacity: .28; }
+body.curriculum-tree-explorer-mode { overflow: hidden; }
+body.curriculum-tree-explorer-mode .curriculum-tree-view { position: fixed; inset: 0; z-index: 2000; overflow: auto; padding: 16px 20px 20px; background: #eef2f7; }
+body.curriculum-tree-explorer-mode .curriculum-tree-note { display: none; }
+body.curriculum-tree-explorer-mode .curriculum-graph-scroll { height: calc(100vh - 190px); }
+@media (max-width: 640px) { .curriculum-graph-scroll { height: 68vh; min-height: 420px; } body.curriculum-tree-explorer-mode .curriculum-tree-view { padding: 8px; } body.curriculum-tree-explorer-mode .curriculum-graph-scroll { height: calc(100vh - 148px); } }
+
 @media screen and (max-width: 420px) {
   .input-area {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -3217,6 +3317,13 @@ body.curriculum-tree-mode .input-area { justify-content: flex-end; }
 .curriculum-graph-scroll.is-panning { cursor: grabbing; user-select: none; }
 .curriculum-graph { background-size: var(--curriculum-lane-width, 252px) 100%, 100% 120px; }
 .curriculum-stage-axis { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.curriculum-official-band { position: absolute; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(30,41,59,.24); color: #fff; font-size: 22px; font-weight: 800; opacity: .9; }
+.curriculum-official-band span { text-shadow: 0 1px 2px rgba(15,23,42,.25); }
+.curriculum-official-band.introduction { color: #5f3700; }
+.curriculum-official-band.foundation { opacity: .11; }
+.curriculum-official-band.advanced { opacity: .08; }
+.curriculum-official-band.project { color: #5f3700; }
+.curriculum-official-band.dp { color: #fff; }
 .curriculum-stage-band { position: absolute; left: 0; right: 0; border-top: 1px solid #cbd5e1; background: rgba(241, 245, 249, 0.78); }
 .curriculum-stage-band:nth-child(even) { background: rgba(248, 250, 252, 0.9); }
 .curriculum-stage-band span { position: absolute; top: 8px; left: 10px; width: 92px; color: #475569; font-size: 0.72rem; font-weight: 800; line-height: 1.25; }
@@ -3420,3 +3527,27 @@ body.curriculum-tree-mode .filter-actions {
     font-size: 0.86rem;
   }
 }
+
+/* Phase 3 final cascade: transformed official-map canvas. */
+.curriculum-tree-workspace { grid-template-columns: minmax(0, 1fr); }
+.curriculum-tree-workspace:has(.curriculum-course-detail:not([hidden])) { grid-template-columns: minmax(0, 1fr) 300px; }
+.curriculum-graph-scroll { position: relative; height: min(76vh, 920px); max-height: none; overflow: hidden; touch-action: none; background: #eef2f7; cursor: grab; }
+.curriculum-graph-scroll.is-panning { cursor: grabbing; user-select: none; }
+.curriculum-graph-viewport { position: absolute; inset: 0; overflow: hidden; }
+.curriculum-graph { position: absolute; top: 0; left: 0; transform-origin: 0 0; background: #fff; border: 1px solid #cbd5e1; box-shadow: 0 10px 28px rgba(15, 23, 42, .12); }
+.curriculum-graph::before { content: "公式図を参考にした非公式プレビュー"; position: absolute; top: 18px; right: 24px; z-index: 5; color: #64748b; font-size: 12px; font-weight: 700; pointer-events: none; }
+.curriculum-official-band { position: absolute; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(30,41,59,.24); color: #fff; font-size: 22px; font-weight: 800; opacity: .9; }
+.curriculum-official-band span { text-shadow: 0 1px 2px rgba(15,23,42,.25); }
+.curriculum-official-band.introduction, .curriculum-official-band.project { color: #5f3700; }
+.curriculum-official-band.foundation, .curriculum-official-band.advanced { opacity: .1; }
+.curriculum-lane[data-official-group="foundation"] { background: rgba(37, 84, 173, .08); }
+.curriculum-lane[data-official-group="multilingual"] { background: rgba(244, 63, 94, .08); }
+.curriculum-lane[data-official-group="world"] { background: rgba(20, 184, 166, .08); }
+.curriculum-lane[data-official-group="free"] { background: rgba(126, 87, 153, .08); }
+.curriculum-node { border-radius: 3px; box-shadow: 0 1px 2px rgba(15,23,42,.10); }
+.curriculum-edge.is-reference { stroke-dasharray: 4 4; opacity: .28; }
+body.curriculum-tree-explorer-mode { overflow: hidden; }
+body.curriculum-tree-explorer-mode .curriculum-tree-view { position: fixed; inset: 0; z-index: 2000; overflow: auto; padding: 16px 20px 20px; background: #eef2f7; }
+body.curriculum-tree-explorer-mode .curriculum-tree-note { display: none; }
+body.curriculum-tree-explorer-mode .curriculum-graph-scroll { height: calc(100vh - 190px); }
+@media (max-width: 640px) { .curriculum-graph-scroll { height: 68vh; min-height: 420px; } body.curriculum-tree-explorer-mode .curriculum-tree-view { padding: 8px; } body.curriculum-tree-explorer-mode .curriculum-graph-scroll { height: calc(100vh - 148px); } }

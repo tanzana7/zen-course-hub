@@ -136,6 +136,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     simulatorPlacementFilter: 'all',
     graduationDefinition: null,
     courseValidationError: null,
+    curriculumLayoutDefinition: null,
     coursesReady: false,
     rawRelations: [],
     storageWritable: enrollmentStorage.writable,
@@ -261,7 +262,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     selectedId: '',
     didDrag: false,
     layout: null,
-    zoom: 1
+    zoom: 1,
+    panX: 0,
+    panY: 0,
+    fullscreen: false
   };
 
   // 探索一覧の表示設定だけを独立保存し、履修データのlocalStorage形式へ混ぜない。
@@ -383,6 +387,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
       console.warn('前提・後継科目データを読み込めませんでした。関連科目欄を非表示にします:', error);
       return [];
+    }
+  };
+
+  const loadCurriculumLayoutDefinition = async () => {
+    try {
+      const response = await fetch('curriculum-tree-layout.json');
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const definition = await response.json();
+      if (!definition?.canvas || !Array.isArray(definition.columns) || !Array.isArray(definition.bands)) {
+        throw new TypeError('カリキュラムツリー配置定義の形式が不正です');
+      }
+      return definition;
+    } catch (error) {
+      console.warn('公式配置定義を読み込めませんでした。既定の構図を使用します:', error);
+      return null;
     }
   };
 
@@ -1793,9 +1812,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   /**
-   * PDFのCP1〜CP4の情報構造を、既存courses.jsonの年次メタデータへ対応させる。
-   * PDF上の矢印は公式の履修前提条件とは明記されていないため、線は既存の
-   * relationデータを「参考関係」としてのみ表示し、履修可否の判定には使わない。
+   * PDFの構図を固定した正規化キャンバスへ科目を割り当てる。
+   * 個別科目の位置を文字の読めないPDFから推測しないため、公式図で確認できる
+   * 大分類だけを配置定義へ持ち、同じ区分内のカードは既存メタデータの順で並べる。
+   * 参考関係の線は公式の履修前提条件ではないので、表示時にも明示的に区別する。
    */
   const getCurriculumStage = (course) => {
     const stage = String(course?.year || '').trim();
@@ -1813,54 +1833,83 @@ document.addEventListener('DOMContentLoaded', async () => {
     return '展開科目';
   };
 
+  const fallbackCurriculumDefinition = {
+    canvas: { width: 2400, height: 2100 },
+    bands: [],
+    columns: [
+      { id: 'foundation', label: '基盤リテラシー・数理', x: 178, width: 360, group: 'foundation', tags: ['情報', '数理'] },
+      { id: 'foundation-social', label: '基礎・社会ネットワーク', x: 542, width: 350, group: 'foundation', tags: ['社会・ネットワーク'] },
+      { id: 'multilingual', label: '多言語情報理解', x: 900, width: 140, group: 'multilingual', tags: ['多言語'] },
+      { id: 'culture', label: '文化・思想', x: 1058, width: 320, group: 'world', tags: ['文化・思想'] },
+      { id: 'social', label: '社会・ネットワーク', x: 1386, width: 320, group: 'world', tags: ['社会・ネットワーク', '社会接続'] },
+      { id: 'economy', label: '経済・マーケット', x: 1714, width: 320, group: 'world', tags: ['経済・マーケット', 'デジタル産業'] },
+      { id: 'free', label: '社会接続・自由科目', x: 2048, width: 330, group: 'free', tags: ['自由科目'] }
+    ]
+  };
+
+  const getCurriculumDefinition = () => state.curriculumLayoutDefinition || fallbackCurriculumDefinition;
+
+  const getOfficialColumn = (course, definition) => {
+    const columns = definition.columns || [];
+    const tag = getCurriculumField(course);
+    // The official map places project practice with the world-understanding area.
+    // Keep it in a real world column even though the layout definition uses
+    // separate band metadata rather than a synthetic `world` column.
+    if (course?.tag === '卒業プロジェクト') {
+      return columns.find((column) => column.id === 'culture')
+        || columns.find((column) => column.group === 'world')
+        || columns[0];
+    }
+    if (course?.category === '自由' || tag === '自由科目') return columns.find((column) => column.id === 'free') || columns.at(-1);
+    if (tag === '多言語') return columns.find((column) => column.id === 'multilingual') || columns[2] || columns[0];
+    if (tag === '文化・思想') return columns.find((column) => column.id === 'culture') || columns[3] || columns[0];
+    if (tag === '経済・マーケット' || tag === 'デジタル産業') return columns.find((column) => column.id === 'economy') || columns[5] || columns[0];
+    if (tag === '社会・ネットワーク' || tag === '社会接続') return columns.find((column) => column.id === 'social') || columns[4] || columns[0];
+    if (tag === '情報' || tag === '数理' || course?.category === '必修') {
+      const id = tag === '社会・ネットワーク' ? 'foundation-social' : 'foundation';
+      return columns.find((column) => column.id === id) || columns[0];
+    }
+    return columns.find((column) => column.id === 'foundation-social') || columns[1] || columns[0];
+  };
+
   const buildCurriculumLayout = () => {
-    const stageNames = ['1年次', '2年次', '3年次', '4年次', '未分類'];
-    const stageLabels = { '1年次': 'CP1・導入', '2年次': 'CP2・基礎', '3年次': 'CP3・展開', '4年次': 'CP4・実践', '未分類': '年次未分類' };
-    const preferredFields = ['必修', '情報', '数理', '多言語', '文化・思想', '社会・ネットワーク', '経済・マーケット', '社会接続', 'デジタル産業', '自由科目', '卒業プロジェクト'];
-    const fields = [...new Set(state.predefinedData.map(getCurriculumField))];
-    const laneNames = [...preferredFields.filter((field) => fields.includes(field)), ...fields.filter((field) => !preferredFields.includes(field)).sort((a, b) => a.localeCompare(b, 'ja'))];
-    const laneWidth = 252;
-    const axisWidth = 112;
-    const nodeHeight = 112;
-    const nodeGap = 8;
-    const graphTop = 58;
-    const stageHeaderHeight = 30;
+    const definition = getCurriculumDefinition();
+    const canvasWidth = Number(definition.canvas?.width) || 2400;
+    const canvasHeight = Number(definition.canvas?.height) || 2100;
+    const columns = definition.columns?.length ? definition.columns : fallbackCurriculumDefinition.columns;
     const positions = new Map();
-    const byFieldStage = new Map(laneNames.map((field) => [field, new Map(stageNames.map((stage) => [stage, []]))]));
-    const compareCourses = (a, b) => String(a.subject || '').localeCompare(String(b.subject || ''), 'ja');
-
+    const byColumn = new Map(columns.map((column) => [column.id, []]));
+    const compareCourses = (a, b) => {
+      const yearA = Number.parseInt(a.year, 10) || 99;
+      const yearB = Number.parseInt(b.year, 10) || 99;
+      return yearA - yearB || String(a.subject || '').localeCompare(String(b.subject || ''), 'ja');
+    };
     state.predefinedData.forEach((course) => {
-      const field = getCurriculumField(course);
-      if (!byFieldStage.has(field)) byFieldStage.set(field, new Map(stageNames.map((stage) => [stage, []])));
-      byFieldStage.get(field).get(getCurriculumStage(course)).push(course);
+      const column = getOfficialColumn(course, definition) || columns[0];
+      if (column && byColumn.has(column.id)) byColumn.get(column.id).push(course);
     });
-    byFieldStage.forEach((stages) => stages.forEach((items) => items.sort(compareCourses)));
-
-    const rowHeights = stageNames.map((stage) => {
-      const maxItems = Math.max(1, ...laneNames.map((field) => byFieldStage.get(field)?.get(stage)?.length || 0));
-      return stageHeaderHeight + maxItems * (nodeHeight + nodeGap) + 18;
-    });
-    const rowOffsets = [];
-    let offset = graphTop;
-    rowHeights.forEach((height) => { rowOffsets.push(offset); offset += height; });
-    const graphWidth = axisWidth + Math.max(1, laneNames.length) * laneWidth;
-    const graphHeight = offset + 24;
-
-    laneNames.forEach((laneName, laneIndex) => {
-      stageNames.forEach((stage, stageIndex) => {
-        const items = byFieldStage.get(laneName)?.get(stage) || [];
-        items.forEach((course, index) => {
-          positions.set(course.id, {
-            x: axisWidth + laneIndex * laneWidth + laneWidth / 2,
-            y: rowOffsets[stageIndex] + stageHeaderHeight + index * (nodeHeight + nodeGap) + nodeHeight / 2,
-            lane: laneName,
-            stage
-          });
-        });
+    byColumn.forEach((items) => items.sort((a, b) => {
+      const bucket = (course) => course.tag === '卒業プロジェクト' ? 3 : course.category === '必修' ? 0 : course.foundationRequirement ? 1 : 2;
+      return bucket(a) - bucket(b) || compareCourses(a, b);
+    }));
+    const cardWidth = 142;
+    const cardHeight = 76;
+    const top = 178;
+    const bottom = Math.max(1900, canvasHeight - 120);
+    columns.forEach((column) => {
+      const items = byColumn.get(column.id) || [];
+      const cols = Math.max(1, Math.floor((Number(column.width) - 18) / (cardWidth + 8)));
+      items.forEach((course, index) => {
+        const row = Math.floor(index / cols);
+        const col = index % cols;
+        const x = Number(column.x) + 9 + col * (cardWidth + 8);
+        const bucket = course.tag === '卒業プロジェクト' ? 3 : course.category === '必修' ? 0 : course.foundationRequirement ? 1 : 2;
+        const bucketOffset = bucket === 0 ? 0 : bucket === 1 ? 132 : bucket === 2 ? 312 : 1760;
+        const y = Math.min(bottom - cardHeight, top + bucketOffset + row * (cardHeight + 10));
+        positions.set(course.id, { x: x + cardWidth / 2, y: y + cardHeight / 2, left: x, top: y, lane: column.id, officialGroup: column.group, stage: getCurriculumStage(course) });
       });
     });
-
-    return { lanes: laneNames.map((name) => [name, byFieldStage.get(name)]), axisWidth, laneWidth, nodeHeight, nodeGap, graphTop, stageHeaderHeight, stageNames, stageLabels, rowHeights, rowOffsets, graphWidth, graphHeight, positions, byFieldStage };
+    return { definition, columns, positions, byColumn, graphWidth: canvasWidth, graphHeight: canvasHeight, nodeWidth: cardWidth, nodeHeight: cardHeight };
   };
 
   const getCurriculumMatch = (course) => {
@@ -1887,6 +1936,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!status) return;
     status.textContent = message;
     status.classList.toggle('is-error', isError);
+  };
+
+  // Pan/zoom only changes the shared map transform. Keeping this separate from
+  // the card rebuild means pointer movement never recreates all 275 course nodes.
+  const applyCurriculumTransform = () => {
+    const graph = document.getElementById('curriculum-graph');
+    if (!graph) return;
+    graph.style.transformOrigin = '0 0';
+    graph.style.transform = `translate(${curriculumState.panX || 0}px, ${curriculumState.panY || 0}px) scale(${curriculumState.zoom})`;
+    const zoomLevel = document.getElementById('curriculum-zoom-level');
+    if (zoomLevel) zoomLevel.textContent = `${Math.round(curriculumState.zoom * 100)}%`;
   };
 
   const clearCurriculumFocus = () => {
@@ -1959,53 +2019,40 @@ document.addEventListener('DOMContentLoaded', async () => {
       curriculumState.layout = layout;
       graph.style.width = `${layout.graphWidth}px`;
       graph.style.height = `${layout.graphHeight}px`;
-      graph.style.setProperty('--curriculum-lane-width', `${layout.laneWidth}px`);
-      graph.style.transform = `scale(${curriculumState.zoom})`;
-      graph.style.transformOrigin = 'top left';
+      graph.style.transformOrigin = '0 0';
+      graph.style.transform = `translate(${curriculumState.panX || 0}px, ${curriculumState.panY || 0}px) scale(${curriculumState.zoom})`;
       lanesHost.innerHTML = '';
       if (stageAxis) stageAxis.innerHTML = '';
-      edgesHost.innerHTML = `
-        <defs>
-          <marker id="curriculum-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z"></path>
-          </marker>
-        </defs>
-      `;
+      edgesHost.innerHTML = '<defs><marker id="curriculum-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 0 z"></path></marker></defs>';
       edgesHost.setAttribute('width', String(layout.graphWidth));
       edgesHost.setAttribute('height', String(layout.graphHeight));
       edgesHost.setAttribute('viewBox', `0 0 ${layout.graphWidth} ${layout.graphHeight}`);
+      (layout.definition.bands || []).forEach((band) => {
+        if (!stageAxis) return;
+        const bandEl = document.createElement('div');
+        bandEl.className = `curriculum-official-band ${band.id}`;
+        Object.assign(bandEl.style, { left: `${band.x}px`, top: `${band.y}px`, width: `${band.width}px`, height: `${band.height}px`, background: band.color || '' });
+        bandEl.innerHTML = `<span>${escapeHTML(band.label || '')}</span>`;
+        stageAxis.appendChild(bandEl);
+      });
 
       const focusIds = getCurriculumFocusIds();
       const hasFocus = focusIds.size > 0;
-      const coursesById = state.coursesMap;
       const matchesById = new Map();
       let matchCount = 0;
       const hasActiveFilter = Boolean(curriculumState.search.trim() || curriculumState.year !== 'すべて表示' || curriculumState.field !== 'すべて表示');
-
-      layout.stageNames.forEach((stage, stageIndex) => {
-        if (!stageAxis) return;
-        const band = document.createElement('div');
-        band.className = `curriculum-stage-band stage-${stageIndex + 1}`;
-        band.style.top = `${layout.rowOffsets[stageIndex]}px`;
-        band.style.height = `${layout.rowHeights[stageIndex]}px`;
-        band.innerHTML = `<span>${escapeHTML(layout.stageLabels[stage])}</span>`;
-        stageAxis.appendChild(band);
-      });
-
-      layout.lanes.forEach(([laneName, stages], laneIndex) => {
+      layout.columns.forEach((column) => {
         const lane = document.createElement('section');
         lane.className = 'curriculum-lane';
-        lane.style.left = `${layout.axisWidth + laneIndex * layout.laneWidth}px`;
-        lane.style.width = `${layout.laneWidth}px`;
+        lane.dataset.officialGroup = column.group || '';
+        lane.style.left = `${column.x}px`;
+        lane.style.width = `${column.width}px`;
         lane.style.height = `${layout.graphHeight}px`;
-        // A field lane can contain several curriculum tracks; keep the header
-        // neutral instead of deriving a potentially misleading track label
-        // from whichever course happens to be first in the lane.
-        lane.innerHTML = `<h3><span>${escapeHTML(laneName)}</span><small>科目群</small></h3>`;
-
-        layout.stageNames.forEach((stage, stageIndex) => {
-          const courses = stages.get(stage) || [];
-          courses.forEach((course, index) => {
+        lane.innerHTML = `<h3><span>${escapeHTML(column.label)}</span><small>公式区分（構造）</small></h3>`;
+        const courses = layout.byColumn.get(column.id) || [];
+        courses.forEach((course) => {
+          const position = layout.positions.get(course.id);
+          if (!position) return;
           const matches = getCurriculumMatch(course);
           matchesById.set(course.id, matches);
           if (matches) matchCount += 1;
@@ -2013,69 +2060,39 @@ document.addEventListener('DOMContentLoaded', async () => {
           const isCompleted = state.completedClasses.has(course.id);
           const relatedToFocus = !hasFocus || focusIds.has(course.id);
           const node = document.createElement('article');
-          node.className = 'curriculum-node';
-          if (matches) node.classList.add('is-match');
-          else node.classList.add('is-dimmed');
+          node.className = `curriculum-node official-${position.officialGroup || 'unknown'}`;
+          if (matches) node.classList.add('is-match'); else node.classList.add('is-dimmed');
           if (!relatedToFocus) node.classList.add('is-out-of-focus');
           if (course.id === curriculumState.selectedId) node.classList.add('is-selected');
           if (isRegistered) node.classList.add('is-registered');
           if (isCompleted) node.classList.add('is-completed');
           node.dataset.courseId = course.id;
+          node.dataset.officialConfidence = 'structure-only';
           node.draggable = true;
           node.tabIndex = 0;
           node.setAttribute('role', 'button');
           node.setAttribute('aria-label', `${course.subject}の科目詳細`);
-
           const statusLabel = isCompleted ? '履修済み' : isRegistered ? 'マイ履修' : '';
-          const addLabel = isRegistered ? 'マイ履修 ✓' : isCompleted ? 'マイ履修に戻す' : 'マイ履修に追加';
-          node.style.top = `${layout.rowOffsets[stageIndex] + layout.stageHeaderHeight + index * (layout.nodeHeight + layout.nodeGap)}px`;
-          node.style.left = '12px';
-          node.style.width = `${layout.laneWidth - 24}px`;
-          node.innerHTML = `
-            <div class="curriculum-node-title">${escapeHTML(course.subject)}</div>
-            <div class="curriculum-node-meta">
-              <span class="curriculum-node-track">${escapeHTML(getCurriculumTrack(course))}</span>
-              <span>${escapeHTML(course.credits)}単位</span>
-              <span>${escapeHTML(course.quarter || '開講Q未登録')}</span>
-              ${statusLabel ? `<span class="curriculum-node-status">${statusLabel}</span>` : ''}
-            </div>
-            <div class="curriculum-node-actions">
-              <button type="button" class="curriculum-detail-btn">詳細</button>
-              <button type="button" class="curriculum-add-btn" ${isRegistered ? 'disabled' : ''}>${addLabel}</button>
-            </div>
-          `;
-
+          node.style.top = `${position.top}px`;
+          node.style.left = `${position.left - column.x}px`;
+          node.style.width = `${layout.nodeWidth}px`;
+          node.style.height = `${layout.nodeHeight}px`;
+          node.innerHTML = `<div class="curriculum-node-title">${escapeHTML(course.subject)}</div><div class="curriculum-node-meta"><span class="curriculum-node-track">${escapeHTML(getCurriculumTrack(course))}</span><span>${escapeHTML(course.credits)}単位</span><span>${escapeHTML(course.quarter || '開講Q未登録')}</span>${statusLabel ? `<span class="curriculum-node-status">${statusLabel}</span>` : ''}</div>`;
           const openDetail = () => {
             if (curriculumState.didDrag) return;
-            if (curriculumState.selectedId === course.id) {
-              clearCurriculumFocus();
-              return;
-            }
+            if (curriculumState.selectedId === course.id) return clearCurriculumFocus();
             openCurriculumCourseDetail(course.id);
           };
-          node.addEventListener('click', (event) => {
-            if (event.target.closest('button')) return;
-            openDetail();
-          });
-          node.addEventListener('keydown', (event) => {
-            if (event.target !== node || !['Enter', ' '].includes(event.key)) return;
-            event.preventDefault();
-            openDetail();
-          });
-          node.querySelector('.curriculum-detail-btn')?.addEventListener('click', () => openCurriculumCourseDetail(course.id));
-          node.querySelector('.curriculum-add-btn')?.addEventListener('click', () => {
-            if (isRegistered) return;
-            const saved = commitStateChange(course.id, 'REGISTER');
-            setCurriculumStatus(saved
-              ? `${course.subject}を履修予定に追加しました。`
-              : `${course.subject}を追加できませんでした。`, !saved);
-          });
+          node.addEventListener('click', (event) => { if (!event.target.closest('button')) openDetail(); });
+          // curriculum-detail-btn / curriculum-add-btn は詳細パネルへ集約し、
+          // 既存の commitStateChange(course.id, 'REGISTER') 経路を使う。
+          node.addEventListener('keydown', (event) => { if (event.target === node && ['Enter', ' '].includes(event.key)) { event.preventDefault(); openDetail(); } });
           node.addEventListener('dragstart', (event) => {
             curriculumState.didDrag = true;
             node.classList.add('is-dragging');
             event.dataTransfer?.setData('text/plain', course.id);
             event.dataTransfer?.setData('application/x-zen-course-id', course.id);
-            event.dataTransfer.effectAllowed = 'copy';
+            if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy';
             document.getElementById('curriculum-drop-zone')?.classList.add('is-dragging');
           });
           node.addEventListener('dragend', () => {
@@ -2084,36 +2101,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.setTimeout(() => { curriculumState.didDrag = false; }, 0);
           });
           lane.appendChild(node);
-          });
         });
         lanesHost.appendChild(lane);
       });
-
-      const edges = [];
       state.relationsMap.forEach((relations, sourceId) => {
         const from = layout.positions.get(sourceId);
         if (!from) return;
         relations.successors.forEach((relation) => {
           const to = layout.positions.get(relation.id);
-          if (!to || !coursesById.has(sourceId) || !coursesById.has(relation.id)) return;
+          if (!to) return;
           const edge = document.createElementNS('http://www.w3.org/2000/svg', 'path');
           edge.setAttribute('d', createCurriculumEdgePath(from, to));
-          edge.setAttribute('class', `curriculum-edge ${relation.strength === 'strongly_recommended' ? 'is-strong' : 'is-recommended'}`);
+          edge.setAttribute('class', `curriculum-edge is-reference ${relation.strength === 'strongly_recommended' ? 'is-strong' : 'is-recommended'}`);
           if (hasActiveFilter && !matchesById.get(sourceId) && !matchesById.get(relation.id)) edge.classList.add('is-filter-dimmed');
           if (hasFocus && (sourceId === curriculumState.selectedId || relation.id === curriculumState.selectedId)) edge.classList.add('is-focused');
           if (hasFocus && !(focusIds.has(sourceId) && focusIds.has(relation.id))) edge.classList.add('is-out-of-focus');
-          edges.push(edge);
+          edgesHost.appendChild(edge);
         });
       });
-      edges.forEach((edge) => edgesHost.appendChild(edge));
       count.textContent = `${matchCount} / ${state.predefinedData.length}科目`;
-      if (hasActiveFilter && matchCount === 0) {
-        setCurriculumStatus('該当する科目はありません。条件を解除してください。', true);
-      } else if (hasActiveFilter) {
-        setCurriculumStatus(`${matchCount}科目が条件に一致しています。`);
-      } else {
-        setCurriculumStatus('');
-      }
+      const noMatches = hasActiveFilter && matchCount === 0;
+      setCurriculumStatus(hasActiveFilter ? (noMatches ? '該当する科目はありません。条件を解除してください。' : `${matchCount}科目が条件に一致しています。`) : '', noMatches);
     } catch (error) {
       console.error('カリキュラムツリーの描画に失敗しました:', error);
       setCurriculumStatus('ツリーを表示できませんでした。ページを再読み込みしてください。', true);
@@ -2144,20 +2152,68 @@ document.addEventListener('DOMContentLoaded', async () => {
     const zoomOut = document.getElementById('curriculum-zoom-out');
     const zoomIn = document.getElementById('curriculum-zoom-in');
     const zoomFit = document.getElementById('curriculum-zoom-fit');
+    const zoomReset = document.getElementById('curriculum-zoom-reset');
+    const fullscreen = document.getElementById('curriculum-fullscreen');
     const zoomLevel = document.getElementById('curriculum-zoom-level');
     if (!nav || !view || !dropZone || !search || !year || !field) return;
+    let renderFrame = null;
+    let transformFrame = null;
+    const scheduleCurriculumRender = () => {
+      if (renderFrame != null) return;
+      renderFrame = window.requestAnimationFrame(() => {
+        renderFrame = null;
+        renderCurriculumGraph();
+      });
+    };
+    const scheduleCurriculumTransform = () => {
+      if (transformFrame != null) return;
+      transformFrame = window.requestAnimationFrame(() => {
+        transformFrame = null;
+        applyCurriculumTransform();
+      });
+    };
 
     // The tree stays unpublished on production. A local-only query flag is used for
     // review so the public Netlify host cannot expose the unfinished navigation entry.
     const previewEnabled = ['localhost', '127.0.0.1'].includes(window.location.hostname)
       && new URLSearchParams(window.location.search).get('curriculumPreview') === '1';
     nav.hidden = !previewEnabled;
+    if (previewEnabled) {
+      loadCurriculumLayoutDefinition().then((definition) => {
+        if (!definition) return;
+        state.curriculumLayoutDefinition = definition;
+        curriculumState.layout = null;
+        if (document.body.classList.contains('curriculum-tree-mode')) renderCurriculumGraph();
+      });
+    }
 
-    const updateZoom = (nextZoom) => {
-      curriculumState.zoom = Math.min(1.45, Math.max(0.62, Number(nextZoom.toFixed(2))));
+    const updateZoom = (nextZoom, anchor = null) => {
+      const viewportRect = graphScroll?.getBoundingClientRect();
+      const previousZoom = curriculumState.zoom;
+      const next = Math.min(2.4, Math.max(0.25, Number(nextZoom.toFixed(2))));
+      if (anchor && viewportRect) {
+        const localX = anchor.clientX - viewportRect.left;
+        const localY = anchor.clientY - viewportRect.top;
+        const worldX = (localX - (curriculumState.panX || 0)) / previousZoom;
+        const worldY = (localY - (curriculumState.panY || 0)) / previousZoom;
+        curriculumState.panX = localX - worldX * next;
+        curriculumState.panY = localY - worldY * next;
+      }
+      curriculumState.zoom = next;
       if (zoomLevel) zoomLevel.value = `${Math.round(curriculumState.zoom * 100)}%`;
-      if (zoomLevel) zoomLevel.textContent = `${Math.round(curriculumState.zoom * 100)}%`;
-      if (document.body.classList.contains('curriculum-tree-mode')) renderCurriculumGraph();
+      if (document.body.classList.contains('curriculum-tree-mode')) scheduleCurriculumTransform();
+    };
+
+    const fitCurriculumToViewport = () => {
+      const layout = curriculumState.layout || buildCurriculumLayout();
+      curriculumState.layout = layout;
+      const rect = graphScroll?.getBoundingClientRect();
+      if (!rect) return;
+      const scale = Math.min((rect.width - 28) / layout.graphWidth, (rect.height - 28) / layout.graphHeight, 1);
+      curriculumState.zoom = Math.min(2.4, Math.max(0.25, Number(scale.toFixed(2))));
+      curriculumState.panX = Math.max(14, (rect.width - layout.graphWidth * curriculumState.zoom) / 2);
+      curriculumState.panY = Math.max(14, (rect.height - layout.graphHeight * curriculumState.zoom) / 2);
+      scheduleCurriculumTransform();
     };
 
     const setMode = (enabled) => {
@@ -2175,6 +2231,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       nav.setAttribute('aria-pressed', String(enabled));
       syncPrimaryViewNavigation(enabled ? 'tree' : 'list');
       if (enabled) {
+        curriculumState.panX = 14;
+        curriculumState.panY = 14;
         renderCurriculumGraph();
         search.focus({ preventScroll: true });
       } else {
@@ -2194,7 +2252,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     search.addEventListener('input', () => {
       curriculumState.search = search.value;
-      renderCurriculumGraph();
+      scheduleCurriculumRender();
     });
     search.addEventListener('keydown', (event) => {
       if (event.key !== 'Enter') return;
@@ -2202,45 +2260,74 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!course) return;
       event.preventDefault();
       openCurriculumCourseDetail(course.id);
-      document.querySelector(`.curriculum-node[data-course-id="${CSS.escape(course.id)}"]`)?.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
+      const position = curriculumState.layout?.positions.get(course.id);
+      const rect = graphScroll?.getBoundingClientRect();
+      if (position && rect) {
+        curriculumState.zoom = Math.max(curriculumState.zoom, 1);
+        curriculumState.panX = rect.width / 2 - position.x * curriculumState.zoom;
+        curriculumState.panY = rect.height / 2 - position.y * curriculumState.zoom;
+        renderCurriculumGraph();
+      }
     });
     year.addEventListener('change', () => {
       curriculumState.year = year.value;
-      renderCurriculumGraph();
+      scheduleCurriculumRender();
     });
     field.addEventListener('change', () => {
       curriculumState.field = field.value;
-      renderCurriculumGraph();
+      scheduleCurriculumRender();
     });
     zoomOut?.addEventListener('click', () => updateZoom(curriculumState.zoom - 0.1));
     zoomIn?.addEventListener('click', () => updateZoom(curriculumState.zoom + 0.1));
-    zoomFit?.addEventListener('click', () => {
-      updateZoom(1);
-      if (graphScroll) {
-        graphScroll.scrollLeft = 0;
-        graphScroll.scrollTop = 0;
-      }
+    zoomReset?.addEventListener('click', () => { curriculumState.panX = 14; curriculumState.panY = 14; updateZoom(1); });
+    zoomFit?.addEventListener('click', fitCurriculumToViewport);
+    fullscreen?.addEventListener('click', () => {
+      curriculumState.fullscreen = !curriculumState.fullscreen;
+      document.body.classList.toggle('curriculum-tree-explorer-mode', curriculumState.fullscreen);
+      fullscreen.setAttribute('aria-pressed', String(curriculumState.fullscreen));
+      fullscreen.textContent = curriculumState.fullscreen ? '通常表示' : '探索モード';
+      window.requestAnimationFrame(() => fitCurriculumToViewport());
     });
     graphScroll?.addEventListener('wheel', (event) => {
-      if (!event.ctrlKey) return;
       event.preventDefault();
-      updateZoom(curriculumState.zoom + (event.deltaY < 0 ? 0.08 : -0.08));
+      updateZoom(curriculumState.zoom * (event.deltaY < 0 ? 1.08 : 0.92), event);
     }, { passive: false });
     let panState = null;
+    let pinchState = null;
+    const pointers = new Map();
     graphScroll?.addEventListener('pointerdown', (event) => {
       if (event.target.closest('.curriculum-node, button, input, select')) return;
-      panState = { x: event.clientX, y: event.clientY, left: graphScroll.scrollLeft, top: graphScroll.scrollTop };
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pointers.size === 1) panState = { x: event.clientX, y: event.clientY, panX: curriculumState.panX || 0, panY: curriculumState.panY || 0 };
+      if (pointers.size === 2) {
+        const points = [...pointers.values()];
+        const distance = Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
+        pinchState = { distance, zoom: curriculumState.zoom };
+        panState = null;
+      }
       graphScroll.classList.add('is-panning');
       graphScroll.setPointerCapture?.(event.pointerId);
     });
     graphScroll?.addEventListener('pointermove', (event) => {
-      if (!panState) return;
-      graphScroll.scrollLeft = panState.left - (event.clientX - panState.x);
-      graphScroll.scrollTop = panState.top - (event.clientY - panState.y);
+      if (!pointers.has(event.pointerId)) return;
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pinchState && pointers.size >= 2) {
+        const points = [...pointers.values()].slice(0, 2);
+        const distance = Math.max(1, Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y));
+        const center = { clientX: (points[0].x + points[1].x) / 2, clientY: (points[0].y + points[1].y) / 2 };
+        updateZoom(pinchState.zoom * (distance / pinchState.distance), center);
+        return;
+      }
+      if (!panState || pointers.size !== 1) return;
+      curriculumState.panX = panState.panX + event.clientX - panState.x;
+      curriculumState.panY = panState.panY + event.clientY - panState.y;
+      scheduleCurriculumTransform();
     });
-    const stopPan = () => {
+    const stopPan = (event) => {
+      if (event?.pointerId != null) pointers.delete(event.pointerId);
+      if (pointers.size < 2) pinchState = null;
       panState = null;
-      graphScroll?.classList.remove('is-panning');
+      if (!pointers.size) graphScroll?.classList.remove('is-panning');
     };
     graphScroll?.addEventListener('pointerup', stopPan);
     graphScroll?.addEventListener('pointercancel', stopPan);

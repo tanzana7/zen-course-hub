@@ -132,7 +132,7 @@
       <div class="curriculum-tree-heading">
         <div>
           <h2 id="curriculum-tree-title">カリキュラムツリー</h2>
-          <p class="curriculum-tree-note">公式カリキュラムツリーの区分構造を参考にした、科目確認用の非公式プレビューです。線は登録上の前提条件を保証しません。</p>
+          <p class="curriculum-tree-note">公式カリキュラムツリーの構図を参考にした非公式プレビューです。公式図の関係と履修上の前提条件は別物です。</p>
         </div>
         <button id="curriculum-tree-close" class="curriculum-tree-close" type="button">一覧に戻る</button>
       </div>
@@ -169,14 +169,18 @@
         <output id="curriculum-zoom-level" for="curriculum-zoom-out curriculum-zoom-in">100%</output>
         <button id="curriculum-zoom-in" type="button" aria-label="拡大">＋</button>
         <button id="curriculum-zoom-fit" type="button">全体表示</button>
-        <span>背景をドラッグして移動</span>
+        <button id="curriculum-zoom-reset" type="button">100%</button>
+        <button id="curriculum-fullscreen" type="button" aria-pressed="false">探索モード</button>
+        <span>背景をドラッグして移動・ホイールで拡大縮小</span>
       </div>
       <div class="curriculum-tree-workspace">
         <div class="curriculum-graph-scroll" id="curriculum-graph-scroll" tabindex="0" aria-label="カリキュラムツリー図">
-          <div class="curriculum-graph" id="curriculum-graph">
-            <svg class="curriculum-edges" id="curriculum-edges" aria-hidden="true"></svg>
-            <div class="curriculum-stage-axis" id="curriculum-stage-axis" aria-hidden="true"></div>
-            <div class="curriculum-lanes" id="curriculum-lanes"></div>
+          <div class="curriculum-graph-viewport" id="curriculum-graph-viewport">
+            <div class="curriculum-graph" id="curriculum-graph">
+              <svg class="curriculum-edges" id="curriculum-edges" aria-hidden="true"></svg>
+              <div class="curriculum-stage-axis" id="curriculum-stage-axis" aria-hidden="true"></div>
+              <div class="curriculum-lanes" id="curriculum-lanes"></div>
+            </div>
           </div>
         </div>
         <aside id="curriculum-course-detail" class="curriculum-course-detail" hidden aria-label="科目詳細"></aside>

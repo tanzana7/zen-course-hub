@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "source": "curriculumtree2025_260310.pdf",
+  "sourceConfidence": "structure-only",
+  "canvas": { "width": 2400, "height": 2100 },
+  "bands": [
+    { "id": "ap4", "label": "AP4", "x": 170, "y": 28, "width": 1870, "height": 54, "color": "#f6a21a" },
+    { "id": "ap1-ap3-foundation", "label": "AP1・AP3", "x": 170, "y": 92, "width": 720, "height": 48, "color": "#2853a5" },
+    { "id": "ap2", "label": "AP2", "x": 900, "y": 92, "width": 140, "height": 48, "color": "#f51f52" },
+    { "id": "ap1-ap3-world", "label": "AP1・AP3", "x": 1050, "y": 92, "width": 990, "height": 48, "color": "#2eb4c3" },
+    { "id": "introduction", "label": "導入科目 14単位", "x": 170, "y": 158, "width": 1870, "height": 132, "color": "#f8a31b" },
+    { "id": "foundation", "label": "基礎科目", "x": 170, "y": 306, "width": 1870, "height": 160, "color": "#2853a5" },
+    { "id": "advanced", "label": "展開科目", "x": 170, "y": 482, "width": 1870, "height": 770, "color": "#2eb4c3" },
+    { "id": "project", "label": "プロジェクト実践 4単位", "x": 170, "y": 1270, "width": 1870, "height": 112, "color": "#f6b74d" },
+    { "id": "dp", "label": "DP1〜DP4", "x": 170, "y": 1410, "width": 1870, "height": 120, "color": "#f6a21a" }
+  ],
+  "columns": [
+    { "id": "foundation", "label": "基盤リテラシー・数理", "x": 178, "width": 360, "group": "foundation", "tags": ["情報", "数理"] },
+    { "id": "foundation-social", "label": "基礎・社会ネットワーク", "x": 542, "width": 350, "group": "foundation", "tags": ["社会・ネットワーク"] },
+    { "id": "multilingual", "label": "多言語情報理解", "x": 900, "width": 140, "group": "multilingual", "tags": ["多言語"] },
+    { "id": "culture", "label": "文化・思想", "x": 1058, "width": 320, "group": "world", "tags": ["文化・思想"] },
+    { "id": "social", "label": "社会・ネットワーク", "x": 1386, "width": 320, "group": "world", "tags": ["社会・ネットワーク", "社会接続"] },
+    { "id": "economy", "label": "経済・マーケット", "x": 1714, "width": 320, "group": "world", "tags": ["経済・マーケット", "デジタル産業"] },
+    { "id": "free", "label": "社会接続・自由科目", "x": 2048, "width": 330, "group": "free", "tags": ["自由科目"] }
+  ],
+  "notes": [
+    "AP/DPと色帯の構図は公式PDFを参照して再現する。個別科目の文字が判読できない箇所は位置を推測しない。",
+    "course-relations.jsonの線は公式図の矢印ではなく、参考関係として描画する。"
+  ]
+}

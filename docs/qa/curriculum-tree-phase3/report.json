@@ -1,0 +1,15 @@
+{
+  "viewport": { "desktop": "1280x900", "mobile": ["390x844", "375x844"] },
+  "coursesRendered": 275,
+  "desktopHorizontalOverflow": false,
+  "mobileHorizontalOverflow": false,
+  "searchMatchCount": 1,
+  "courseDetail": "ITリテラシー",
+  "enrollmentDrop": "registered and reflected in myClasses; cleaned up after QA",
+  "mapControls": ["pan", "wheel zoom", "cursor-centered zoom", "fit", "100%", "explorer mode"],
+  "reference": "A-official-reference.png",
+  "notes": [
+    "The official PDF is included only as a review screenshot, not as a site asset.",
+    "Individual course positions are structure-only because the encrypted PDF prevents reliable text extraction."
+  ]
+}
