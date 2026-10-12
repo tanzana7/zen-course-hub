@@ -187,25 +187,28 @@
   <!-- 右カラム: 自分が選択した授業の確認リスト -->
   <section class="right-column" id="my-enrollment" tabindex="-1">
     <div class="section-heading-row">
-      <h2>マイ履修</h2>
+      <h2 id="my-enrollment-title">マイ履修</h2>
+      <button id="curriculum-mobile-enrollment-toggle" class="curriculum-mobile-enrollment-toggle" type="button" aria-expanded="false" aria-controls="my-enrollment-content" hidden>通常履修 0科目 / 0単位</button>
       <a href="#course-explorer" class="mobile-section-jump">授業を探す ↑</a>
     </div>
-    <div class="summary-box">
+    <div id="my-enrollment-content" class="curriculum-enrollment-content">
+      <div class="summary-box">
       <div>取得単位：<span id="earned-credits">0</span></div>
       <div>履修予定(科目)：<span id="registered-count">0</span></div>
       <div>履修予定(単位)：<span id="registered-credits">0</span></div>
+      </div>
+
+      <div id="curriculum-drop-zone" class="curriculum-drop-zone" hidden tabindex="0" role="region" aria-label="マイ履修に追加">
+        <strong>通常履修に追加</strong>
+        <span>科目をここへドロップ</span>
+      </div>
+
+      <h3 class="scheduled-title">履修予定</h3>
+      <ul id="list"></ul>
+
+      <h3 class="completed-title">履修済み</h3>
+      <ul id="completed-list"></ul>
     </div>
-
-    <div id="curriculum-drop-zone" class="curriculum-drop-zone" hidden tabindex="0" role="region" aria-label="マイ履修に追加">
-      <strong>マイ履修に追加</strong>
-      <span>科目をここへドロップ</span>
-    </div>
-
-    <h3 class="scheduled-title">履修予定</h3>
-    <ul id="list"></ul>
-
-    <h3 class="completed-title">履修済み</h3>
-    <ul id="completed-list"></ul>
   </section>
 </main>
 

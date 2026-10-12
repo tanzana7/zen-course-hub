@@ -1446,6 +1446,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Unknown IDs are retained for recovery but are not counted as visible courses.
     document.getElementById('registered-count').textContent = regObjects.length;
     document.getElementById('registered-credits').textContent = regCredits;
+    const mobileEnrollmentToggle = document.getElementById('curriculum-mobile-enrollment-toggle');
+    if (mobileEnrollmentToggle) {
+      mobileEnrollmentToggle.textContent = `通常履修 ${regObjects.length}科目 / ${regCredits}単位`;
+    }
 
     renderGraduationGauge(stats);
 
@@ -1920,9 +1924,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       clearCurriculumFocus();
     });
     detail.querySelector('.curriculum-enrollment-action')?.addEventListener('click', () => {
-      commitStateChange(courseId, isRegistered ? 'DELETE' : 'REGISTER');
+      const saved = commitStateChange(courseId, isRegistered ? 'DELETE' : 'REGISTER');
       openCurriculumCourseDetail(courseId);
-      setCurriculumStatus(`${course.subject}の通常履修状態を更新しました。`);
+      setCurriculumStatus(saved
+        ? `${course.subject}の通常履修状態を更新しました。`
+        : `${course.subject}の変更を保存できませんでした。`, !saved);
     });
     detail.querySelectorAll('.related-course-link').forEach((link) => {
       link.addEventListener('click', (event) => {
@@ -2059,17 +2065,21 @@ document.addEventListener('DOMContentLoaded', async () => {
           node.querySelector('.curriculum-detail-btn')?.addEventListener('click', () => openCurriculumCourseDetail(course.id));
           node.querySelector('.curriculum-add-btn')?.addEventListener('click', () => {
             if (isRegistered) return;
-            commitStateChange(course.id, 'REGISTER');
-            setCurriculumStatus(`${course.subject}を履修予定に追加しました。`);
+            const saved = commitStateChange(course.id, 'REGISTER');
+            setCurriculumStatus(saved
+              ? `${course.subject}を履修予定に追加しました。`
+              : `${course.subject}を追加できませんでした。`, !saved);
           });
           node.addEventListener('dragstart', (event) => {
             curriculumState.didDrag = true;
+            node.classList.add('is-dragging');
             event.dataTransfer?.setData('text/plain', course.id);
             event.dataTransfer?.setData('application/x-zen-course-id', course.id);
             event.dataTransfer.effectAllowed = 'copy';
             document.getElementById('curriculum-drop-zone')?.classList.add('is-dragging');
           });
           node.addEventListener('dragend', () => {
+            node.classList.remove('is-dragging');
             document.getElementById('curriculum-drop-zone')?.classList.remove('is-dragging', 'is-over');
             window.setTimeout(() => { curriculumState.didDrag = false; }, 0);
           });
@@ -2123,6 +2133,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const close = document.getElementById('curriculum-tree-close');
     const view = document.getElementById('curriculum-tree-view');
     const dropZone = document.getElementById('curriculum-drop-zone');
+    const mobileEnrollmentToggle = document.getElementById('curriculum-mobile-enrollment-toggle');
+    const enrollmentContent = document.getElementById('my-enrollment-content');
+    const enrollmentTitle = document.getElementById('my-enrollment-title');
     const search = document.getElementById('curriculum-tree-search');
     const year = document.getElementById('curriculum-tree-year');
     const field = document.getElementById('curriculum-tree-field');
@@ -2151,6 +2164,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.body.classList.toggle('curriculum-tree-mode', enabled);
       view.hidden = !enabled;
       dropZone.hidden = !enabled;
+      if (enrollmentTitle) enrollmentTitle.textContent = enabled ? '通常履修' : 'マイ履修';
+      if (enrollmentContent) {
+        enrollmentContent.hidden = enabled && window.matchMedia('(max-width: 768px)').matches;
+      }
+      if (mobileEnrollmentToggle) {
+        mobileEnrollmentToggle.hidden = !enabled;
+        mobileEnrollmentToggle.setAttribute('aria-expanded', String(!enrollmentContent?.hidden));
+      }
       nav.setAttribute('aria-pressed', String(enabled));
       syncPrimaryViewNavigation(enabled ? 'tree' : 'list');
       if (enabled) {
@@ -2166,6 +2187,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     nav.addEventListener('click', () => setMode(!document.body.classList.contains('curriculum-tree-mode')));
     document.getElementById('course-list-nav')?.addEventListener('click', () => setMode(false));
     close?.addEventListener('click', () => setMode(false));
+    mobileEnrollmentToggle?.addEventListener('click', () => {
+      if (!enrollmentContent) return;
+      enrollmentContent.hidden = !enrollmentContent.hidden;
+      mobileEnrollmentToggle.setAttribute('aria-expanded', String(!enrollmentContent.hidden));
+    });
     search.addEventListener('input', () => {
       curriculumState.search = search.value;
       renderCurriculumGraph();
@@ -2227,6 +2253,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
+    dropZone.addEventListener('dragenter', (event) => {
+      event.preventDefault();
+      dropZone.classList.add('is-over');
+    });
     dropZone.addEventListener('dragover', (event) => {
       event.preventDefault();
       event.dataTransfer.dropEffect = 'copy';
@@ -2246,8 +2276,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         setCurriculumStatus(`${course.subject}はすでに履修予定です。`);
         return;
       }
-      commitStateChange(courseId, 'REGISTER');
-      setCurriculumStatus(`${course.subject}を履修予定に追加しました。`);
+      const saved = commitStateChange(courseId, 'REGISTER');
+      setCurriculumStatus(saved
+        ? `${course.subject}を履修予定に追加しました。`
+        : `${course.subject}を追加できませんでした。`, !saved);
     });
     dropZone.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') dropZone.classList.remove('is-over');

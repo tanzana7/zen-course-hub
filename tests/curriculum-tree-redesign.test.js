@@ -22,7 +22,12 @@ test('curriculum redesign exposes stage, zoom, search, and registration controls
   assert.match(app, /curriculum-enrollment-action/);
   assert.match(app, /pointerdown/);
   assert.match(app, /curriculumState\.zoom/);
+  assert.match(app, /curriculum-mobile-enrollment-toggle/);
+  assert.match(app, /dragenter/);
+  assert.match(app, /保存できませんでした/);
   assert.match(style, /curriculum-stage-band/);
+  assert.match(style, /curriculum-enrollment-content/);
+  assert.match(style, /curriculum-node\.is-dragging/);
 });
 
 test('curriculum redesign uses the existing 275 course catalog without inventing IDs', () => {

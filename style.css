@@ -3236,6 +3236,13 @@ body.curriculum-tree-mode .input-area { justify-content: flex-end; }
 .curriculum-enrollment-action:hover, .curriculum-enrollment-action:focus-visible { background: #1d4ed8; outline: 2px solid rgba(37, 99, 235, 0.22); outline-offset: 1px; }
 body.curriculum-tree-mode .left-column { width: auto; flex: 1 1 auto; min-width: 0; }
 body.curriculum-tree-mode .right-column { width: min(300px, 24vw); flex: 0 0 min(300px, 24vw); }
+body.curriculum-tree-mode .right-column { display: block; }
+body.curriculum-tree-mode .right-column .completed-title,
+body.curriculum-tree-mode .right-column #completed-list { display: none; }
+body.curriculum-tree-mode .curriculum-enrollment-content { min-width: 0; }
+.curriculum-mobile-enrollment-toggle { display: none; }
+.curriculum-node.is-dragging { opacity: 0.58; border-style: dashed; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2); }
+.curriculum-drop-zone.is-over { box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
 
 @media (max-width: 1100px) {
   .curriculum-tree-workspace { grid-template-columns: minmax(0, 1fr); }
@@ -3254,6 +3261,18 @@ body.curriculum-tree-mode .right-column { width: min(300px, 24vw); flex: 0 0 min
   .curriculum-graph-scroll { max-height: 60vh; }
   .curriculum-structure-credit { width: 100%; margin-left: 0; }
   .curriculum-tree-controls span { display: none; }
+}
+
+@media (max-width: 768px) {
+  body.curriculum-tree-mode .left-column { order: 1 !important; }
+  body.curriculum-tree-mode .right-column { order: 2 !important; width: 100% !important; flex-basis: 100% !important; }
+  body.curriculum-tree-mode .right-column .section-heading-row { align-items: center; display: flex; gap: 8px; }
+  body.curriculum-tree-mode .right-column .section-heading-row h2 { margin-right: auto; }
+  body.curriculum-tree-mode .curriculum-mobile-enrollment-toggle { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 7px 10px; border: 1px solid #2563eb; border-radius: 7px; background: #eff6ff; color: #1d4ed8; font: inherit; font-size: 0.82rem; font-weight: 700; }
+  body.curriculum-tree-mode .curriculum-mobile-enrollment-toggle[hidden] { display: none; }
+  body.curriculum-tree-mode .curriculum-enrollment-content[hidden] { display: none; }
+  body.curriculum-tree-mode .right-column .mobile-section-jump { display: none; }
+  body.curriculum-tree-mode .right-column .summary-box { margin-bottom: 12px; padding: 10px; }
 }
 
 /* Primary views share one navigation group; list tools stay visually secondary. */
