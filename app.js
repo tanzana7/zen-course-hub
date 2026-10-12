@@ -260,6 +260,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     year: 'すべて表示',
     field: 'すべて表示',
     selectedId: '',
+    // Reference relations are intentionally opt-in: the official PDF does not
+    // define these prerequisite/successor edges, so hiding them by default
+    // keeps the map legible and prevents an advisory graph from looking official.
+    relationMode: 'off',
     didDrag: false,
     layout: null,
     zoom: 1,
@@ -1910,6 +1914,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     const placementMap = new Map((definition.coursePlacements || [])
       .filter((placement) => placement && placement.courseId)
       .map((placement) => [placement.courseId, placement]));
+    // Preserve the PDF coordinates in the data file. When two catalog entries
+    // share the exact same rectangle, the renderer fans them into a vertical
+    // access stack instead of letting the later DOM node make the first one
+    // unreachable. This is an interaction affordance, not a new official
+    // coordinate.
+    const collisionGroups = new Map();
+    placementMap.forEach((placement) => {
+      const key = ['x', 'y', 'width', 'height'].map((field) => Number(placement[field])).join('|');
+      if (!collisionGroups.has(key)) collisionGroups.set(key, []);
+      collisionGroups.get(key).push(placement.courseId);
+    });
+    const collisionInfo = new Map();
+    collisionGroups.forEach((courseIds, key) => {
+      if (courseIds.length < 2) return;
+      courseIds.forEach((courseId, index) => collisionInfo.set(courseId, {
+        key,
+        index,
+        size: courseIds.length
+      }));
+    });
     const getPlacementColumn = (course) => {
       const placement = placementMap.get(course.id);
       if (placement?.confidence === 'confirmed' && Number.isFinite(Number(placement.x))) {
@@ -1977,18 +2001,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         const positionedY = Number.isFinite(requestedY)
           ? Math.min(canvasHeight - nodeHeight - 18, Math.max(150, requestedY))
           : Math.min(bottom - cardHeight, y);
+        const collision = collisionInfo.get(course.id);
+        const collisionOffset = collision ? collision.index * (nodeHeight + 8) : 0;
+        const accessibleY = Math.min(canvasHeight - nodeHeight - 18, positionedY + collisionOffset);
         positions.set(course.id, {
           x: positionedX + nodeWidth / 2,
-          y: positionedY + nodeHeight / 2,
+          y: accessibleY + nodeHeight / 2,
           left: positionedX,
-          top: positionedY,
+          top: accessibleY,
           width: nodeWidth,
           height: nodeHeight,
           lane: column.id,
           officialGroup: column.group,
           stage: getCurriculumStage(course),
           officialConfidence: placement?.confidence || 'provisional',
-          verificationMethod: placement?.verificationMethod || 'structure-fallback'
+          verificationMethod: placement?.verificationMethod || 'structure-fallback',
+          collisionGroup: collision?.key || '',
+          collisionIndex: collision?.index || 0,
+          collisionSize: collision?.size || 1
         });
       });
     });
@@ -2154,18 +2184,28 @@ document.addEventListener('DOMContentLoaded', async () => {
           node.dataset.courseId = course.id;
           node.dataset.officialConfidence = position.officialConfidence;
           node.dataset.verificationMethod = position.verificationMethod;
+          if (position.collisionSize > 1) {
+            node.classList.add('is-collision');
+            node.dataset.collisionGroup = position.collisionGroup;
+            node.dataset.collisionIndex = String(position.collisionIndex);
+            node.dataset.collisionSize = String(position.collisionSize);
+          }
           node.title = position.officialConfidence === 'confirmed'
             ? '公式PDFで配置を確認済み'
             : '公式PDF上の位置未確認（暫定配置）';
           node.draggable = true;
           node.tabIndex = 0;
           node.setAttribute('role', 'button');
-          node.setAttribute('aria-label', `${course.subject}の科目詳細`);
+          const collisionLabel = position.collisionSize > 1
+            ? `（同一座標の科目 ${position.collisionIndex + 1}/${position.collisionSize}）`
+            : '';
+          node.setAttribute('aria-label', `${course.subject}の科目詳細${collisionLabel}`);
           const statusLabel = isCompleted ? '履修済み' : isRegistered ? 'マイ履修' : '';
           node.style.top = `${position.top}px`;
           node.style.left = `${position.left - column.x}px`;
           node.style.width = `${position.width || layout.nodeWidth}px`;
           node.style.height = `${position.height || layout.nodeHeight}px`;
+          node.style.zIndex = String(10 + position.collisionIndex);
           node.innerHTML = `<div class="curriculum-node-title">${escapeHTML(course.subject)}</div><div class="curriculum-node-meta"><span class="curriculum-node-track">${escapeHTML(getCurriculumTrack(course))}</span><span>${escapeHTML(course.credits)}単位</span><span>${escapeHTML(course.quarter || '開講Q未登録')}</span>${statusLabel ? `<span class="curriculum-node-status">${statusLabel}</span>` : ''}</div>`;
           const openDetail = () => {
             if (curriculumState.didDrag) return;
@@ -2201,10 +2241,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
         lanesHost.appendChild(lane);
       });
+      const relationMode = curriculumState.relationMode;
+      const showAllRelations = relationMode === 'all';
+      const showSelectedRelations = relationMode === 'selected' && Boolean(curriculumState.selectedId);
       state.relationsMap.forEach((relations, sourceId) => {
+        if (!showAllRelations && !showSelectedRelations) return;
+        if (showSelectedRelations && sourceId !== curriculumState.selectedId
+          && !relations.successors.some((relation) => relation.id === curriculumState.selectedId)) return;
         const from = layout.positions.get(sourceId);
         if (!from) return;
         relations.successors.forEach((relation) => {
+          if (showSelectedRelations && sourceId !== curriculumState.selectedId && relation.id !== curriculumState.selectedId) return;
           const to = layout.positions.get(relation.id);
           if (!to) return;
           const edge = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -2252,6 +2299,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const zoomReset = document.getElementById('curriculum-zoom-reset');
     const fullscreen = document.getElementById('curriculum-fullscreen');
     const enrollmentDrawerToggle = document.getElementById('curriculum-enrollment-drawer-toggle');
+    const relationMode = document.getElementById('curriculum-relation-mode');
     const zoomLevel = document.getElementById('curriculum-zoom-level');
     if (!nav || !view || !dropZone || !search || !year || !field) return;
     let renderFrame = null;
@@ -2378,6 +2426,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     field.addEventListener('change', () => {
       curriculumState.field = field.value;
+      scheduleCurriculumRender();
+    });
+    relationMode?.addEventListener('change', () => {
+      const nextMode = ['off', 'selected', 'all'].includes(relationMode.value) ? relationMode.value : 'off';
+      curriculumState.relationMode = nextMode;
       scheduleCurriculumRender();
     });
     zoomOut?.addEventListener('click', () => updateZoom(curriculumState.zoom - 0.1));

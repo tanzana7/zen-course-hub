@@ -177,6 +177,15 @@
         <button id="curriculum-zoom-fit" type="button">全体表示</button>
         <button id="curriculum-zoom-reset" type="button">100%</button>
         <button id="curriculum-fullscreen" type="button" aria-pressed="false">探索モード</button>
+        <label class="curriculum-relation-control" for="curriculum-relation-mode">
+          参考関係線
+          <select id="curriculum-relation-mode" aria-describedby="curriculum-relation-note">
+            <option value="off" selected>OFF</option>
+            <option value="selected">SELECTED</option>
+            <option value="all">ALL</option>
+          </select>
+        </label>
+        <span id="curriculum-relation-note" class="curriculum-relation-note">アプリ独自の参考関係（公式の前提条件ではありません）</span>
         <span>背景をドラッグして移動・ホイールで拡大縮小</span>
       </div>
       <div class="curriculum-tree-workspace">
