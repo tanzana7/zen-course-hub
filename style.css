@@ -3612,11 +3612,15 @@ body.curriculum-tree-mode .curriculum-enrollment-content[hidden] { display: none
  body.curriculum-tree-mode .curriculum-tree-view { gap: 4px; padding-inline: 6px; }
  body.curriculum-tree-mode .curriculum-structure-bar { overflow: hidden; flex-wrap: wrap; white-space: normal; }
  body.curriculum-tree-mode .curriculum-map-legend { white-space: normal; }
- body.curriculum-tree-mode .curriculum-tree-toolbar { flex-wrap: wrap; }
+ body.curriculum-tree-mode .curriculum-tree-toolbar { flex-direction: row; align-items: center; flex-wrap: wrap; }
  body.curriculum-tree-mode .curriculum-tree-toolbar .curriculum-search-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
- body.curriculum-tree-mode .curriculum-tree-toolbar input { flex-basis: 100%; order: -1; }
+ body.curriculum-tree-mode .curriculum-tree-toolbar input { flex: 1 1 100%; flex-basis: 100%; order: -1; width: 100%; height: 42px; min-height: 40px; max-height: 48px; }
+ body.curriculum-tree-mode .curriculum-tree-toolbar > label:not(.curriculum-search-label) { flex: 1 1 calc(50% - 6px); min-width: 0; }
+ body.curriculum-tree-mode .curriculum-tree-toolbar > label:not(.curriculum-search-label) select { min-width: 0; width: 100%; }
  body.curriculum-tree-mode .curriculum-tree-controls { overflow-x: auto; max-width: 100%; }
- body.curriculum-tree-mode .curriculum-tree-controls button { flex: 0 0 auto; min-height: 32px; min-width: 32px; }
+ body.curriculum-tree-mode .curriculum-tree-controls { gap: 4px; margin-bottom: 0; padding-bottom: 2px; scrollbar-width: thin; }
+ body.curriculum-tree-mode .curriculum-tree-controls button { flex: 0 0 auto; min-height: 40px; min-width: 40px; padding: 6px 8px; }
+ body.curriculum-tree-mode .curriculum-tree-controls output { min-width: 42px; }
  body.curriculum-tree-mode .right-column { top: max(6px, env(safe-area-inset-top)); width: min(360px, 94vw); padding: 10px; }
 }
 

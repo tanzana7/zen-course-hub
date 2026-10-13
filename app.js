@@ -2388,10 +2388,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       curriculumState.layout = layout;
       const rect = graphScroll?.getBoundingClientRect();
       if (!rect) return;
-      const scale = Math.min((rect.width - 28) / layout.graphWidth, (rect.height - 28) / layout.graphHeight, 1);
-      curriculumState.zoom = Math.min(2.4, Math.max(0.25, Number(scale.toFixed(2))));
-      curriculumState.panX = Math.max(14, (rect.width - layout.graphWidth * curriculumState.zoom) / 2);
-      curriculumState.panY = Math.max(14, (rect.height - layout.graphHeight * curriculumState.zoom) / 2);
+      const fit = qualityUtils.calculateCurriculumFit({
+        viewportWidth: rect.width,
+        viewportHeight: rect.height,
+        contentWidth: layout.graphWidth,
+        contentHeight: layout.graphHeight,
+        padding: 28,
+        maxScale: 1,
+        minScale: 0.05
+      });
+      curriculumState.zoom = fit.scale;
+      curriculumState.panX = fit.panX;
+      curriculumState.panY = fit.panY;
       curriculumState.autoFit = true;
       scheduleCurriculumTransform();
     };
