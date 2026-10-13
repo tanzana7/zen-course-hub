@@ -16,7 +16,12 @@
       "scrollWidth": 1440,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-652px, -1712px) scale(1)"
+      "transform": "translate(-58px, -594px) scale(1)",
+      "opening": {
+        "label": "1年次 · 情報",
+        "leftClipped": 0,
+        "visible": 16
+      }
     },
     {
       "width": 1280,
@@ -34,7 +39,12 @@
       "scrollWidth": 1280,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-732px, -1762px) scale(1)"
+      "transform": "translate(-58px, -594px) scale(1)",
+      "opening": {
+        "label": "1年次 · 情報",
+        "leftClipped": 0,
+        "visible": 15
+      }
     },
     {
       "width": 390,
@@ -52,7 +62,12 @@
       "scrollWidth": 390,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-1177px, -1740px) scale(1)"
+      "transform": "translate(-42px, -594px) scale(1)",
+      "opening": {
+        "label": "1年次 · 情報",
+        "leftClipped": 0,
+        "visible": 3
+      }
     }
   ],
   "exceptions": [],

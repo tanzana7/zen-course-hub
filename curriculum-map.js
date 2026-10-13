@@ -15,29 +15,66 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, () => {
   const CARD_WIDTH = 224;
   const CARD_HEIGHT = 128;
-  const GAP = 20;
+  const CARD_PITCH_X = 240;
+  const CARD_PITCH_Y = 144;
+  const FIELD_ORDER = ['情報', '数理', '多言語', '文化・思想', '社会・ネットワーク', '経済・マーケット', 'デジタル産業', '社会接続', '自由科目'];
+  const FIELD_COLORS = { 情報: '#e1eafb', 数理: '#e1eafb', 多言語: '#ffe5ed', '文化・思想': '#e2f4f1', '社会・ネットワーク': '#e2f4f1', '経済・マーケット': '#e2f4f1', デジタル産業: '#e2f4f1', 社会接続: '#f0f0df', 自由科目: '#eee6f4' };
   const intersects = (a, b) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
 
-  // Source coordinates retain the reviewed PDF arrangement. Their rectangles
-  // overlap partially even when there are no identical slots. Expand the map
-  // and move only colliding display boxes downward; never rewrite source data.
+  // The PDF positions identify subject order and field, but scaling them
+  // literally produces gaps and overlaps at a readable card size. Keep that
+  // order within each verified year/field group; never infer membership from
+  // pixel proximity or rewrite the reviewed placement JSON.
   const buildLayout = (definition, courses) => {
     const byId = new Map(courses.map((course) => [course.id, course]));
+    if (byId.size !== courses.length || definition.coursePlacements.length !== courses.length) throw new Error('科目配置の数を確認できません');
+    const entries = definition.coursePlacements;
+    if (entries.some((entry) => !byId.has(entry.courseId) || !Number.isFinite(entry.x) || !Number.isFinite(entry.y))) throw new Error('科目配置を確認できません');
+    const sortBySource = (a, b) => a.y - b.y || a.x - b.x || a.courseId.localeCompare(b.courseId);
     const placed = [];
-    const source = [...definition.coursePlacements].sort((a, b) => a.y - b.y || a.x - b.x || a.courseId.localeCompare(b.courseId));
-    for (const entry of source) {
-      if (!byId.has(entry.courseId) || ![entry.x, entry.y].every(Number.isFinite)) throw new Error('科目配置を確認できません');
-      const box = { id: entry.courseId, x: entry.x * 6000, y: entry.y * 6500, width: CARD_WIDTH, height: CARD_HEIGHT, sourceX: entry.x, sourceY: entry.y };
-      for (;;) {
-        const padded = { x: box.x - GAP / 2, y: box.y - GAP / 2, width: box.width + GAP, height: box.height + GAP };
-        const collisions = placed.filter((other) => intersects(padded, other));
-        if (!collisions.length) break;
-        box.y = Math.max(...collisions.map((other) => other.y + other.height)) + GAP;
-      }
-      placed.push(box);
+    const put = (entry, x, y, region) => placed.push({ id: entry.courseId, x, y, width: CARD_WIDTH, height: CARD_HEIGHT, sourceX: entry.x, sourceY: entry.y, year: byId.get(entry.courseId).year, field: entry.field, stage: entry.category, region });
+    const intro = entries.filter((entry) => entry.category === '導入科目').sort(sortBySource);
+    const introColumns = [...new Set(intro.map((entry) => entry.x))].sort((a, b) => a - b);
+    const introSlots = new Map();
+    intro.forEach((entry) => {
+      const column = introColumns.indexOf(entry.x);
+      const row = introSlots.get(column) || 0;
+      introSlots.set(column, row + 1);
+      put(entry, 84 + column * CARD_PITCH_X, 178 + row * CARD_PITCH_Y, 'intro');
+    });
+    const introHeight = 178 + Math.max(...introSlots.values(), 0) * CARD_PITCH_Y + 46;
+    const gridEntries = entries.filter((entry) => entry.category !== '導入科目' && entry.category !== '卒業プロジェクト');
+    const fields = FIELD_ORDER.filter((field) => gridEntries.some((entry) => entry.field === field)).map((field) => {
+      const maximum = Math.max(...[1, 2, 3, 4].map((year) => gridEntries.filter((entry) => entry.field === field && Number.parseInt(byId.get(entry.courseId).year, 10) === year).length));
+      return { field, lanes: Math.max(1, Math.ceil(maximum / 7)), color: FIELD_COLORS[field] };
+    });
+    if (gridEntries.some((entry) => !FIELD_ORDER.includes(entry.field))) throw new Error('未確認の分野があります');
+    let nextX = 64;
+    for (const field of fields) {
+      field.x = nextX;
+      field.width = field.lanes * CARD_PITCH_X + 36;
+      nextX += field.width + 16;
     }
-    if (placed.length !== byId.size || new Set(placed.map((box) => box.id)).size !== byId.size) throw new Error('科目配置に欠落または重複があります');
-    return { positions: placed, width: Math.max(6000, ...placed.map((box) => box.x + box.width + 80)), height: Math.max(6500, ...placed.map((box) => box.y + box.height + 120)) };
+    const width = Math.max(nextX + 48, 1600);
+    const years = [];
+    let nextY = introHeight;
+    for (let year = 1; year <= 4; year++) {
+      const rows = Math.max(...fields.map(({ field, lanes }) => Math.ceil(gridEntries.filter((entry) => entry.field === field && Number.parseInt(byId.get(entry.courseId).year, 10) === year).length / lanes)));
+      const region = { year, y: nextY, height: 136 + rows * CARD_PITCH_Y + 28 };
+      years.push(region);
+      for (const field of fields) {
+        const group = gridEntries.filter((entry) => entry.field === field.field && Number.parseInt(byId.get(entry.courseId).year, 10) === year).sort(sortBySource);
+        group.forEach((entry, index) => put(entry, field.x + 18 + index % field.lanes * CARD_PITCH_X, nextY + 130 + Math.floor(index / field.lanes) * CARD_PITCH_Y, `year-${year}`));
+      }
+      nextY += region.height + 16;
+    }
+    const project = entries.filter((entry) => entry.category === '卒業プロジェクト');
+    project.forEach((entry, index) => put(entry, 84 + index * CARD_PITCH_X, nextY + 110, 'project'));
+    if (placed.length !== byId.size || new Set(placed.map((box) => box.id)).size !== byId.size) {
+      const ids = new Set(placed.map((box) => box.id));
+      throw new Error(`科目配置に欠落または重複があります: ${entries.filter((entry) => !ids.has(entry.courseId)).map((entry) => entry.courseId).join(', ')}`);
+    }
+    return { positions: placed, width, height: nextY + 110 + Math.max(1, project.length) * CARD_PITCH_Y + 50, fields, years, introHeight, projectY: nextY };
   };
 
   const zoomAt = (camera, nextScale, anchor) => {
@@ -99,6 +136,12 @@
         cameraFrame = null;
         world.style.transform = `translate(${camera.x}px, ${camera.y}px) scale(${camera.scale})`;
         doc.getElementById('map-zoom-value').textContent = `${Math.round(camera.scale * 100)}%`;
+        // The leftmost fully readable field is the navigation context on a
+        // wide monitor, where several neighboring fields share the viewport.
+        const center = { x: (Math.min(size().width / 2, 280) - camera.x) / camera.scale, y: (size().height / 2 - camera.y) / camera.scale };
+        const year = layout.years.find((region) => center.y >= region.y && center.y < region.y + region.height);
+        const field = layout.fields.find((region) => center.x >= region.x && center.x < region.x + region.width);
+        doc.getElementById('map-location').textContent = center.y < layout.introHeight ? '導入科目' : center.y >= layout.projectY ? '卒業プロジェクト' : year ? `${year.year}年次 · ${field?.field || '分野を選択'}` : 'カリキュラムマップ';
       });
     };
     const focusCourse = (id) => {
@@ -109,34 +152,87 @@
       selectedId = id;
       updateNodes();
     };
+    const currentYear = () => {
+      const centerY = (size().height / 2 - camera.y) / camera.scale;
+      return layout.years.find((year) => centerY >= year.y && centerY < year.y + year.height)?.year || 1;
+    };
+    const currentField = () => {
+      const centerX = (Math.min(size().width / 2, 280) - camera.x) / camera.scale;
+      return layout.fields.find((field) => centerX >= field.x && centerX < field.x + field.width)?.field || '情報';
+    };
+    const regionCamera = (year, field) => ({
+      scale: 1,
+      // Start with a complete card near the left edge. Centering an entire
+      // field wasted much of a phone viewport and hid the adjacent cards.
+      x: (size().width < 600 ? 40 : 24) - field.x - 18,
+      // Keep the preceding row completely above the viewport. The year
+      // heading still clears the floating toolbar at normal zoom.
+      y: 62 - year.y
+    });
+    const focusRegion = (year, fieldName) => {
+      const region = layout.years.find((item) => item.year === year);
+      const field = layout.fields.find((item) => item.field === fieldName);
+      if (!region || !field) return;
+      // Frame the region title and its first complete card, including on a
+      // narrow phone. The selected course is not silently changed by a jump.
+      camera = regionCamera(region, field);
+      selectedId = '';
+      applyCamera(); updateNodes();
+    };
     const previewQuery = !win.CurriculumAccess.publicEnabled ? '?curriculumPreview=1' : '';
     doc.getElementById('map-back').href = `index.html${previewQuery}`;
     world.style.width = `${layout.width}px`;
     world.style.height = `${layout.height}px`;
 
     const background = doc.getElementById('map-background');
-    const groupColors = { foundation: '#e2e9f7', multilingual: '#fce7ed', world: '#e0f3f2', free: '#eee7f5' };
-    for (const column of definition.columns) {
-      const node = element('section', undefined, 'map-column');
-      Object.assign(node.style, { left: `${column.x / definition.canvas.width * 6000}px`, top: '330px', width: `${column.width / definition.canvas.width * 6000}px`, height: `${layout.height - 460}px`, background: groupColors[column.group] || '#ecf0e8' });
-      node.append(element('h2', column.label));
-      background.append(node);
-    }
-    for (const band of definition.bands.filter((item) => ['ap4', 'ap1-ap3-foundation', 'ap2', 'ap1-ap3-world'].includes(item.id))) {
+    const apBands = definition.bands.filter((item) => ['ap4', 'ap1-ap3-foundation', 'ap2', 'ap1-ap3-world'].includes(item.id));
+    const foundationsWidth = layout.fields.filter((field) => ['情報', '数理'].includes(field.field)).reduce((sum, field) => sum + field.width + 16, 0) - 16;
+    for (const band of apBands) {
       const node = element('div', band.label, 'map-band');
-      Object.assign(node.style, { left: `${band.x / definition.canvas.width * 6000}px`, top: `${band.y * 2}px`, width: `${band.width / definition.canvas.width * 6000}px`, background: band.color });
+      const isTop = band.id === 'ap4';
+      const x = isTop || band.id === 'ap1-ap3-foundation' ? 64 : band.id === 'ap2' ? 64 + foundationsWidth + 16 : layout.fields.find((field) => field.field === '文化・思想').x;
+      const width = isTop ? layout.width - 128 : band.id === 'ap1-ap3-foundation' ? foundationsWidth : band.id === 'ap2' ? layout.fields.find((field) => field.field === '多言語').width : layout.width - x - 64;
+      Object.assign(node.style, { left: `${x}px`, top: `${isTop ? 20 : 76}px`, width: `${width}px`, background: band.color });
       background.append(node);
     }
+    const introBand = element('section', undefined, 'map-stage-band map-intro-band');
+    Object.assign(introBand.style, { top: '132px', left: '64px', width: `${layout.width - 128}px`, height: `${layout.introHeight - 148}px` });
+    introBand.append(element('h2', '導入科目 · 14単位'));
+    background.append(introBand);
+    for (const year of layout.years) {
+      const band = element('section', undefined, 'map-stage-band map-year-band');
+      Object.assign(band.style, { top: `${year.y}px`, left: '64px', width: `${layout.width - 128}px`, height: `${year.height}px` });
+      band.append(element('h2', `${year.year}年次`));
+      background.append(band);
+      for (const field of layout.fields) {
+        const count = layout.positions.filter((box) => box.region === `year-${year.year}` && box.field === field.field).length;
+        if (!count) continue;
+        // A field's tint should frame its cards, not suggest that a sparse
+        // field occupies every lane needed by a different field that year.
+        const rows = Math.ceil(count / field.lanes);
+        const cell = element('section', undefined, 'map-field-cell');
+        Object.assign(cell.style, { left: `${field.x}px`, top: `${year.y + 66}px`, width: `${field.width}px`, height: `${60 + rows * CARD_PITCH_Y}px`, background: field.color });
+        cell.append(element('h3', field.field));
+        background.append(cell);
+      }
+    }
+    const projectBand = element('section', undefined, 'map-stage-band map-project-band');
+    Object.assign(projectBand.style, { top: `${layout.projectY}px`, left: '64px', width: `${layout.width - 128}px`, height: `${layout.height - layout.projectY - 32}px` });
+    projectBand.append(element('h2', '卒業プロジェクト'));
+    background.append(projectBand);
     const host = doc.getElementById('map-courses');
     for (const box of layout.positions) {
       const course = catalog.get(box.id);
       const node = element('button', undefined, 'map-course');
       node.type = 'button';
       node.dataset.courseId = course.id;
+      node.dataset.year = Number.parseInt(course.year, 10);
+      node.dataset.field = box.field;
+      node.dataset.stage = box.stage;
       node.draggable = true;
       node.setAttribute('aria-label', `${course.subject}の詳細`);
       Object.assign(node.style, { left: `${box.x}px`, top: `${box.y}px`, width: `${box.width}px`, height: `${box.height}px`, background: course.credits === 1 ? '#a7d8e6' : course.credits === 4 ? '#fff6bf' : '#fff' });
-      node.append(element('strong', course.subject), element('small', `${course.year} · ${course.credits}単位 · ${course.quarter || ''}`), element('span', '', 'course-state'));
+      node.append(element('strong', course.subject), element('small', `${box.stage} · ${course.credits}単位 · ${course.quarter || ''}`), element('span', '', 'course-state'));
       nodes.set(course.id, node);
       host.append(node);
     }
@@ -372,13 +468,26 @@
       doc.getElementById('map-search-results').hidden = true;
     });
     const field = doc.getElementById('map-field');
-    for (const value of [...new Set(courses.map((course) => course.tag).filter(Boolean))].sort()) { const option = element('option', value); option.value = value; field.append(option); }
-    field.addEventListener('change', () => { for (const [id, node] of nodes) node.classList.toggle('is-dimmed', Boolean(field.value && catalog.get(id).tag !== field.value)); });
+    for (const region of layout.fields) { const option = element('option', region.field); option.value = region.field; field.append(option); }
+    field.addEventListener('change', () => {
+      if (!field.value) return;
+      const chosen = field.value;
+      const presentYears = layout.years.filter((region) => layout.positions.some((box) => box.region === `year-${region.year}` && box.field === chosen));
+      const year = presentYears.find((region) => region.year === currentYear()) || presentYears[0];
+      if (year) focusRegion(year.year, chosen);
+      doc.getElementById('map-menu').hidden = true;
+      doc.getElementById('map-menu-toggle').setAttribute('aria-expanded', 'false');
+    });
     doc.getElementById('map-relation-mode').addEventListener('change', (event) => { relationMode = event.target.value; drawRelations(); });
     doc.querySelectorAll('[data-map-year]').forEach((button) => button.addEventListener('click', () => {
-      const options = courses.filter((course) => Number.parseInt(course.year) === Number(button.dataset.mapYear));
-      const target = options.sort((a, b) => positions.get(a.id).y - positions.get(b.id).y)[0];
-      if (target) focusCourse(target.id);
+      const year = Number(button.dataset.mapYear);
+      const current = currentField();
+      const count = (field) => layout.positions.filter((box) => box.region === `year-${year}` && box.field === field).length;
+      const available = layout.fields.find((field) => field.field === current && count(field.field) >= 3);
+      // A year jump should land on a meaningful cluster, not a nearly empty
+      // field merely because the camera happened to be there before.
+      const fallback = [...layout.fields].sort((a, b) => count(b.field) - count(a.field))[0];
+      focusRegion(year, (available || fallback).field);
       doc.getElementById('map-menu').hidden = true;
       doc.getElementById('map-menu-toggle').setAttribute('aria-expanded', 'false');
     }));
@@ -412,10 +521,10 @@
     win.addEventListener('resize', applyCamera);
     doc.getElementById('map-app').hidden = false;
     doc.getElementById('map-unavailable').hidden = true;
-    // A first-year cluster gives an immediate readable view of neighboring
-    // subjects; the single introductory card leaves most screens blank.
-    const first = positions.get('data_science_intro') || layout.positions[0];
-    camera = centerOn(first, size(), 1);
+    // Start at the first dense year/field panel instead of centering on a
+    // single card; this keeps whole cards and the panel heading in view.
+    const firstField = layout.fields.find((field) => field.field === '情報');
+    camera = regionCamera(layout.years[0], firstField);
     applyCamera(); updateNodes();
     if (!enrollment.writable) status('保存データを読み取れません。既存データは変更しません。', true);
     // Optional datasets do not block the map or enrollment if unavailable.

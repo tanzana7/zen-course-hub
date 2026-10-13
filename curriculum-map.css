@@ -16,9 +16,15 @@ a { color: #087764; }
 #map-world { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
 #map-background, #map-courses, #map-relations { position: absolute; inset: 0; width: 100%; height: 100%; }
 #map-background, #map-relations { pointer-events: none; }
-.map-column { position: absolute; border-radius: 20px; border: 1px solid #cddddd; }
-.map-column h2 { margin: 18px; font-size: 25px; color: #294751; }
-.map-band { position: absolute; padding: 12px 18px; border-radius: 12px; font-size: 24px; font-weight: 800; color: white; }
+.map-stage-band { position: absolute; border: 1px solid #cbd9da; border-radius: 16px; background: #f8faf8; }
+.map-stage-band h2 { margin: 0; padding: 14px 20px; font-size: 23px; line-height: 1.2; color: #183c45; }
+.map-intro-band { background: #fff0d6; border-color: #efa729; }
+.map-project-band { background: #fff2d9; border-color: #efa729; }
+.map-year-band { background: #f5f8fa; border-top: 6px solid #497e9d; }
+.map-year-band:nth-of-type(even) { background: #f0f5f7; }
+.map-field-cell { position: absolute; border: 1px solid #d1dddf; border-radius: 12px; }
+.map-field-cell h3 { margin: 0; padding: 10px 16px; font-size: 16px; line-height: 1.3; color: #285060; }
+.map-band { position: absolute; padding: 6px 16px; border-radius: 8px; font-size: 19px; line-height: 1.5; font-weight: 800; color: white; }
 .map-course { position: absolute; display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; text-align: left; padding: 15px; border-radius: 12px; border: 1px solid #9bb5bc; box-shadow: 0 3px 9px #23434a18; font-size: 17px; line-height: 1.35; user-select: none; overflow: hidden; touch-action: none; }
 .map-course strong { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; overflow-wrap: anywhere; }
 .map-course small { font-size: 12px; color: #466067; font-weight: 500; }
@@ -27,7 +33,15 @@ a { color: #087764; }
 .map-course.is-selected { outline: 4px solid #f08020; outline-offset: 4px; z-index: 3; }
 .map-course.is-dimmed { opacity: .24; }
 .map-course .course-state { font-size: 12px; font-weight: 800; color: #00745e; }
+.map-course[data-stage="導入科目"] { border-top: 5px solid #e39b22; }
+.map-course[data-stage="基礎科目"] { border-top: 5px solid #3560ad; }
+.map-course[data-stage="展開科目"] { border-top: 5px solid #24aebb; }
+.map-course[data-stage="選択必修"] { border-top: 5px solid #6a86a9; }
+.map-course[data-stage="社会接続"] { border-top: 5px solid #a5aa77; }
+.map-course[data-stage="自由"] { border-top: 5px solid #a181b8; }
+.map-course[data-stage="卒業プロジェクト"] { border-top: 5px solid #e39b22; }
 .map-toolbar { position: fixed; top: max(16px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left)); display: flex; gap: 8px; align-items: center; z-index: 10; max-width: calc(100vw - 32px); filter: drop-shadow(0 3px 9px #16323a18); }
+#map-location { position: fixed; top: max(17px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); z-index: 9; border: 1px solid #c5d7da; border-radius: 12px; background: #ffffffeb; padding: 12px 16px; font-size: 14px; font-weight: 750; box-shadow: 0 3px 9px #16323a18; pointer-events: none; }
 #map-search-form { display: flex; background: white; border: 1px solid #d1dcdf; border-radius: 12px; overflow: hidden; width: 330px; max-width: 40vw; }
 #map-search { width: 100%; min-width: 0; border: 0; outline-offset: -3px; padding: 10px 12px; }
 #map-search-form button { border: 0; border-radius: 0; }
@@ -69,6 +83,7 @@ a { color: #087764; }
   #map-search-form { flex: 1; width: auto; max-width: none; }
   #map-enrollment-toggle { font-size: 12px; padding: 8px; white-space: nowrap; }
   #map-search-results { left: 0; top: 54px; width: 100%; max-width: none; }
+  #map-location { top: max(64px, calc(env(safe-area-inset-top) + 54px)); right: 10px; padding: 8px 12px; font-size: 12px; }
   .map-menu { top: 64px; left: 10px; max-width: calc(100vw - 20px); }
   .map-zoom { right: 10px; bottom: max(12px, env(safe-area-inset-bottom)); gap: 0; padding: 4px; }
   .map-zoom button { font-size: 13px; padding: 8px; }

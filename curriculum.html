@@ -24,6 +24,7 @@
       <button id="map-enrollment-toggle" type="button" aria-controls="map-drawer" aria-expanded="false">マイ履修 <span id="map-enrollment-count">0</span></button>
       <div id="map-search-results" hidden role="region" aria-label="検索結果"></div>
     </header>
+    <output id="map-location" aria-label="表示中の領域"></output>
     <nav id="map-menu" class="map-menu" hidden aria-label="マップメニュー">
       <h1>カリキュラムマップ</h1>
       <a id="map-back" href="index.html">一覧へ戻る</a>
@@ -38,10 +39,10 @@
       <small>配置参考：公式カリキュラム図。開講情報は各科目のシラバスをご確認ください。</small>
     </nav>
     <div class="map-zoom" aria-label="表示倍率">
-      <button id="map-zoom-in" class="icon-button" type="button" aria-label="拡大">＋</button>
-      <output id="map-zoom-value" aria-label="現在の倍率">100%</output>
       <button id="map-zoom-out" class="icon-button" type="button" aria-label="縮小">−</button>
-      <button id="map-normal" type="button">100%</button>
+      <output id="map-zoom-value" aria-label="現在の倍率">100%</output>
+      <button id="map-zoom-in" class="icon-button" type="button" aria-label="拡大">＋</button>
+      <button id="map-normal" type="button">等倍</button>
       <button id="map-fit" type="button">全体表示</button>
     </div>
     <div id="map-status" role="status" aria-live="polite" hidden></div>

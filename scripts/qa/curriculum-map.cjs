@@ -104,16 +104,26 @@ async function run() {
     await nav('http://foo.localhost:8087/public/curriculum.html', `document.querySelectorAll('.map-course').length === 275`);
     const result = await summary();
     assert.equal(result.viewport.width, width); assert.equal(result.viewport.height, height); assert.equal(result.scrollWidth, width); assert.equal(result.scale, '100%'); assert.equal(result.drawerHidden, true);
+    const opening = await evaluate(`(() => {const cards=[...document.querySelectorAll('.map-course')].map(node=>node.getBoundingClientRect());return {label:document.getElementById('map-location').textContent,leftClipped:cards.filter(r=>r.right>0&&r.left<0&&r.bottom>64&&r.top<innerHeight).length,visible:cards.filter(r=>r.left>=0&&r.right<=innerWidth&&r.top>=120&&r.bottom<=innerHeight-65).length};})()`);
+    assert.equal(opening.label,'1年次 · 情報');
+    assert.equal(opening.leftClipped,0,'initial cards are not cut off at the left edge');
+    assert.ok(opening.visible>=3,'initial map shows a cluster of whole readable cards');
+    result.opening = opening;
     evidence.viewports.push(result);
     await capture(`initial-${width}.png`);
     for (const year of [1, 2, 3, 4]) {
       await click('#map-menu-toggle');
       await click(`[data-map-year="${year}"]`);
-      const reached = await evaluate(`(() => { const card=document.querySelector('.map-course.is-selected');const r=card.getBoundingClientRect();return {year:parseInt(card.querySelector('small').textContent,10),visible:r.right>0&&r.left<innerWidth&&r.bottom>0&&r.top<innerHeight};})()`);
-      assert.equal(reached.year, year);
-      assert.equal(reached.visible, true, `year ${year} must be inside viewport`);
+      const reached = await evaluate(`({label:document.getElementById('map-location').textContent,visible:[...document.querySelectorAll('.map-course')].some(card=>card.dataset.year==='${year}'&&(()=>{const r=card.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=80&&r.bottom<=innerHeight-60})())})`);
+      assert.ok(reached.label.startsWith(`${year}年次`),`year ${year} region heading must be visible`);
+      assert.equal(reached.visible, true, `year ${year} needs a complete visible card`);
     }
     await capture(`year-4-${width}.png`);
+    await click('#map-menu-toggle');
+    await evaluate(`document.getElementById('map-field').value='文化・思想';document.getElementById('map-field').dispatchEvent(new Event('change',{bubbles:true}))`);
+    await pause(140);
+    assert.ok((await evaluate(`document.getElementById('map-location').textContent`)).includes('文化・思想'));
+    await capture(`field-culture-${width}.png`);
     // Real drag on uncovered background moves the camera without a drawer.
     const start = {x:20,y:height-100}, end = {x:180,y:height-200};
     const before = result.transform;
