@@ -2415,6 +2415,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           search.focus({ preventScroll: true });
         });
       } else {
+        // Returning to the list must also leave the map's fullscreen mode.
+        // Otherwise the explorer class keeps body scrolling locked after the
+        // tree is hidden, making the ordinary Hub appear frozen.
+        curriculumState.fullscreen = false;
+        document.body.classList.remove('curriculum-tree-explorer-mode');
+        fullscreen?.setAttribute('aria-pressed', 'false');
+        if (fullscreen) fullscreen.textContent = '探索モード';
         const detail = document.getElementById('curriculum-course-detail');
         if (detail) detail.hidden = true;
         curriculumState.selectedId = '';
