@@ -273,7 +273,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     enrollmentOpen: false,
     enrollmentManualOpen: false,
     enrollmentAutoOpened: false,
-    autoFit: true
+    autoFit: true,
+    searchHighlightId: '',
+    searchHighlightTimer: null
   };
 
   // The map card handlers live outside setupCurriculumTree, so the drawer
@@ -2063,8 +2065,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   const clearCurriculumFocus = () => {
-    if (!curriculumState.selectedId) return;
+    if (!curriculumState.selectedId && !curriculumState.searchHighlightId) return;
     curriculumState.selectedId = '';
+    curriculumState.searchHighlightId = '';
+    if (curriculumState.searchHighlightTimer) {
+      window.clearTimeout(curriculumState.searchHighlightTimer);
+      curriculumState.searchHighlightTimer = null;
+    }
     const detail = document.getElementById('curriculum-course-detail');
     if (detail) {
       detail.hidden = true;
@@ -2078,6 +2085,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const detail = document.getElementById('curriculum-course-detail');
     if (!course || !detail) return;
 
+    // A direct card click is a normal exploration action; only a search submit
+    // is allowed to leave a transient highlight behind.
+    curriculumState.searchHighlightId = '';
+    if (curriculumState.searchHighlightTimer) {
+      window.clearTimeout(curriculumState.searchHighlightTimer);
+      curriculumState.searchHighlightTimer = null;
+    }
     curriculumState.selectedId = courseId;
     const isRegistered = state.registeredClasses.has(courseId);
     const isCompleted = state.completedClasses.has(courseId);
@@ -2112,6 +2126,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     renderCurriculumGraph();
     detail.querySelector('.detail-subject')?.focus({ preventScroll: true });
+  };
+
+  const triggerCurriculumSearchHighlight = (courseId) => {
+    curriculumState.searchHighlightId = courseId;
+    if (curriculumState.searchHighlightTimer) window.clearTimeout(curriculumState.searchHighlightTimer);
+    renderCurriculumGraph();
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    curriculumState.searchHighlightTimer = window.setTimeout(() => {
+      curriculumState.searchHighlightId = '';
+      curriculumState.searchHighlightTimer = null;
+      renderCurriculumGraph();
+    }, reduceMotion ? 1200 : 2200);
   };
 
   const createCurriculumEdgePath = (from, to) => {
@@ -2150,7 +2176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
 
       const focusIds = getCurriculumFocusIds();
-      const hasFocus = focusIds.size > 0;
+      const hasFocus = curriculumState.relationMode === 'selected' && focusIds.size > 0;
       const matchesById = new Map();
       let matchCount = 0;
       const hasActiveFilter = Boolean(curriculumState.search.trim() || curriculumState.year !== 'すべて表示' || curriculumState.field !== 'すべて表示');
@@ -2177,6 +2203,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (matches) node.classList.add('is-match'); else node.classList.add('is-dimmed');
           if (!relatedToFocus) node.classList.add('is-out-of-focus');
           if (course.id === curriculumState.selectedId) node.classList.add('is-selected');
+          if (course.id === curriculumState.searchHighlightId) node.classList.add('is-search-highlight');
           if (isRegistered) node.classList.add('is-registered');
           if (isCompleted) node.classList.add('is-completed');
           node.classList.add(`curriculum-credit-${String(course.credits || '').replace(/[^0-9]/g, '') || 'unknown'}`);
@@ -2414,10 +2441,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       const position = curriculumState.layout?.positions.get(course.id);
       const rect = graphScroll?.getBoundingClientRect();
       if (position && rect) {
-        curriculumState.zoom = Math.max(curriculumState.zoom, 1);
+        // Search is the one intentional navigation shortcut: bring the result
+        // into a readable 100–150% range, while direct clicks and manual pan/
+        // zoom continue to preserve the user's current viewport.
+        const cardWidth = Math.max(96, Number(position.width) || 142);
+        const cardHeight = Math.max(64, Number(position.height) || 76);
+        const readableScale = Math.min(
+          (Math.max(260, rect.width - 48) / (cardWidth * 3.5)),
+          (Math.max(180, rect.height - 48) / (cardHeight * 3.5))
+        );
+        curriculumState.zoom = Math.min(1.5, Math.max(1, Number(readableScale.toFixed(2))));
         curriculumState.panX = rect.width / 2 - position.x * curriculumState.zoom;
         curriculumState.panY = rect.height / 2 - position.y * curriculumState.zoom;
         renderCurriculumGraph();
+        triggerCurriculumSearchHighlight(course.id);
       }
     });
     year.addEventListener('change', () => {

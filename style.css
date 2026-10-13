@@ -3258,7 +3258,18 @@ body.curriculum-tree-explorer-mode .curriculum-graph-scroll { height: calc(100vh
 .curriculum-edge.is-strong { stroke: #2563eb; stroke-width: 2.15; opacity: 0.82; }
 .curriculum-edge.is-focused { stroke: #0f766e; stroke-width: 2.25; opacity: 0.88; }
 .curriculum-edge.is-filter-dimmed { opacity: 0.16; }
-.curriculum-edge.is-out-of-focus, .curriculum-node.is-out-of-focus { opacity: 0.12; }
+.curriculum-edge.is-out-of-focus { opacity: 0.12; }
+/* SELECTED keeps unrelated cards readable enough to orient within the PDF map;
+ * only advisory relation edges are heavily muted. */
+.curriculum-node.is-out-of-focus { opacity: 0.78; }
+.curriculum-node.is-search-highlight { animation: curriculum-search-highlight 2.2s ease-out; }
+@keyframes curriculum-search-highlight {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18); }
+  18%, 54% { box-shadow: 0 0 0 4px rgba(14, 116, 144, 0.72), 0 0 22px rgba(14, 116, 144, 0.42); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .curriculum-node.is-search-highlight { animation: none; box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.68); }
+}
 .curriculum-lane { position: absolute; top: 0; z-index: 2; box-sizing: border-box; padding: 10px 24px 24px; }
 .curriculum-lane h3 { position: sticky; top: 0; z-index: 3; margin: 0 -8px 10px; padding: 7px 8px; border-bottom: 2px solid #cbd5e1; background: rgba(248, 250, 252, 0.96); color: #334155; font-size: 0.95rem; }
 .curriculum-node { position: relative; box-sizing: border-box; min-height: 82px; margin-bottom: 8px; padding: 9px 9px 7px; border: 1px solid #cbd5e1; border-left: 4px solid #94a3b8; border-radius: 7px; background: #fff; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08); color: #1e293b; cursor: grab; transition: opacity 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease; }
@@ -3633,3 +3644,6 @@ body.curriculum-tree-mode.curriculum-enrollment-open .right-column {
 @media (max-width: 640px) {
  body.curriculum-tree-mode .right-column { width: min(360px, 94vw) !important; max-width: 94vw !important; top: max(6px, env(safe-area-inset-top)) !important; }
 }
+
+/* Keep filtered cards legible while SELECTED relation mode provides context. */
+.curriculum-node.is-out-of-focus.is-dimmed { opacity: 0.78; }
