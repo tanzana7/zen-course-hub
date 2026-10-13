@@ -275,7 +275,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     enrollmentAutoOpened: false,
     autoFit: true,
     searchHighlightId: '',
-    searchHighlightTimer: null
+    searchHighlightTimer: null,
+    searchCandidateId: ''
   };
 
   // The map card handlers live outside setupCurriculumTree, so the drawer
@@ -2328,6 +2329,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const enrollmentDrawerToggle = document.getElementById('curriculum-enrollment-drawer-toggle');
     const relationMode = document.getElementById('curriculum-relation-mode');
     const zoomLevel = document.getElementById('curriculum-zoom-level');
+    const searchResults = document.getElementById('curriculum-tree-search-results');
     if (!nav || !view || !dropZone || !search || !year || !field) return;
     let renderFrame = null;
     let transformFrame = null;
@@ -2428,41 +2430,81 @@ document.addEventListener('DOMContentLoaded', async () => {
     enrollmentDrawerToggle?.addEventListener('click', () => {
       setCurriculumEnrollmentOpen(!curriculumState.enrollmentOpen, { manual: true });
     });
-    search.addEventListener('input', () => {
-      curriculumState.search = search.value;
-      scheduleCurriculumRender();
-    });
-    search.addEventListener('keydown', (event) => {
-      if (event.key !== 'Enter') return;
-      const course = state.predefinedData.find((item) => getCurriculumMatch(item));
+    const getSearchMatches = () => state.predefinedData.filter((item) => getCurriculumMatch(item));
+    const syncSearchResults = () => {
+      if (!searchResults) return;
+      const matches = getSearchMatches();
+      searchResults.replaceChildren();
+      if (!curriculumState.search.trim() || matches.length < 2) {
+        searchResults.hidden = true;
+        curriculumState.searchCandidateId = matches[0]?.id || '';
+        return;
+      }
+      const fragment = document.createDocumentFragment();
+      matches.forEach((course) => {
+        const option = document.createElement('option');
+        option.value = course.id;
+        option.textContent = course.teacher ? `${course.subject}（${course.teacher}）` : course.subject;
+        fragment.appendChild(option);
+      });
+      searchResults.appendChild(fragment);
+      const selected = matches.some((course) => course.id === curriculumState.searchCandidateId)
+        ? curriculumState.searchCandidateId
+        : matches[0].id;
+      searchResults.value = selected;
+      curriculumState.searchCandidateId = selected;
+      searchResults.hidden = false;
+    };
+    const focusSearchCourse = (course) => {
       if (!course) return;
-      event.preventDefault();
+      curriculumState.searchCandidateId = course.id;
       openCurriculumCourseDetail(course.id);
       const position = curriculumState.layout?.positions.get(course.id);
       const rect = graphScroll?.getBoundingClientRect();
-      if (position && rect) {
-        // Search is the one intentional navigation shortcut: bring the result
-        // into a readable 100–150% range, while direct clicks and manual pan/
-        // zoom continue to preserve the user's current viewport.
-        const cardWidth = Math.max(96, Number(position.width) || 142);
-        const cardHeight = Math.max(64, Number(position.height) || 76);
-        const readableScale = Math.min(
-          (Math.max(260, rect.width - 48) / (cardWidth * 3.5)),
-          (Math.max(180, rect.height - 48) / (cardHeight * 3.5))
-        );
-        curriculumState.zoom = Math.min(1.5, Math.max(1, Number(readableScale.toFixed(2))));
-        curriculumState.panX = rect.width / 2 - position.x * curriculumState.zoom;
-        curriculumState.panY = rect.height / 2 - position.y * curriculumState.zoom;
-        renderCurriculumGraph();
-        triggerCurriculumSearchHighlight(course.id);
-      }
+      if (!position || !rect) return;
+      // Search is the one intentional navigation shortcut: bring the result
+      // into a readable 100–150% range, while direct clicks and manual pan/
+      // zoom continue to preserve the user's current viewport.
+      const cardWidth = Math.max(96, Number(position.width) || 142);
+      const cardHeight = Math.max(64, Number(position.height) || 76);
+      const readableScale = Math.min(
+        (Math.max(260, rect.width - 48) / (cardWidth * 3.5)),
+        (Math.max(180, rect.height - 48) / (cardHeight * 3.5))
+      );
+      curriculumState.zoom = Math.min(1.5, Math.max(1, Number(readableScale.toFixed(2))));
+      curriculumState.panX = rect.width / 2 - position.x * curriculumState.zoom;
+      curriculumState.panY = rect.height / 2 - position.y * curriculumState.zoom;
+      renderCurriculumGraph();
+      triggerCurriculumSearchHighlight(course.id);
+    };
+    search.addEventListener('input', () => {
+      curriculumState.search = search.value;
+      curriculumState.searchCandidateId = '';
+      syncSearchResults();
+      scheduleCurriculumRender();
+    });
+    searchResults?.addEventListener('change', () => {
+      curriculumState.searchCandidateId = searchResults.value;
+      const course = state.predefinedData.find((item) => item.id === searchResults.value);
+      if (course) focusSearchCourse(course);
+    });
+    search.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+      const matches = getSearchMatches();
+      const selectedId = searchResults?.value || curriculumState.searchCandidateId;
+      const course = matches.find((item) => item.id === selectedId) || matches[0];
+      if (!course) return;
+      event.preventDefault();
+      focusSearchCourse(course);
     });
     year.addEventListener('change', () => {
       curriculumState.year = year.value;
+      syncSearchResults();
       scheduleCurriculumRender();
     });
     field.addEventListener('change', () => {
       curriculumState.field = field.value;
+      syncSearchResults();
       scheduleCurriculumRender();
     });
     relationMode?.addEventListener('change', () => {
