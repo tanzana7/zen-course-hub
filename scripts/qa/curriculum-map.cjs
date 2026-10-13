@@ -1,4 +1,4 @@
-// Isolated browser QA. Public-ON is injected only into an in-memory HTTP response.
+// Isolated browser QA. Public-OFF is injected only into an in-memory HTTP response.
 // No user's Chrome profile, production endpoint or stored enrollment is used.
 const fs = require('node:fs');
 const path = require('node:path');
@@ -8,6 +8,7 @@ const { spawn } = require('node:child_process');
 const assert = require('node:assert/strict');
 const geometry = require('../../curriculum-map.js');
 const root = path.resolve(__dirname, '../..');
+const servedRoot = process.env.ZEN_MAP_QA_SERVE_DIST === '1' ? path.join(root, 'netlify-dist') : root;
 const out = path.join(root, 'docs/qa/curriculum-map-fullscreen');
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'zen-full-map-'));
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -17,13 +18,15 @@ const server = http.createServer((req, res) => {
   let url = new URL(req.url, 'http://localhost');
   let file = decodeURIComponent(url.pathname);
   const publicBuild = file.startsWith('/public/');
+  const offBuild = file.startsWith('/off/');
   if (publicBuild) file = file.slice(7);
+  if (offBuild) file = file.slice(4);
   if (file === '/') file = '/index.html';
-  const target = path.resolve(root, '.' + file);
-  if (!target.startsWith(root + path.sep) || /\/\.git\//.test(file)) { res.writeHead(403); return res.end(); }
+  const target = path.resolve(servedRoot, '.' + file);
+  if (!target.startsWith(servedRoot + path.sep) || /\/\.git\//.test(file)) { res.writeHead(403); return res.end(); }
   fs.readFile(target, (error, data) => {
     if (error) { res.writeHead(404); return res.end(); }
-    if (publicBuild && file === '/curriculum-config.js') data = Buffer.from(data.toString().replace('const CURRICULUM_TREE_PUBLIC_ENABLED = false;', 'const CURRICULUM_TREE_PUBLIC_ENABLED = true;'));
+    if (offBuild && file === '/curriculum-config.js') data = Buffer.from(data.toString().replace('const CURRICULUM_TREE_PUBLIC_ENABLED = true;', 'const CURRICULUM_TREE_PUBLIC_ENABLED = false;'));
     const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json' };
     res.setHeader('Content-Type', mime[path.extname(target)] || 'application/octet-stream');
     res.end(data);
@@ -75,7 +78,7 @@ async function run() {
   await send('Page.enable'); await send('Runtime.enable'); await send('Network.enable');
   // OFF and local preview use the actual committed release setting.
   await size(1440, 900);
-  await nav('http://foo.localhost:8087/curriculum.html?curriculumPreview=1', `document.getElementById('map-loading-message')?.textContent.includes('公開準備')`);
+  await nav('http://foo.localhost:8087/off/curriculum.html?curriculumPreview=1', `document.getElementById('map-loading-message')?.textContent.includes('公開準備')`);
   assert.equal(await evaluate(`document.getElementById('map-app').hidden`), true);
   await nav('http://127.0.0.1:8087/index.html?curriculumPreview=1', `document.getElementById('curriculum-tree-nav')?.hidden === false`);
   await click('#curriculum-tree-nav');
@@ -192,6 +195,15 @@ async function run() {
   await nav('http://foo.localhost:8087/public/index.html', `document.getElementById('registered-count')?.textContent === '1'`);
   assert.ok(await evaluate(`document.getElementById('list').textContent.includes('アカデミックリテラシー')`));
   await capture('hub-synchronized.png');
+  // The public artifact must keep the three existing Hub experiences usable.
+  await click('#analysis-btn');
+  await wait(`document.getElementById('analysis-modal').style.display === 'block' && document.getElementById('analysis-result').textContent.length > 0`);
+  await click('#close-modal');
+  await click('#simulator-btn');
+  await wait(`document.getElementById('simulator-modal').hidden === false && document.getElementById('simulator-year-grid').children.length > 0`);
+  await click('#close-simulator');
+  assert.equal(await evaluate(`document.getElementById('simulator-modal').hidden`), true);
+  evidence.existingHubViews = 'PASS';
   await click('#curriculum-tree-nav');
   try { await wait(`document.querySelectorAll('.map-course').length === 275`); }
   catch (error) {

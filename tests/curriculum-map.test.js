@@ -6,13 +6,13 @@ const access = require('../curriculum-config.js');
 const definition = require('../curriculum-tree-layout.json');
 const courses = require('../courses.json');
 
-test('independent map release gate is disabled on public hosts including query/hash attempts', () => {
-  assert.equal(access.publicEnabled, false);
+test('independent map release gate is enabled on public hosts', () => {
+  assert.equal(access.publicEnabled, true);
   for (const hostname of ['example.com', 'zencoursehub.netlify.app', 'foo.localhost']) {
-    assert.equal(access.canAccess({ hostname, search: '?curriculumPreview=1&public=true', hash: '#tree' }), false);
+    assert.equal(access.canAccess({ hostname, search: '', hash: '' }), true);
   }
   assert.equal(access.canAccess({ hostname: '127.0.0.1', search: '?curriculumPreview=1' }), true);
-  assert.equal(access.canAccess({ hostname: 'localhost', search: '' }), false);
+  assert.equal(access.canAccess({ hostname: 'localhost', search: '' }), true);
 });
 
 test('display layout contains all 275 courses, eliminates partial overlap and preserves source coordinates', () => {

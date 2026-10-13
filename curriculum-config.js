@@ -1,6 +1,6 @@
 /* Public access is a release artifact setting, never a stored user preference. */
 (function exposeCurriculumAccess(root) {
-  const CURRICULUM_TREE_PUBLIC_ENABLED = false;
+  const CURRICULUM_TREE_PUBLIC_ENABLED = true;
   const canAccess = (location) => CURRICULUM_TREE_PUBLIC_ENABLED || (
     ['localhost', '127.0.0.1'].includes(location.hostname)
     && new URLSearchParams(location.search).get('curriculumPreview') === '1'

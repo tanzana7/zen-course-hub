@@ -1,0 +1,4 @@
+[build]
+  base = "."
+  command = "node scripts/build-public.cjs"
+  publish = "netlify-dist"

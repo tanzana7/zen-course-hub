@@ -80,6 +80,7 @@
   "pinch": "PASS",
   "touchPan": "PASS",
   "touchCourseDetail": "PASS",
+  "existingHubViews": "PASS",
   "saveFailureRollback": "PASS",
   "hubSynchronization": "PASS",
   "reload": "PASS",

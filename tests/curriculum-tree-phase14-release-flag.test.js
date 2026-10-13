@@ -6,10 +6,10 @@ const path = require('node:path');
 const root = path.join(__dirname, '..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('release flag exists once and is committed disabled', () => {
+test('release flag exists once and is enabled for public navigation', () => {
   const app = read('app.js');
   assert.equal((app.match(/CURRICULUM_TREE_PUBLIC_ENABLED/g) || []).length, 2);
-  assert.match(read('curriculum-config.js'), /const CURRICULUM_TREE_PUBLIC_ENABLED = false;/);
+  assert.match(read('curriculum-config.js'), /const CURRICULUM_TREE_PUBLIC_ENABLED = true;/);
   assert.match(app, /window.CurriculumAccess\?\.publicEnabled === true/);
 });
 
@@ -29,7 +29,7 @@ test('public flag is not controlled by storage or query input', () => {
   assert.doesNotMatch(app, /URLSearchParams\([^)]*CURRICULUM_TREE_PUBLIC_ENABLED/);
 });
 
-test('public-off navigation keeps the tree button hidden in the HTML baseline', () => {
+test('navigation starts hidden in HTML until the release gate is evaluated', () => {
   const index = read('index.html');
   assert.match(index, /id="course-list-nav"/);
   assert.match(index, /id="simulator-btn"/);
@@ -37,18 +37,19 @@ test('public-off navigation keeps the tree button hidden in the HTML baseline', 
   assert.match(index, /id="curriculum-tree-nav"[^>]*hidden/);
 });
 
-test('public-on test injection changes only the explicit release flag', () => {
+test('public-off test injection changes only the explicit release flag', () => {
   const config = read('curriculum-config.js');
-  const enabled = config.replace(
-    'const CURRICULUM_TREE_PUBLIC_ENABLED = false;',
-    'const CURRICULUM_TREE_PUBLIC_ENABLED = true;'
+  const disabled = config.replace(
+    'const CURRICULUM_TREE_PUBLIC_ENABLED = true;',
+    'const CURRICULUM_TREE_PUBLIC_ENABLED = false;'
   );
-  assert.notEqual(enabled, config);
-  assert.match(enabled, /const CURRICULUM_TREE_PUBLIC_ENABLED = true;/);
+  assert.notEqual(disabled, config);
+  assert.match(disabled, /const CURRICULUM_TREE_PUBLIC_ENABLED = false;/);
   const vm = require('node:vm');
   const context = { URLSearchParams };
-  vm.runInNewContext(enabled, context);
-  assert.equal(context.CurriculumAccess.canAccess({ hostname: 'example.com', search: '' }), true);
+  vm.runInNewContext(disabled, context);
+  assert.equal(context.CurriculumAccess.canAccess({ hostname: 'example.com', search: '' }), false);
+  assert.equal(context.CurriculumAccess.canAccess({ hostname: 'localhost', search: '?curriculumPreview=1' }), true);
 });
 
 test('navigation opens the standalone map and retains list mode transitions', () => {

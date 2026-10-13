@@ -8,3 +8,4 @@
 # Local QA output and source documents are never deployment inputs.
 tmp/
 *.pdf
+netlify-dist/
