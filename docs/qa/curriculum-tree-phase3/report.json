@@ -1,0 +1,14 @@
+{
+  "viewport": { "desktop": "1280x900", "mobile": ["390x844", "375x844"] },
+  "coursesRendered": 275,
+  "desktopHorizontalOverflow": false,
+  "mobileHorizontalOverflow": false,
+  "searchMatchCount": 1,
+  "courseDetail": "ITリテラシー",
+  "enrollmentDrop": "registered and reflected in myClasses; cleaned up after QA",
+  "mapControls": ["pan", "wheel zoom", "cursor-centered zoom", "fit", "100%", "explorer mode"],
+  "notes": [
+    "The official PDF image was removed from the release branch's QA evidence; only independently rendered map screenshots remain.",
+    "Individual course positions are structure-only because the encrypted PDF prevents reliable text extraction."
+  ]
+}

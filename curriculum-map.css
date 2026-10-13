@@ -1,0 +1,92 @@
+:root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", sans-serif; color: #16323a; background: #eef3f4; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+button, input, select { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button { min-height: 44px; padding: 9px 14px; border: 1px solid #d1dcdf; border-radius: 12px; background: white; color: #16323a; cursor: pointer; font-weight: 650; }
+button:hover { background: #edf8f5; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #089a86; outline-offset: 3px; }
+button:disabled { cursor: default; opacity: .6; }
+a { color: #087764; }
+.icon-button { width: 44px; min-width: 44px; padding: 7px; font-size: 22px; }
+#map-app, #map-viewport { position: fixed; inset: 0; }
+#map-viewport { overflow: hidden; touch-action: none; cursor: grab; background: #eef3f4; outline-offset: -3px; }
+#map-viewport.is-moving { cursor: grabbing; }
+#map-world { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
+#map-background, #map-courses, #map-relations { position: absolute; inset: 0; width: 100%; height: 100%; }
+#map-background, #map-relations { pointer-events: none; }
+.map-stage-band { position: absolute; border: 1px solid #cbd9da; border-radius: 16px; background: #f8faf8; }
+.map-stage-band h2 { margin: 0; padding: 14px 20px; font-size: 23px; line-height: 1.2; color: #183c45; }
+.map-intro-band { background: #fff0d6; border-color: #efa729; }
+.map-project-band { background: #fff2d9; border-color: #efa729; }
+.map-year-band { background: #f5f8fa; border-top: 6px solid #497e9d; }
+.map-year-band:nth-of-type(even) { background: #f0f5f7; }
+.map-field-cell { position: absolute; border: 1px solid #d1dddf; border-radius: 12px; }
+.map-field-cell h3 { margin: 0; padding: 10px 16px; font-size: 16px; line-height: 1.3; color: #285060; }
+.map-band { position: absolute; padding: 6px 16px; border-radius: 8px; font-size: 19px; line-height: 1.5; font-weight: 800; color: white; }
+.map-course { position: absolute; display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; text-align: left; padding: 15px; border-radius: 12px; border: 1px solid #9bb5bc; box-shadow: 0 3px 9px #23434a18; font-size: 17px; line-height: 1.35; user-select: none; overflow: hidden; touch-action: none; }
+.map-course strong { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; overflow-wrap: anywhere; }
+.map-course small { font-size: 12px; color: #466067; font-weight: 500; }
+.map-course.is-registered { border: 3px solid #088972; padding: 13px; }
+.map-course.is-completed { border: 3px solid #5362ac; padding: 13px; }
+.map-course.is-selected { outline: 4px solid #f08020; outline-offset: 4px; z-index: 3; }
+.map-course.is-dimmed { opacity: .24; }
+.map-course .course-state { font-size: 12px; font-weight: 800; color: #00745e; }
+.map-course[data-stage="導入科目"] { border-top: 5px solid #e39b22; }
+.map-course[data-stage="基礎科目"] { border-top: 5px solid #3560ad; }
+.map-course[data-stage="展開科目"] { border-top: 5px solid #24aebb; }
+.map-course[data-stage="選択必修"] { border-top: 5px solid #6a86a9; }
+.map-course[data-stage="社会接続"] { border-top: 5px solid #a5aa77; }
+.map-course[data-stage="自由"] { border-top: 5px solid #a181b8; }
+.map-course[data-stage="卒業プロジェクト"] { border-top: 5px solid #e39b22; }
+.map-toolbar { position: fixed; top: max(16px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left)); display: flex; gap: 8px; align-items: center; z-index: 10; max-width: calc(100vw - 32px); filter: drop-shadow(0 3px 9px #16323a18); }
+#map-location { position: fixed; top: max(17px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); z-index: 9; border: 1px solid #c5d7da; border-radius: 12px; background: #ffffffeb; padding: 12px 16px; font-size: 14px; font-weight: 750; box-shadow: 0 3px 9px #16323a18; pointer-events: none; }
+#map-search-form { display: flex; background: white; border: 1px solid #d1dcdf; border-radius: 12px; overflow: hidden; width: 330px; max-width: 40vw; }
+#map-search { width: 100%; min-width: 0; border: 0; outline-offset: -3px; padding: 10px 12px; }
+#map-search-form button { border: 0; border-radius: 0; }
+#map-search-results { position: absolute; top: 54px; left: 52px; width: 330px; max-width: calc(100vw - 32px); max-height: min(50vh, 430px); overflow-y: auto; background: white; border: 1px solid #d1dcdf; border-radius: 12px; padding: 6px; }
+#map-search-results button { display: block; width: 100%; text-align: left; border: 0; margin-bottom: 2px; font-size: 14px; }
+.map-menu { position: fixed; top: 72px; left: 16px; width: 320px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 100px); overflow-y: auto; z-index: 20; background: #fff; padding: 22px; border: 1px solid #d1dcdf; border-radius: 18px; box-shadow: 0 10px 40px #16323a20; }
+.map-menu h1 { font-size: 20px; margin: 0 0 14px; }
+.map-menu > a { display: block; padding: 8px 0; }
+.year-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
+.map-menu label { display: block; margin: 14px 0; font-size: 14px; font-weight: 700; }
+.map-menu select { display: block; width: 100%; min-height: 44px; margin-top: 5px; border-radius: 8px; border: 1px solid #bccdd0; background: white; color: inherit; }
+.map-menu p, .map-menu small { font-size: 12px; line-height: 1.7; color: #54676e; }
+.map-zoom { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); display: flex; gap: 6px; align-items: center; background: #fff; border: 1px solid #d1dcdf; border-radius: 14px; padding: 6px; box-shadow: 0 3px 12px #16323a18; z-index: 10; }
+.map-zoom button { border: 0; }
+.map-zoom output { min-width: 46px; font-size: 12px; text-align: center; font-variant-numeric: tabular-nums; }
+.map-drawer { position: fixed; top: 0; bottom: 0; right: 0; width: min(420px, 100vw); background: #fff; box-shadow: -6px 0 30px #16323a24; z-index: 30; padding: max(18px, env(safe-area-inset-top)) 24px max(18px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
+.map-drawer > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid #e0e8e8; padding-bottom: 12px; }
+.map-drawer h2 { font-size: 17px; margin: 0; }
+#map-drawer-content { overflow-y: auto; flex: 1; padding: 20px 0; overscroll-behavior: contain; }
+#map-drawer-content h3 { font-size: 23px; line-height: 1.5; overflow-wrap: anywhere; margin: 0 0 12px; }
+#map-drawer-content p { line-height: 1.8; font-size: 14px; white-space: pre-line; overflow-wrap: anywhere; }
+#map-drawer-content dl { display: grid; grid-template-columns: 72px 1fr; gap: 10px; font-size: 14px; line-height: 1.5; }
+#map-drawer-content dt { color: #54676e; }
+#map-drawer-content dd { margin: 0; }
+.enrollment-action { width: 100%; color: white; background: #087e6a; border-color: #087e6a; margin: 14px 0; }
+.enrollment-action:hover { color: #087e6a; }
+.enrollment-row { display: flex; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid #e0e8e8; }
+.enrollment-row > button:first-child { flex: 1; text-align: left; border: 0; font-size: 14px; }
+.enrollment-row .remove { font-size: 13px; color: #a13831; }
+.relation-badge { display: inline-block; font-size: 11px; padding: 2px 5px; margin-left: 5px; border-radius: 5px; background: #edf4f3; }
+.relation-badge.strong { background: #fff1dc; color: #844a00; }
+.related-course { display: block; width: 100%; text-align: left; border: 0; font-size: 14px; }
+#map-status { position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%); background: #163b38; color: white; border-radius: 12px; padding: 12px 20px; max-width: calc(100vw - 32px); z-index: 40; font-size: 14px; }
+#map-drop-target { position: fixed; right: 16px; top: 84px; width: 280px; height: 150px; display: grid; place-items: center; background: #e1f5ee; border: 3px dashed #0b8e75; border-radius: 16px; z-index: 25; font-weight: 700; }
+#map-drop-target.is-over { background: #b4e8d5; }
+.unavailable { margin: 48px auto; padding: 24px; max-width: 500px; }
+@media (max-width: 600px) {
+  .map-toolbar { top: max(10px, env(safe-area-inset-top)); left: 10px; right: 10px; max-width: none; gap: 6px; }
+  #map-search-form { flex: 1; width: auto; max-width: none; }
+  #map-enrollment-toggle { font-size: 12px; padding: 8px; white-space: nowrap; }
+  #map-search-results { left: 0; top: 54px; width: 100%; max-width: none; }
+  #map-location { top: max(64px, calc(env(safe-area-inset-top) + 54px)); right: 10px; padding: 8px 12px; font-size: 12px; }
+  .map-menu { top: 64px; left: 10px; max-width: calc(100vw - 20px); }
+  .map-zoom { right: 10px; bottom: max(12px, env(safe-area-inset-bottom)); gap: 0; padding: 4px; }
+  .map-zoom button { font-size: 13px; padding: 8px; }
+  .map-zoom .icon-button { font-size: 20px; }
+  .map-drawer { top: auto; height: min(78dvh, 760px); width: 100%; border-radius: 22px 22px 0 0; padding: 18px 20px max(18px, env(safe-area-inset-bottom)); }
+}

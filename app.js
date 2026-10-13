@@ -1,6 +1,10 @@
 /**
  * アプリケーションのメインロジック
  */
+// 公開切替はリリース成果物の設定として明示的に行う。localStorageやURLから
+// 変更できないため、通常のfeature成果物を誤って公開しても正式導線は開かない。
+const CURRICULUM_TREE_PUBLIC_ENABLED = window.CurriculumAccess?.publicEnabled === true;
+
 document.addEventListener('DOMContentLoaded', async () => {
   const list = document.getElementById('list');
   const completedList = document.getElementById('completed-list');
@@ -136,6 +140,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     simulatorPlacementFilter: 'all',
     graduationDefinition: null,
     courseValidationError: null,
+    curriculumLayoutDefinition: null,
     coursesReady: false,
     rawRelations: [],
     storageWritable: enrollmentStorage.writable,
@@ -259,8 +264,49 @@ document.addEventListener('DOMContentLoaded', async () => {
     year: 'すべて表示',
     field: 'すべて表示',
     selectedId: '',
+    // Reference relations are intentionally opt-in: the official PDF does not
+    // define these prerequisite/successor edges, so hiding them by default
+    // keeps the map legible and prevents an advisory graph from looking official.
+    relationMode: 'off',
     didDrag: false,
-    layout: null
+    layout: null,
+    zoom: 1,
+    panX: 0,
+    panY: 0,
+    fullscreen: false,
+    enrollmentOpen: false,
+    enrollmentManualOpen: false,
+    enrollmentAutoOpened: false,
+    autoFit: true,
+    searchHighlightId: '',
+    searchHighlightTimer: null,
+    searchCandidateId: ''
+  };
+
+  // The map card handlers live outside setupCurriculumTree, so the drawer
+  // transition helper must be shared at this scope. Keeping the existing
+  // enrollment content and drop zone untouched preserves the normal
+  // myClasses storage path while allowing drag registration to reveal them.
+  const setCurriculumEnrollmentOpen = (open, { manual = false, auto = false } = {}) => {
+    const nextOpen = Boolean(open);
+    const enrollmentContent = document.getElementById('my-enrollment-content');
+    const dropZone = document.getElementById('curriculum-drop-zone');
+    const enrollmentDrawerToggle = document.getElementById('curriculum-enrollment-drawer-toggle');
+    const mobileEnrollmentToggle = document.getElementById('curriculum-mobile-enrollment-toggle');
+    curriculumState.enrollmentOpen = nextOpen;
+    if (manual) curriculumState.enrollmentManualOpen = nextOpen;
+    curriculumState.enrollmentAutoOpened = auto && nextOpen;
+    document.body.classList.toggle('curriculum-enrollment-open', nextOpen);
+    if (enrollmentContent) enrollmentContent.hidden = !nextOpen;
+    if (dropZone) dropZone.hidden = !nextOpen;
+    if (enrollmentDrawerToggle) {
+      enrollmentDrawerToggle.setAttribute('aria-expanded', String(nextOpen));
+      enrollmentDrawerToggle.textContent = nextOpen ? '通常履修を閉じる' : '通常履修';
+    }
+    if (mobileEnrollmentToggle) {
+      mobileEnrollmentToggle.hidden = !document.body.classList.contains('curriculum-tree-mode');
+      mobileEnrollmentToggle.setAttribute('aria-expanded', String(nextOpen));
+    }
   };
 
   // 探索一覧の表示設定だけを独立保存し、履修データのlocalStorage形式へ混ぜない。
@@ -382,6 +428,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
       console.warn('前提・後継科目データを読み込めませんでした。関連科目欄を非表示にします:', error);
       return [];
+    }
+  };
+
+  const loadCurriculumLayoutDefinition = async () => {
+    try {
+      const response = await fetch('curriculum-tree-layout.json');
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const definition = await response.json();
+      if (!definition?.canvas || !Array.isArray(definition.columns) || !Array.isArray(definition.bands)) {
+        throw new TypeError('カリキュラムツリー配置定義の形式が不正です');
+      }
+      return definition;
+    } catch (error) {
+      console.warn('公式配置定義を読み込めませんでした。既定の構図を使用します:', error);
+      return null;
     }
   };
 
@@ -1445,6 +1506,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Unknown IDs are retained for recovery but are not counted as visible courses.
     document.getElementById('registered-count').textContent = regObjects.length;
     document.getElementById('registered-credits').textContent = regCredits;
+    const mobileEnrollmentToggle = document.getElementById('curriculum-mobile-enrollment-toggle');
+    if (mobileEnrollmentToggle) {
+      mobileEnrollmentToggle.textContent = `通常履修 ${regObjects.length}科目 / ${regCredits}単位`;
+    }
 
     renderGraduationGauge(stats);
 
@@ -1788,53 +1853,184 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   /**
-   * 既存の科目データから、学年レーンを持つDAG表示用の座標を作る。
-   * 公式の配置データは存在しないため、yearは推奨年次として扱い、relationは
-   * 元データの向きをそのままSVGの矢印へ反映する。複数前提・複数後継は維持する。
+   * PDFの構図を固定した正規化キャンバスへ科目を割り当てる。
+   * 個別科目の位置を文字の読めないPDFから推測しないため、公式図で確認できる
+   * 大分類だけを配置定義へ持ち、同じ区分内のカードは既存メタデータの順で並べる。
+   * 参考関係の線は公式の履修前提条件ではないので、表示時にも明示的に区別する。
    */
-  const buildCurriculumLayout = () => {
-    const laneNames = ['1年次', '2年次', '3年次', '4年次'];
-    const laneWidth = 310;
-    const nodeHeight = 82;
-    const graphTop = 54;
-    const nodeGap = 8;
-    const positions = new Map();
-    const laneItems = new Map(laneNames.map((lane) => [lane, []]));
-    const fallbackItems = [];
-
-    state.predefinedData.forEach((course) => {
-      if (laneItems.has(course.year)) laneItems.get(course.year).push(course);
-      else fallbackItems.push(course);
-    });
-
-    const compareCourses = (a, b) => {
-      const fieldCompare = String(a.tag || '').localeCompare(String(b.tag || ''), 'ja');
-      return fieldCompare || String(a.subject || '').localeCompare(String(b.subject || ''), 'ja');
-    };
-
-    laneItems.forEach((items) => items.sort(compareCourses));
-    fallbackItems.sort(compareCourses);
-    if (fallbackItems.length) laneItems.set('未分類', fallbackItems);
-
-    const lanes = Array.from(laneItems.entries());
-    const maxRows = Math.max(1, ...lanes.map(([, items]) => items.length));
-    const graphWidth = Math.max(4, lanes.length) * laneWidth;
-    const graphHeight = graphTop + maxRows * (nodeHeight + nodeGap) + 24;
-
-    lanes.forEach(([laneName, items], laneIndex) => {
-      items.forEach((course, index) => {
-        positions.set(course.id, {
-          x: laneIndex * laneWidth + laneWidth / 2,
-          y: graphTop + index * (nodeHeight + nodeGap) + nodeHeight / 2,
-          lane: laneName
-        });
-      });
-    });
-
-    return { lanes, laneWidth, nodeHeight, graphWidth, graphHeight, positions };
+  const getCurriculumStage = (course) => {
+    const stage = String(course?.year || '').trim();
+    return ['1年次', '2年次', '3年次', '4年次'].includes(stage) ? stage : '未分類';
   };
 
   const getCurriculumField = (course) => String(course?.tag || '未分類').trim() || '未分類';
+
+  const getCurriculumTrack = (course) => {
+    if (course?.tag === '卒業プロジェクト') return 'プロジェクト実践';
+    if (course?.category === '必修') return '導入科目';
+    if (course?.foundationRequirement) return '基礎科目';
+    if (course?.tag === '社会接続') return '社会接続';
+    if (course?.category === '自由' || course?.tag === '自由科目') return '自由科目';
+    return '展開科目';
+  };
+
+  const fallbackCurriculumDefinition = {
+    canvas: { width: 2400, height: 2388 },
+    bands: [],
+    columns: [
+      { id: 'foundation', label: '基盤リテラシー・数理', x: 178, width: 360, group: 'foundation', tags: ['情報', '数理'] },
+      { id: 'foundation-social', label: '基礎・社会ネットワーク', x: 542, width: 350, group: 'foundation', tags: ['社会・ネットワーク'] },
+      { id: 'multilingual', label: '多言語情報理解', x: 900, width: 140, group: 'multilingual', tags: ['多言語'] },
+      { id: 'culture', label: '文化・思想', x: 1058, width: 320, group: 'world', tags: ['文化・思想'] },
+      { id: 'social', label: '社会・ネットワーク', x: 1386, width: 320, group: 'world', tags: ['社会・ネットワーク', '社会接続'] },
+      { id: 'economy', label: '経済・マーケット', x: 1714, width: 320, group: 'world', tags: ['経済・マーケット', 'デジタル産業'] },
+      { id: 'free', label: '社会接続・自由科目', x: 2048, width: 330, group: 'free', tags: ['自由科目'] }
+    ]
+  };
+
+  const getCurriculumDefinition = () => state.curriculumLayoutDefinition || fallbackCurriculumDefinition;
+
+  const getOfficialColumn = (course, definition) => {
+    const columns = definition.columns || [];
+    const tag = getCurriculumField(course);
+    // The official map places project practice with the world-understanding area.
+    // Keep it in a real world column even though the layout definition uses
+    // separate band metadata rather than a synthetic `world` column.
+    if (course?.tag === '卒業プロジェクト') {
+      return columns.find((column) => column.id === 'culture')
+        || columns.find((column) => column.group === 'world')
+        || columns[0];
+    }
+    if (course?.category === '自由' || tag === '自由科目') return columns.find((column) => column.id === 'free') || columns.at(-1);
+    if (tag === '多言語') return columns.find((column) => column.id === 'multilingual') || columns[2] || columns[0];
+    if (tag === '文化・思想') return columns.find((column) => column.id === 'culture') || columns[3] || columns[0];
+    if (tag === '経済・マーケット' || tag === 'デジタル産業') return columns.find((column) => column.id === 'economy') || columns[5] || columns[0];
+    if (tag === '社会・ネットワーク' || tag === '社会接続') return columns.find((column) => column.id === 'social') || columns[4] || columns[0];
+    if (tag === '情報' || tag === '数理' || course?.category === '必修') {
+      const id = tag === '社会・ネットワーク' ? 'foundation-social' : 'foundation';
+      return columns.find((column) => column.id === id) || columns[0];
+    }
+    return columns.find((column) => column.id === 'foundation-social') || columns[1] || columns[0];
+  };
+
+  const buildCurriculumLayout = () => {
+    const definition = getCurriculumDefinition();
+    const canvasWidth = Number(definition.canvas?.width) || 2400;
+    const canvasHeight = Number(definition.canvas?.height) || 2388;
+    const columns = definition.columns?.length ? definition.columns : fallbackCurriculumDefinition.columns;
+    const placementMap = new Map((definition.coursePlacements || [])
+      .filter((placement) => placement && placement.courseId)
+      .map((placement) => [placement.courseId, placement]));
+    // Preserve the PDF coordinates in the data file. When two catalog entries
+    // share the exact same rectangle, the renderer fans them into a vertical
+    // access stack instead of letting the later DOM node make the first one
+    // unreachable. This is an interaction affordance, not a new official
+    // coordinate.
+    const collisionGroups = new Map();
+    placementMap.forEach((placement) => {
+      const key = ['x', 'y', 'width', 'height'].map((field) => Number(placement[field])).join('|');
+      if (!collisionGroups.has(key)) collisionGroups.set(key, []);
+      collisionGroups.get(key).push(placement.courseId);
+    });
+    const collisionInfo = new Map();
+    collisionGroups.forEach((courseIds, key) => {
+      if (courseIds.length < 2) return;
+      courseIds.forEach((courseId, index) => collisionInfo.set(courseId, {
+        key,
+        index,
+        size: courseIds.length
+      }));
+    });
+    const getPlacementColumn = (course) => {
+      const placement = placementMap.get(course.id);
+      if (placement?.confidence === 'confirmed' && Number.isFinite(Number(placement.x))) {
+        const pdfX = Number(placement.x) * canvasWidth;
+        const nearest = columns.reduce((best, column) => {
+          const center = Number(column.x) + Number(column.width) / 2;
+          if (!best || Math.abs(center - pdfX) < best.distance) return { column, distance: Math.abs(center - pdfX) };
+          return best;
+        }, null);
+        if (nearest?.column) return nearest.column;
+      }
+      // The PDF's orange introduction band spans the foundation columns. Use
+      // the manually inspected horizontal coordinate for those cards instead
+      // of routing every required course into the first semantic lane.
+      if (placement?.category === '導入科目') {
+        const x = Number(placement.x);
+        const columnId = x < 0.225 ? 'foundation' : x < 0.375 ? 'foundation-social' : x < 0.44 ? 'multilingual' : x < 0.575 ? 'culture' : x < 0.715 ? 'social' : x < 0.85 ? 'economy' : 'free';
+        return columns.find((column) => column.id === columnId) || getOfficialColumn(course, definition);
+      }
+      return getOfficialColumn(course, definition);
+    };
+    const positions = new Map();
+    const byColumn = new Map(columns.map((column) => [column.id, []]));
+    const compareCourses = (a, b) => {
+      const yearA = Number.parseInt(a.year, 10) || 99;
+      const yearB = Number.parseInt(b.year, 10) || 99;
+      return yearA - yearB || String(a.subject || '').localeCompare(String(b.subject || ''), 'ja');
+    };
+    state.predefinedData.forEach((course) => {
+      const column = getPlacementColumn(course) || columns[0];
+      if (column && byColumn.has(column.id)) byColumn.get(column.id).push(course);
+    });
+    byColumn.forEach((items) => items.sort((a, b) => {
+      const bucket = (course) => course.tag === '卒業プロジェクト' ? 3 : course.category === '必修' ? 0 : course.foundationRequirement ? 1 : 2;
+      return bucket(a) - bucket(b) || compareCourses(a, b);
+    }));
+    const cardWidth = 142;
+    const cardHeight = 76;
+    const top = 178;
+    const bottom = Math.max(1900, canvasHeight - 120);
+    columns.forEach((column) => {
+      const items = byColumn.get(column.id) || [];
+      const cols = Math.max(1, Math.floor((Number(column.width) - 18) / (cardWidth + 8)));
+      items.forEach((course, index) => {
+        const row = Math.floor(index / cols);
+        const col = index % cols;
+        const x = Number(column.x) + 9 + col * (cardWidth + 8);
+        const bucket = course.tag === '卒業プロジェクト' ? 3 : course.category === '必修' ? 0 : course.foundationRequirement ? 1 : 2;
+        const bucketOffset = bucket === 0 ? 0 : bucket === 1 ? 132 : bucket === 2 ? 312 : 1760;
+        const y = Math.min(bottom - cardHeight, top + bucketOffset + row * (cardHeight + 10));
+        const placement = placementMap.get(course.id);
+        const requestedX = placement ? Number(placement.x) * canvasWidth : null;
+        const requestedY = placement ? Number(placement.y) * canvasHeight : null;
+        const requestedWidth = placement ? Number(placement.width) * canvasWidth : null;
+        const requestedHeight = placement ? Number(placement.height) * canvasHeight : null;
+        const nodeWidth = Number.isFinite(requestedWidth) && requestedWidth > 72 ? Math.min(170, requestedWidth) : cardWidth;
+        const nodeHeight = Number.isFinite(requestedHeight) && requestedHeight > 48 ? Math.min(96, requestedHeight) : cardHeight;
+        // PDF coordinates are global. Clamp only the final card box to its
+        // semantic lane so narrow metadata columns never leak into neighbors.
+        const laneLeft = Number(column.x) + 9;
+        const laneRight = Number(column.x) + Number(column.width) - nodeWidth - 9;
+        const positionedX = Number.isFinite(requestedX)
+          ? Math.min(laneRight, Math.max(laneLeft, requestedX))
+          : x;
+        const positionedY = Number.isFinite(requestedY)
+          ? Math.min(canvasHeight - nodeHeight - 18, Math.max(150, requestedY))
+          : Math.min(bottom - cardHeight, y);
+        const collision = collisionInfo.get(course.id);
+        const collisionOffset = collision ? collision.index * (nodeHeight + 8) : 0;
+        const accessibleY = Math.min(canvasHeight - nodeHeight - 18, positionedY + collisionOffset);
+        positions.set(course.id, {
+          x: positionedX + nodeWidth / 2,
+          y: accessibleY + nodeHeight / 2,
+          left: positionedX,
+          top: accessibleY,
+          width: nodeWidth,
+          height: nodeHeight,
+          lane: column.id,
+          officialGroup: column.group,
+          stage: getCurriculumStage(course),
+          officialConfidence: placement?.confidence || 'provisional',
+          verificationMethod: placement?.verificationMethod || 'structure-fallback',
+          collisionGroup: collision?.key || '',
+          collisionIndex: collision?.index || 0,
+          collisionSize: collision?.size || 1
+        });
+      });
+    });
+    return { definition, columns, positions, byColumn, graphWidth: canvasWidth, graphHeight: canvasHeight, nodeWidth: cardWidth, nodeHeight: cardHeight };
+  };
 
   const getCurriculumMatch = (course) => {
     const search = curriculumState.search.trim().toLowerCase();
@@ -1862,9 +2058,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     status.classList.toggle('is-error', isError);
   };
 
+  // Pan/zoom only changes the shared map transform. Keeping this separate from
+  // the card rebuild means pointer movement never recreates all 275 course nodes.
+  const applyCurriculumTransform = () => {
+    const graph = document.getElementById('curriculum-graph');
+    if (!graph) return;
+    graph.style.transformOrigin = '0 0';
+    graph.style.transform = `translate(${curriculumState.panX || 0}px, ${curriculumState.panY || 0}px) scale(${curriculumState.zoom})`;
+    const zoomLevel = document.getElementById('curriculum-zoom-level');
+    if (zoomLevel) zoomLevel.textContent = `${Math.round(curriculumState.zoom * 100)}%`;
+  };
+
   const clearCurriculumFocus = () => {
-    if (!curriculumState.selectedId) return;
+    if (!curriculumState.selectedId && !curriculumState.searchHighlightId) return;
     curriculumState.selectedId = '';
+    curriculumState.searchHighlightId = '';
+    if (curriculumState.searchHighlightTimer) {
+      window.clearTimeout(curriculumState.searchHighlightTimer);
+      curriculumState.searchHighlightTimer = null;
+    }
     const detail = document.getElementById('curriculum-course-detail');
     if (detail) {
       detail.hidden = true;
@@ -1878,17 +2090,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     const detail = document.getElementById('curriculum-course-detail');
     if (!course || !detail) return;
 
+    // A direct card click is a normal exploration action; only a search submit
+    // is allowed to leave a transient highlight behind.
+    curriculumState.searchHighlightId = '';
+    if (curriculumState.searchHighlightTimer) {
+      window.clearTimeout(curriculumState.searchHighlightTimer);
+      curriculumState.searchHighlightTimer = null;
+    }
     curriculumState.selectedId = courseId;
+    const isRegistered = state.registeredClasses.has(courseId);
+    const isCompleted = state.completedClasses.has(courseId);
+    const actionLabel = isRegistered ? '通常履修から削除' : isCompleted ? '履修予定に戻す' : '通常履修に追加';
     detail.innerHTML = `
       <div class="curriculum-course-detail-heading">
         <h3>科目詳細</h3>
         <button type="button" class="curriculum-detail-close" aria-label="科目詳細を閉じる">×</button>
       </div>
       <div class="class-detail open">${renderCourseDetailMarkup(course)}</div>
+      <div class="curriculum-detail-actions">
+        <button type="button" class="curriculum-enrollment-action">${actionLabel}</button>
+      </div>
     `;
     detail.hidden = false;
     detail.querySelector('.curriculum-detail-close')?.addEventListener('click', () => {
       clearCurriculumFocus();
+    });
+    detail.querySelector('.curriculum-enrollment-action')?.addEventListener('click', () => {
+      const saved = commitStateChange(courseId, isRegistered ? 'DELETE' : 'REGISTER');
+      openCurriculumCourseDetail(courseId);
+      setCurriculumStatus(saved
+        ? `${course.subject}の通常履修状態を更新しました。`
+        : `${course.subject}の変更を保存できませんでした。`, !saved);
     });
     detail.querySelectorAll('.related-course-link').forEach((link) => {
       link.addEventListener('click', (event) => {
@@ -1901,6 +2133,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     detail.querySelector('.detail-subject')?.focus({ preventScroll: true });
   };
 
+  const triggerCurriculumSearchHighlight = (courseId) => {
+    curriculumState.searchHighlightId = courseId;
+    if (curriculumState.searchHighlightTimer) window.clearTimeout(curriculumState.searchHighlightTimer);
+    renderCurriculumGraph();
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    curriculumState.searchHighlightTimer = window.setTimeout(() => {
+      curriculumState.searchHighlightId = '';
+      curriculumState.searchHighlightTimer = null;
+      renderCurriculumGraph();
+    }, reduceMotion ? 1200 : 2200);
+  };
+
   const createCurriculumEdgePath = (from, to) => {
     const bend = Math.max(46, Math.abs(to.x - from.x) * 0.42);
     return `M ${from.x} ${from.y} C ${from.x + bend} ${from.y}, ${to.x - bend} ${to.y}, ${to.x} ${to.y}`;
@@ -1910,6 +2154,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const graph = document.getElementById('curriculum-graph');
     const lanesHost = document.getElementById('curriculum-lanes');
     const edgesHost = document.getElementById('curriculum-edges');
+    const stageAxis = document.getElementById('curriculum-stage-axis');
     const count = document.getElementById('curriculum-tree-count');
     if (!graph || !lanesHost || !edgesHost || !count || !state.predefinedData.length) return;
 
@@ -1918,32 +2163,40 @@ document.addEventListener('DOMContentLoaded', async () => {
       curriculumState.layout = layout;
       graph.style.width = `${layout.graphWidth}px`;
       graph.style.height = `${layout.graphHeight}px`;
+      graph.style.transformOrigin = '0 0';
+      graph.style.transform = `translate(${curriculumState.panX || 0}px, ${curriculumState.panY || 0}px) scale(${curriculumState.zoom})`;
       lanesHost.innerHTML = '';
-      edgesHost.innerHTML = `
-        <defs>
-          <marker id="curriculum-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z"></path>
-          </marker>
-        </defs>
-      `;
+      if (stageAxis) stageAxis.innerHTML = '';
+      edgesHost.innerHTML = '<defs><marker id="curriculum-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 0 z"></path></marker></defs>';
       edgesHost.setAttribute('width', String(layout.graphWidth));
       edgesHost.setAttribute('height', String(layout.graphHeight));
       edgesHost.setAttribute('viewBox', `0 0 ${layout.graphWidth} ${layout.graphHeight}`);
+      (layout.definition.bands || []).forEach((band) => {
+        if (!stageAxis) return;
+        const bandEl = document.createElement('div');
+        bandEl.className = `curriculum-official-band ${band.id}`;
+        Object.assign(bandEl.style, { left: `${band.x}px`, top: `${band.y}px`, width: `${band.width}px`, height: `${band.height}px`, background: band.color || '' });
+        bandEl.innerHTML = `<span>${escapeHTML(band.label || '')}</span>`;
+        stageAxis.appendChild(bandEl);
+      });
 
       const focusIds = getCurriculumFocusIds();
-      const hasFocus = focusIds.size > 0;
-      const coursesById = state.coursesMap;
+      const hasFocus = curriculumState.relationMode === 'selected' && focusIds.size > 0;
       const matchesById = new Map();
       let matchCount = 0;
-
-      layout.lanes.forEach(([laneName, courses], laneIndex) => {
+      const hasActiveFilter = Boolean(curriculumState.search.trim() || curriculumState.year !== 'すべて表示' || curriculumState.field !== 'すべて表示');
+      layout.columns.forEach((column) => {
         const lane = document.createElement('section');
         lane.className = 'curriculum-lane';
-        lane.style.left = `${laneIndex * layout.laneWidth}px`;
-        lane.style.width = `${layout.laneWidth}px`;
-        lane.innerHTML = `<h3>${escapeHTML(laneName)}</h3>`;
-
+        lane.dataset.officialGroup = column.group || '';
+        lane.style.left = `${column.x}px`;
+        lane.style.width = `${column.width}px`;
+        lane.style.height = `${layout.graphHeight}px`;
+        lane.innerHTML = `<h3><span>${escapeHTML(column.label)}</span><small>公式区分（構造）</small></h3>`;
+        const courses = layout.byColumn.get(column.id) || [];
         courses.forEach((course) => {
+          const position = layout.positions.get(course.id);
+          if (!position) return;
           const matches = getCurriculumMatch(course);
           matchesById.set(course.id, matches);
           if (matches) matchCount += 1;
@@ -1951,100 +2204,100 @@ document.addEventListener('DOMContentLoaded', async () => {
           const isCompleted = state.completedClasses.has(course.id);
           const relatedToFocus = !hasFocus || focusIds.has(course.id);
           const node = document.createElement('article');
-          node.className = 'curriculum-node';
-          if (matches) node.classList.add('is-match');
-          else node.classList.add('is-dimmed');
+          node.className = `curriculum-node official-${position.officialGroup || 'unknown'}`;
+          if (matches) node.classList.add('is-match'); else node.classList.add('is-dimmed');
           if (!relatedToFocus) node.classList.add('is-out-of-focus');
           if (course.id === curriculumState.selectedId) node.classList.add('is-selected');
+          if (course.id === curriculumState.searchHighlightId) node.classList.add('is-search-highlight');
           if (isRegistered) node.classList.add('is-registered');
           if (isCompleted) node.classList.add('is-completed');
+          node.classList.add(`curriculum-credit-${String(course.credits || '').replace(/[^0-9]/g, '') || 'unknown'}`);
+          if (position.officialConfidence !== 'confirmed') node.classList.add('is-provisional');
           node.dataset.courseId = course.id;
+          node.dataset.officialConfidence = position.officialConfidence;
+          node.dataset.verificationMethod = position.verificationMethod;
+          if (position.collisionSize > 1) {
+            node.classList.add('is-collision');
+            node.dataset.collisionGroup = position.collisionGroup;
+            node.dataset.collisionIndex = String(position.collisionIndex);
+            node.dataset.collisionSize = String(position.collisionSize);
+          }
+          node.title = position.officialConfidence === 'confirmed'
+            ? '公式PDFで配置を確認済み'
+            : '公式PDF上の位置未確認（暫定配置）';
           node.draggable = true;
           node.tabIndex = 0;
           node.setAttribute('role', 'button');
-          node.setAttribute('aria-label', `${course.subject}の科目詳細`);
-
+          const collisionLabel = position.collisionSize > 1
+            ? `（同一座標の科目 ${position.collisionIndex + 1}/${position.collisionSize}）`
+            : '';
+          node.setAttribute('aria-label', `${course.subject}の科目詳細${collisionLabel}`);
           const statusLabel = isCompleted ? '履修済み' : isRegistered ? 'マイ履修' : '';
-          const addLabel = isRegistered ? 'マイ履修 ✓' : isCompleted ? 'マイ履修に戻す' : 'マイ履修に追加';
-          node.innerHTML = `
-            <div class="curriculum-node-title">${escapeHTML(course.subject)}</div>
-            <div class="curriculum-node-meta">
-              <span>${escapeHTML(getCurriculumField(course))}</span>
-              <span>${escapeHTML(course.quarter || '')}</span>
-              ${statusLabel ? `<span class="curriculum-node-status">${statusLabel}</span>` : ''}
-            </div>
-            <div class="curriculum-node-actions">
-              <button type="button" class="curriculum-detail-btn">詳細</button>
-              <button type="button" class="curriculum-add-btn" ${isRegistered ? 'disabled' : ''}>${addLabel}</button>
-            </div>
-          `;
-
+          node.style.top = `${position.top}px`;
+          node.style.left = `${position.left - column.x}px`;
+          node.style.width = `${position.width || layout.nodeWidth}px`;
+          node.style.height = `${position.height || layout.nodeHeight}px`;
+          node.style.zIndex = String(10 + position.collisionIndex);
+          node.innerHTML = `<div class="curriculum-node-title">${escapeHTML(course.subject)}</div><div class="curriculum-node-meta"><span class="curriculum-node-track">${escapeHTML(getCurriculumTrack(course))}</span><span>${escapeHTML(course.credits)}単位</span><span>${escapeHTML(course.quarter || '開講Q未登録')}</span>${statusLabel ? `<span class="curriculum-node-status">${statusLabel}</span>` : ''}</div>`;
           const openDetail = () => {
             if (curriculumState.didDrag) return;
-            if (curriculumState.selectedId === course.id) {
-              clearCurriculumFocus();
-              return;
-            }
+            if (curriculumState.selectedId === course.id) return clearCurriculumFocus();
             openCurriculumCourseDetail(course.id);
           };
-          node.addEventListener('click', (event) => {
-            if (event.target.closest('button')) return;
-            openDetail();
-          });
-          node.addEventListener('keydown', (event) => {
-            if (event.target !== node || !['Enter', ' '].includes(event.key)) return;
-            event.preventDefault();
-            openDetail();
-          });
-          node.querySelector('.curriculum-detail-btn')?.addEventListener('click', () => openCurriculumCourseDetail(course.id));
-          node.querySelector('.curriculum-add-btn')?.addEventListener('click', () => {
-            if (isRegistered) return;
-            commitStateChange(course.id, 'REGISTER');
-            setCurriculumStatus(`${course.subject}を履修予定に追加しました。`);
-          });
+          node.addEventListener('click', (event) => { if (!event.target.closest('button')) openDetail(); });
+          // curriculum-detail-btn / curriculum-add-btn は詳細パネルへ集約し、
+          // 既存の commitStateChange(course.id, 'REGISTER') 経路を使う。
+          node.addEventListener('keydown', (event) => { if (event.target === node && ['Enter', ' '].includes(event.key)) { event.preventDefault(); openDetail(); } });
           node.addEventListener('dragstart', (event) => {
             curriculumState.didDrag = true;
+            if (!curriculumState.enrollmentManualOpen) {
+              setCurriculumEnrollmentOpen(true, { auto: true });
+            }
+            node.classList.add('is-dragging');
             event.dataTransfer?.setData('text/plain', course.id);
             event.dataTransfer?.setData('application/x-zen-course-id', course.id);
-            event.dataTransfer.effectAllowed = 'copy';
+            if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy';
             document.getElementById('curriculum-drop-zone')?.classList.add('is-dragging');
           });
           node.addEventListener('dragend', () => {
+            node.classList.remove('is-dragging');
             document.getElementById('curriculum-drop-zone')?.classList.remove('is-dragging', 'is-over');
-            window.setTimeout(() => { curriculumState.didDrag = false; }, 0);
+            window.setTimeout(() => {
+              curriculumState.didDrag = false;
+              if (curriculumState.enrollmentAutoOpened && !curriculumState.enrollmentManualOpen) {
+                setCurriculumEnrollmentOpen(false);
+              }
+            }, 120);
           });
           lane.appendChild(node);
         });
         lanesHost.appendChild(lane);
       });
-
-      const edges = [];
+      const relationMode = curriculumState.relationMode;
+      const showAllRelations = relationMode === 'all';
+      const showSelectedRelations = relationMode === 'selected' && Boolean(curriculumState.selectedId);
       state.relationsMap.forEach((relations, sourceId) => {
+        if (!showAllRelations && !showSelectedRelations) return;
+        if (showSelectedRelations && sourceId !== curriculumState.selectedId
+          && !relations.successors.some((relation) => relation.id === curriculumState.selectedId)) return;
         const from = layout.positions.get(sourceId);
         if (!from) return;
         relations.successors.forEach((relation) => {
+          if (showSelectedRelations && sourceId !== curriculumState.selectedId && relation.id !== curriculumState.selectedId) return;
           const to = layout.positions.get(relation.id);
-          if (!to || !coursesById.has(sourceId) || !coursesById.has(relation.id)) return;
+          if (!to) return;
           const edge = document.createElementNS('http://www.w3.org/2000/svg', 'path');
           edge.setAttribute('d', createCurriculumEdgePath(from, to));
-          edge.setAttribute('class', `curriculum-edge ${relation.strength === 'strongly_recommended' ? 'is-strong' : 'is-recommended'}`);
-          const hasActiveFilter = Boolean(curriculumState.search.trim() || curriculumState.year !== 'すべて表示' || curriculumState.field !== 'すべて表示');
+          edge.setAttribute('class', `curriculum-edge is-reference ${relation.strength === 'strongly_recommended' ? 'is-strong' : 'is-recommended'}`);
           if (hasActiveFilter && !matchesById.get(sourceId) && !matchesById.get(relation.id)) edge.classList.add('is-filter-dimmed');
           if (hasFocus && (sourceId === curriculumState.selectedId || relation.id === curriculumState.selectedId)) edge.classList.add('is-focused');
           if (hasFocus && !(focusIds.has(sourceId) && focusIds.has(relation.id))) edge.classList.add('is-out-of-focus');
-          edges.push(edge);
+          edgesHost.appendChild(edge);
         });
       });
-      edges.forEach((edge) => edgesHost.appendChild(edge));
       count.textContent = `${matchCount} / ${state.predefinedData.length}科目`;
-      const hasActiveFilter = Boolean(curriculumState.search.trim() || curriculumState.year !== 'すべて表示' || curriculumState.field !== 'すべて表示');
-      if (hasActiveFilter && matchCount === 0) {
-        setCurriculumStatus('該当する科目はありません。条件を解除してください。', true);
-      } else if (hasActiveFilter) {
-        setCurriculumStatus(`${matchCount}科目が条件に一致しています。`);
-      } else {
-        setCurriculumStatus('');
-      }
+      const noMatches = hasActiveFilter && matchCount === 0;
+      setCurriculumStatus(hasActiveFilter ? (noMatches ? '該当する科目はありません。条件を解除してください。' : `${matchCount}科目が条件に一致しています。`) : '', noMatches);
     } catch (error) {
       console.error('カリキュラムツリーの描画に失敗しました:', error);
       setCurriculumStatus('ツリーを表示できませんでした。ページを再読み込みしてください。', true);
@@ -2064,45 +2317,289 @@ document.addEventListener('DOMContentLoaded', async () => {
     const close = document.getElementById('curriculum-tree-close');
     const view = document.getElementById('curriculum-tree-view');
     const dropZone = document.getElementById('curriculum-drop-zone');
+    const mobileEnrollmentToggle = document.getElementById('curriculum-mobile-enrollment-toggle');
+    const enrollmentContent = document.getElementById('my-enrollment-content');
+    const enrollmentTitle = document.getElementById('my-enrollment-title');
     const search = document.getElementById('curriculum-tree-search');
     const year = document.getElementById('curriculum-tree-year');
     const field = document.getElementById('curriculum-tree-field');
     const graph = document.getElementById('curriculum-graph');
+    const graphScroll = document.getElementById('curriculum-graph-scroll');
+    const zoomOut = document.getElementById('curriculum-zoom-out');
+    const zoomIn = document.getElementById('curriculum-zoom-in');
+    const zoomFit = document.getElementById('curriculum-zoom-fit');
+    const zoomReset = document.getElementById('curriculum-zoom-reset');
+    const fullscreen = document.getElementById('curriculum-fullscreen');
+    const enrollmentDrawerToggle = document.getElementById('curriculum-enrollment-drawer-toggle');
+    const relationMode = document.getElementById('curriculum-relation-mode');
+    const zoomLevel = document.getElementById('curriculum-zoom-level');
+    const searchResults = document.getElementById('curriculum-tree-search-results');
     if (!nav || !view || !dropZone || !search || !year || !field) return;
+    let renderFrame = null;
+    let transformFrame = null;
+    const scheduleCurriculumRender = () => {
+      if (renderFrame != null) return;
+      renderFrame = window.requestAnimationFrame(() => {
+        renderFrame = null;
+        renderCurriculumGraph();
+      });
+    };
+    const scheduleCurriculumTransform = () => {
+      if (transformFrame != null) return;
+      transformFrame = window.requestAnimationFrame(() => {
+        transformFrame = null;
+        applyCurriculumTransform();
+      });
+    };
+
+    // ナビゲーション表示は独立ページと同じ公開設定に従う。ローカルの
+    // 明示的プレビューだけは、公開OFFのままリンク先を確認できる。
+    const curriculumTreePreviewEnabled = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+      && new URLSearchParams(window.location.search).get('curriculumPreview') === '1';
+    const curriculumTreeEnabled = CURRICULUM_TREE_PUBLIC_ENABLED || curriculumTreePreviewEnabled;
+    // Keep the existing local variable name as a compatibility alias for the
+    // preview gate tests and diagnostics; its value now represents either
+    // approved public access or the local preview.
+    const previewEnabled = curriculumTreeEnabled;
+    nav.hidden = !previewEnabled;
+    if (previewEnabled) {
+      loadCurriculumLayoutDefinition().then((definition) => {
+        if (!definition) return;
+        state.curriculumLayoutDefinition = definition;
+        curriculumState.layout = null;
+        if (document.body.classList.contains('curriculum-tree-mode')) {
+          renderCurriculumGraph();
+          window.requestAnimationFrame(() => fitCurriculumToViewport());
+        }
+      });
+    }
+
+    const updateZoom = (nextZoom, anchor = null) => {
+      curriculumState.autoFit = false;
+      const viewportRect = graphScroll?.getBoundingClientRect();
+      const previousZoom = curriculumState.zoom;
+      const next = Math.min(2.4, Math.max(0.25, Number(nextZoom.toFixed(2))));
+      if (anchor && viewportRect) {
+        const localX = anchor.clientX - viewportRect.left;
+        const localY = anchor.clientY - viewportRect.top;
+        const worldX = (localX - (curriculumState.panX || 0)) / previousZoom;
+        const worldY = (localY - (curriculumState.panY || 0)) / previousZoom;
+        curriculumState.panX = localX - worldX * next;
+        curriculumState.panY = localY - worldY * next;
+      }
+      curriculumState.zoom = next;
+      if (zoomLevel) zoomLevel.value = `${Math.round(curriculumState.zoom * 100)}%`;
+      if (document.body.classList.contains('curriculum-tree-mode')) scheduleCurriculumTransform();
+    };
+
+    const fitCurriculumToViewport = () => {
+      const layout = curriculumState.layout || buildCurriculumLayout();
+      curriculumState.layout = layout;
+      const rect = graphScroll?.getBoundingClientRect();
+      if (!rect) return;
+      const fit = qualityUtils.calculateCurriculumFit({
+        viewportWidth: rect.width,
+        viewportHeight: rect.height,
+        contentWidth: layout.graphWidth,
+        contentHeight: layout.graphHeight,
+        padding: 28,
+        maxScale: 1,
+        minScale: 0.05
+      });
+      curriculumState.zoom = fit.scale;
+      curriculumState.panX = fit.panX;
+      curriculumState.panY = fit.panY;
+      curriculumState.autoFit = true;
+      scheduleCurriculumTransform();
+    };
 
     const setMode = (enabled) => {
       document.body.classList.toggle('curriculum-tree-mode', enabled);
       view.hidden = !enabled;
-      dropZone.hidden = !enabled;
+      if (enrollmentTitle) enrollmentTitle.textContent = enabled ? '通常履修' : 'マイ履修';
+      setCurriculumEnrollmentOpen(enabled ? false : true);
       nav.setAttribute('aria-pressed', String(enabled));
       syncPrimaryViewNavigation(enabled ? 'tree' : 'list');
       if (enabled) {
+        curriculumState.enrollmentManualOpen = false;
+        curriculumState.enrollmentAutoOpened = false;
+        curriculumState.autoFit = true;
+        curriculumState.panX = 0;
+        curriculumState.panY = 0;
         renderCurriculumGraph();
-        search.focus({ preventScroll: true });
+        window.requestAnimationFrame(() => {
+          fitCurriculumToViewport();
+          search.focus({ preventScroll: true });
+        });
       } else {
+        // Returning to the list must also leave the map's fullscreen mode.
+        // Otherwise the explorer class keeps body scrolling locked after the
+        // tree is hidden, making the ordinary Hub appear frozen.
+        curriculumState.fullscreen = false;
+        document.body.classList.remove('curriculum-tree-explorer-mode');
+        fullscreen?.setAttribute('aria-pressed', 'false');
+        if (fullscreen) fullscreen.textContent = '探索モード';
         const detail = document.getElementById('curriculum-course-detail');
         if (detail) detail.hidden = true;
         curriculumState.selectedId = '';
       }
     };
 
-    nav.addEventListener('click', () => setMode(!document.body.classList.contains('curriculum-tree-mode')));
+    nav.addEventListener('click', () => {
+      if (!previewEnabled) return;
+      window.location.assign(`curriculum.html${curriculumTreePreviewEnabled ? '?curriculumPreview=1' : ''}`);
+    });
     document.getElementById('course-list-nav')?.addEventListener('click', () => setMode(false));
     close?.addEventListener('click', () => setMode(false));
+    mobileEnrollmentToggle?.addEventListener('click', () => {
+      setCurriculumEnrollmentOpen(!curriculumState.enrollmentOpen, { manual: true });
+    });
+    enrollmentDrawerToggle?.addEventListener('click', () => {
+      setCurriculumEnrollmentOpen(!curriculumState.enrollmentOpen, { manual: true });
+    });
+    const getSearchMatches = () => state.predefinedData.filter((item) => getCurriculumMatch(item));
+    const syncSearchResults = () => {
+      if (!searchResults) return;
+      const matches = getSearchMatches();
+      searchResults.replaceChildren();
+      if (!curriculumState.search.trim() || matches.length < 2) {
+        searchResults.hidden = true;
+        curriculumState.searchCandidateId = matches[0]?.id || '';
+        return;
+      }
+      const fragment = document.createDocumentFragment();
+      matches.forEach((course) => {
+        const option = document.createElement('option');
+        option.value = course.id;
+        option.textContent = course.teacher ? `${course.subject}（${course.teacher}）` : course.subject;
+        fragment.appendChild(option);
+      });
+      searchResults.appendChild(fragment);
+      const selected = matches.some((course) => course.id === curriculumState.searchCandidateId)
+        ? curriculumState.searchCandidateId
+        : matches[0].id;
+      searchResults.value = selected;
+      curriculumState.searchCandidateId = selected;
+      searchResults.hidden = false;
+    };
+    const focusSearchCourse = (course) => {
+      if (!course) return;
+      curriculumState.searchCandidateId = course.id;
+      openCurriculumCourseDetail(course.id);
+      const position = curriculumState.layout?.positions.get(course.id);
+      const rect = graphScroll?.getBoundingClientRect();
+      if (!position || !rect) return;
+      // Search is the one intentional navigation shortcut: bring the result
+      // into a readable 100–150% range, while direct clicks and manual pan/
+      // zoom continue to preserve the user's current viewport.
+      const cardWidth = Math.max(96, Number(position.width) || 142);
+      const cardHeight = Math.max(64, Number(position.height) || 76);
+      const readableScale = Math.min(
+        (Math.max(260, rect.width - 48) / (cardWidth * 3.5)),
+        (Math.max(180, rect.height - 48) / (cardHeight * 3.5))
+      );
+      curriculumState.zoom = Math.min(1.5, Math.max(1, Number(readableScale.toFixed(2))));
+      curriculumState.panX = rect.width / 2 - position.x * curriculumState.zoom;
+      curriculumState.panY = rect.height / 2 - position.y * curriculumState.zoom;
+      renderCurriculumGraph();
+      triggerCurriculumSearchHighlight(course.id);
+    };
     search.addEventListener('input', () => {
       curriculumState.search = search.value;
-      renderCurriculumGraph();
+      curriculumState.searchCandidateId = '';
+      syncSearchResults();
+      scheduleCurriculumRender();
+    });
+    searchResults?.addEventListener('change', () => {
+      curriculumState.searchCandidateId = searchResults.value;
+      const course = state.predefinedData.find((item) => item.id === searchResults.value);
+      if (course) focusSearchCourse(course);
+    });
+    search.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+      const matches = getSearchMatches();
+      const selectedId = searchResults?.value || curriculumState.searchCandidateId;
+      const course = matches.find((item) => item.id === selectedId) || matches[0];
+      if (!course) return;
+      event.preventDefault();
+      focusSearchCourse(course);
     });
     year.addEventListener('change', () => {
       curriculumState.year = year.value;
-      renderCurriculumGraph();
+      syncSearchResults();
+      scheduleCurriculumRender();
     });
     field.addEventListener('change', () => {
       curriculumState.field = field.value;
-      renderCurriculumGraph();
+      syncSearchResults();
+      scheduleCurriculumRender();
     });
+    relationMode?.addEventListener('change', () => {
+      const nextMode = ['off', 'selected', 'all'].includes(relationMode.value) ? relationMode.value : 'off';
+      curriculumState.relationMode = nextMode;
+      scheduleCurriculumRender();
+    });
+    zoomOut?.addEventListener('click', () => updateZoom(curriculumState.zoom - 0.1));
+    zoomIn?.addEventListener('click', () => updateZoom(curriculumState.zoom + 0.1));
+    zoomReset?.addEventListener('click', () => { curriculumState.panX = 14; curriculumState.panY = 14; updateZoom(1); });
+    zoomFit?.addEventListener('click', fitCurriculumToViewport);
+    fullscreen?.addEventListener('click', () => {
+      curriculumState.fullscreen = !curriculumState.fullscreen;
+      document.body.classList.toggle('curriculum-tree-explorer-mode', curriculumState.fullscreen);
+      fullscreen.setAttribute('aria-pressed', String(curriculumState.fullscreen));
+      fullscreen.textContent = curriculumState.fullscreen ? '通常表示' : '探索モード';
+      window.requestAnimationFrame(() => fitCurriculumToViewport());
+    });
+    graphScroll?.addEventListener('wheel', (event) => {
+      event.preventDefault();
+      updateZoom(curriculumState.zoom * (event.deltaY < 0 ? 1.08 : 0.92), event);
+    }, { passive: false });
+    let panState = null;
+    let pinchState = null;
+    const pointers = new Map();
+    graphScroll?.addEventListener('pointerdown', (event) => {
+      if (event.target.closest('.curriculum-node, button, input, select')) return;
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pointers.size === 1) panState = { x: event.clientX, y: event.clientY, panX: curriculumState.panX || 0, panY: curriculumState.panY || 0 };
+      if (pointers.size === 2) {
+        const points = [...pointers.values()];
+        const distance = Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y);
+        pinchState = { distance, zoom: curriculumState.zoom };
+        panState = null;
+      }
+      graphScroll.classList.add('is-panning');
+      graphScroll.setPointerCapture?.(event.pointerId);
+    });
+    graphScroll?.addEventListener('pointermove', (event) => {
+      if (!pointers.has(event.pointerId)) return;
+      pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (pinchState && pointers.size >= 2) {
+        const points = [...pointers.values()].slice(0, 2);
+        const distance = Math.max(1, Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y));
+        const center = { clientX: (points[0].x + points[1].x) / 2, clientY: (points[0].y + points[1].y) / 2 };
+        updateZoom(pinchState.zoom * (distance / pinchState.distance), center);
+        return;
+      }
+      if (!panState || pointers.size !== 1) return;
+      curriculumState.panX = panState.panX + event.clientX - panState.x;
+      curriculumState.panY = panState.panY + event.clientY - panState.y;
+      curriculumState.autoFit = false;
+      scheduleCurriculumTransform();
+    });
+    const stopPan = (event) => {
+      if (event?.pointerId != null) pointers.delete(event.pointerId);
+      if (pointers.size < 2) pinchState = null;
+      panState = null;
+      if (!pointers.size) graphScroll?.classList.remove('is-panning');
+    };
+    graphScroll?.addEventListener('pointerup', stopPan);
+    graphScroll?.addEventListener('pointercancel', stopPan);
     graph?.addEventListener('click', (event) => {
       if (!event.target.closest('.curriculum-node')) clearCurriculumFocus();
+    });
+    window.addEventListener('resize', () => {
+      if (!document.body.classList.contains('curriculum-tree-mode') || !curriculumState.autoFit) return;
+      window.requestAnimationFrame(() => fitCurriculumToViewport());
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && document.body.classList.contains('curriculum-tree-mode') && curriculumState.selectedId) {
@@ -2110,6 +2607,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
 
+    dropZone.addEventListener('dragenter', (event) => {
+      event.preventDefault();
+      dropZone.classList.add('is-over');
+    });
     dropZone.addEventListener('dragover', (event) => {
       event.preventDefault();
       event.dataTransfer.dropEffect = 'copy';
@@ -2129,8 +2630,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         setCurriculumStatus(`${course.subject}はすでに履修予定です。`);
         return;
       }
-      commitStateChange(courseId, 'REGISTER');
-      setCurriculumStatus(`${course.subject}を履修予定に追加しました。`);
+      const saved = commitStateChange(courseId, 'REGISTER');
+      setCurriculumStatus(saved
+        ? `${course.subject}を履修予定に追加しました。`
+        : `${course.subject}を追加できませんでした。`, !saved);
     });
     dropZone.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') dropZone.classList.remove('is-over');

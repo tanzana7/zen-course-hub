@@ -1,0 +1,61 @@
+{
+  "originalStorage": "{\"myClasses\":\"[]\",\"completedClasses\":\"[]\",\"zenCourseHubStorageSchemaVersion\":\"1\"}",
+  "screenshots": [
+    "C:\\Users\\user\\Desktop\\zen-course-hub\\docs\\qa\\curriculum-tree-phase2\\A-1440-tree-overview.png",
+    "C:\\Users\\user\\Desktop\\zen-course-hub\\docs\\qa\\curriculum-tree-phase2\\B-1280-tree-readable.png",
+    "C:\\Users\\user\\Desktop\\zen-course-hub\\docs\\qa\\curriculum-tree-phase2\\D-1280-course-detail.png",
+    "C:\\Users\\user\\Desktop\\zen-course-hub\\docs\\qa\\curriculum-tree-phase2\\C-1280-registered-panel.png",
+    "C:\\Users\\user\\Desktop\\zen-course-hub\\docs\\qa\\curriculum-tree-phase2\\E-390-tree.png",
+    "C:\\Users\\user\\Desktop\\zen-course-hub\\docs\\qa\\curriculum-tree-phase2\\F-390-enrollment-drawer.png",
+    "C:\\Users\\user\\Desktop\\zen-course-hub\\docs\\qa\\curriculum-tree-phase2\\G-375-tree.png"
+  ],
+  "actions": [
+    {
+      "name": "tree_open",
+      "nodes": 275,
+      "lanes": 11
+    },
+    {
+      "name": "click_detail_no_registration",
+      "beforeClickCount": 0,
+      "afterClickCount": 0,
+      "actionLabel": "通常履修に追加"
+    },
+    {
+      "name": "drag_register",
+      "courseId": "it_literacy",
+      "registeredAfterDrag": 1,
+      "storageAfterDrag": "[\"it_literacy\"]",
+      "duplicateCount": 1
+    },
+    {
+      "name": "reload_restore",
+      "registered": 1,
+      "cardRegistered": true
+    },
+    {
+      "name": "delete_reload_restore",
+      "registered": 0,
+      "storageAfterDelete": "[]"
+    },
+    {
+      "name": "mobile_390",
+      "bodyWidth": 390,
+      "viewportWidth": 390,
+      "overflow": false,
+      "panelCollapsed": true
+    },
+    {
+      "name": "mobile_drawer_open",
+      "panelCollapsed": false,
+      "dropVisible": true
+    },
+    {
+      "name": "mobile_375",
+      "bodyWidth": 375,
+      "viewportWidth": 375,
+      "overflow": false
+    }
+  ],
+  "errors": []
+}

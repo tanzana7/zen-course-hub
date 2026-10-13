@@ -164,6 +164,31 @@
     }
   };
 
+  // The curriculum canvas may be much larger than a phone viewport. Fit mode
+  // is intentionally allowed below the ordinary 25% manual-zoom floor so the
+  // complete map remains discoverable without changing the user's normal zoom
+  // controls.
+  const calculateCurriculumFit = ({ viewportWidth, viewportHeight, contentWidth, contentHeight, padding = 28, maxScale = 1, minScale = 0.05 }) => {
+    const width = Number(viewportWidth);
+    const height = Number(viewportHeight);
+    const contentW = Number(contentWidth);
+    const contentH = Number(contentHeight);
+    if (![width, height, contentW, contentH].every(Number.isFinite) || width <= 0 || height <= 0 || contentW <= 0 || contentH <= 0) {
+      return { scale: 1, panX: 0, panY: 0, availableWidth: 0, availableHeight: 0 };
+    }
+    const availableWidth = Math.max(1, width - Math.max(0, Number(padding) || 0));
+    const availableHeight = Math.max(1, height - Math.max(0, Number(padding) || 0));
+    const rawScale = Math.min(availableWidth / contentW, availableHeight / contentH, Number(maxScale) || 1);
+    const scale = Math.max(Number(minScale) || 0.05, Math.min(Number(maxScale) || 1, rawScale));
+    return {
+      scale: Number(scale.toFixed(4)),
+      panX: Number(((width - contentW * scale) / 2).toFixed(2)),
+      panY: Number(((height - contentH * scale) / 2).toFixed(2)),
+      availableWidth,
+      availableHeight
+    };
+  };
+
   return {
     CURRENT_STORAGE_SCHEMA_VERSION,
     normalizeIdArray,
@@ -171,6 +196,7 @@
     readEnrollmentState,
     saveEnrollmentState,
     escapeHTML,
-    sanitizeExternalUrl
+    sanitizeExternalUrl,
+    calculateCurriculumFit
   };
 }));

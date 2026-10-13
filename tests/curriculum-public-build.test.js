@@ -1,0 +1,23 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const { build, output, publicFiles } = require('../scripts/build-public.cjs');
+
+test('Netlify publishes only the reviewed runtime asset allowlist', () => {
+  const root = path.resolve(__dirname, '..');
+  const config = fs.readFileSync(path.join(root, 'netlify.toml'), 'utf8');
+  assert.match(config, /base\s*=\s*"\."/);
+  assert.match(config, /command\s*=\s*"node scripts\/build-public\.cjs"/);
+  assert.match(config, /publish\s*=\s*"netlify-dist"/);
+  assert.equal(new Set(publicFiles).size, publicFiles.length);
+  for (const file of ['index.html', 'curriculum.html', 'app.js', 'curriculum-map.js', 'curriculum-config.js', 'courses.json', 'curriculum-tree-layout.json', '_redirects']) {
+    assert.ok(publicFiles.includes(file), file);
+  }
+  assert.ok(publicFiles.every((file) => !/\.pdf$|\.png$|\.md$|\.cjs$|wrangler|\/|\\/i.test(file)));
+  build();
+  assert.deepEqual(fs.readdirSync(output).sort(), [...publicFiles].sort());
+  for (const file of publicFiles) {
+    assert.deepEqual(fs.readFileSync(path.join(output, file)), fs.readFileSync(path.join(root, file)), file);
+  }
+});
