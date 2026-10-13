@@ -1,6 +1,10 @@
 /**
  * アプリケーションのメインロジック
  */
+// 公開切替はリリース成果物の設定として明示的に行う。localStorageやURLから
+// 変更できないため、通常のfeature成果物を誤って公開しても正式導線は開かない。
+const CURRICULUM_TREE_PUBLIC_ENABLED = false;
+
 document.addEventListener('DOMContentLoaded', async () => {
   const list = document.getElementById('list');
   const completedList = document.getElementById('completed-list');
@@ -2348,10 +2352,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     };
 
-    // The tree stays unpublished on production. A local-only query flag is used for
-    // review so the public Netlify host cannot expose the unfinished navigation entry.
-    const previewEnabled = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+    // 公開OFFでもlocalhost限定プレビューは維持する。公開ON時はホストやURLに
+    // 依存せず同じ初期化経路を使うため、リリース前後で本体処理を分岐させない。
+    const curriculumTreePreviewEnabled = ['localhost', '127.0.0.1'].includes(window.location.hostname)
       && new URLSearchParams(window.location.search).get('curriculumPreview') === '1';
+    const curriculumTreeEnabled = CURRICULUM_TREE_PUBLIC_ENABLED || curriculumTreePreviewEnabled;
+    // Keep the existing local variable name as a compatibility alias for the
+    // preview gate tests and diagnostics; its value now represents either
+    // approved public access or the local preview.
+    const previewEnabled = curriculumTreeEnabled;
     nav.hidden = !previewEnabled;
     if (previewEnabled) {
       loadCurriculumLayoutDefinition().then((definition) => {

@@ -1,12 +1,18 @@
 # Curriculum Tree Release Runbook
 
 This runbook is preparatory documentation only. None of the release, merge,
-push, or deployment steps below were executed in Phase 11, 12, or 13.
+push, or deployment steps below were executed in Phase 11, 12, 13, or 14.
 
-## Phase 13 gate status
+## Phase 14 gate status
 
-- The tree remains OFF for public navigation and is available only on
-  `localhost`/`127.0.0.1` with `?curriculumPreview=1`.
+- `app.js` contains the single release setting
+  `CURRICULUM_TREE_PUBLIC_ENABLED = false`. The tree remains OFF for public
+  navigation and is available only on `localhost`/`127.0.0.1` with
+  `?curriculumPreview=1`.
+- When a separately approved release commit changes that setting to `true`,
+  the same navigation and tree initialization path is enabled on non-local
+  hosts without a query parameter. This is a release-artifact change, not an
+  end-user setting or an access-control mechanism.
 - The repository has no `netlify.toml`, `package.json`, or CI workflow, so the
   Netlify UI values for production branch, publish directory, build command,
   auto-publish, and Deploy Preview policy must be confirmed by a Netlify
@@ -35,28 +41,33 @@ push, or deployment steps below were executed in Phase 11, 12, or 13.
    this check.
 7. Obtain explicit permission for publication of the independently rendered
    curriculum-tree reproduction. Technical readiness is not permission.
-8. Review the release flag and public-navigation condition; keep the tree
-   hidden until this approval checklist is complete.
+8. Review the release flag and public-navigation condition; keep the flag
+   `false` and the tree hidden until this approval checklist is complete.
 9. Confirm the Netlify publish directory contains only the runtime allowlist;
    if the directory cannot be verified, stop and mark deployment configuration
    UNVERIFIED.
 
 ## Release procedure (future, not executed)
 
-1. Create a dedicated release commit that changes the reviewed release flag
-   and public navigation condition only after approval. Do not enable the
-   flag in a Phase 13 audit commit.
-2. Run syntax checks, the complete test suite, and `git diff --check`.
-3. Run an isolated desktop/mobile browser smoke using a temporary profile.
-4. Merge the feature with `git merge --no-ff` on `main` after confirming the
+1. Obtain explicit publication approval and confirm Netlify production
+   branch, base/publish directory, build command, and Deploy Preview policy.
+2. Create a dedicated release commit that changes only
+   `CURRICULUM_TREE_PUBLIC_ENABLED` from `false` to `true`. Do not enable the
+   flag in a preparation or audit commit.
+3. Run syntax checks, the complete test suite, `git diff --check`, and verify
+   the four entry points (list, four-year plan β, graduation analysis,
+   curriculum tree) at desktop and mobile widths.
+4. Run an isolated desktop/mobile browser smoke on a non-local production-like
+   host without `curriculumPreview=1`, then repeat the localhost preview check.
+5. Merge the feature with `git merge --no-ff` on `main` after confirming the
    expected base and feature SHAs.
-5. Push `main` through the normal GitHub/Netlify integration only after the
+6. Push `main` through the normal GitHub/Netlify integration only after the
    production branch and publish directory have been confirmed. Do not upload
    files manually and do not deploy a dirty worktree.
-6. Wait for the Netlify deploy to finish. Verify asset identity, critical
+7. Wait for the Netlify deploy to finish. Verify asset identity, critical
    resource status, console errors, navigation, enrollment, storage reload,
    and responsive overflow in isolated browser profiles.
-7. Record the merge SHA, deploy ID, publish directory, test result, and smoke
+8. Record the merge SHA, deploy ID, publish directory, test result, and smoke
    result in the release report.
 
 ## Rollback
@@ -69,9 +80,9 @@ push, or deployment steps below were executed in Phase 11, 12, or 13.
   reset, rebase, or history rewriting as rollback.
 - Preserve `myClasses`, `completedClasses`, and `fourYearSimulatorPlanV1`;
   rollback must not clear or migrate user localStorage.
-- If only the curriculum tree is defective, disable its reviewed release flag
-  in a normal commit while leaving the existing list, simulator, and graduation
-  views intact.
+- If only the curriculum tree is defective, create a normal forward-fix commit
+  that sets the reviewed release flag back to `false`, leaving the existing
+  list, simulator, and graduation views intact. Never erase user localStorage.
 - After rollback, re-run asset, console, storage, and responsive smoke checks
   and document the decision.
 
