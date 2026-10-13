@@ -41,6 +41,20 @@ test('every course in all four years can be centered at readable 100 percent', (
   }
 });
 
+test('initial camera starts at the central upper curriculum area at 100 percent', () => {
+  const layout = map.buildLayout(definition, courses);
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    const camera = map.initialCamera(layout, viewport);
+    const centerX = (viewport.width / 2 - camera.x) / camera.scale;
+    const centerY = (viewport.height / 2 - camera.y) / camera.scale;
+    assert.equal(camera.scale, 1);
+    const centralField = layout.fields.find((field) => field.field === '文化・思想');
+    assert.ok(centerX >= centralField.x && centerX < centralField.x + centralField.width);
+    assert.ok(centerY >= layout.years[0].y && centerY < layout.years[0].y + layout.years[0].height);
+    assert.ok(layout.positions.some((box) => box.region === 'year-1' && box.x <= centerX + viewport.width / 2 && box.x + box.width >= centerX - viewport.width / 2 && box.y <= centerY + viewport.height / 2 && box.y + box.height >= centerY - viewport.height / 2));
+  }
+});
+
 test('cursor anchored zoom preserves its world point and clamps extremes', () => {
   const camera = { scale: 1, x: -2100, y: -3400 }, anchor = { x: 200, y: 300 };
   for (const scale of [.05, .7, 1.6, 2.4]) {
@@ -71,4 +85,16 @@ test('standalone runtime uses shared enrollment rollback and safe text/link rend
   assert.doesNotMatch(source, /innerHTML|localStorage\.clear|fourYearSimulatorPlanV1/);
   assert.match(source, /utils.sanitizeExternalUrl/);
   assert.match(source, /textContent = text/);
+});
+
+test('standalone map exposes separate planned and completed enrollment actions', () => {
+  const html = fs.readFileSync('curriculum.html', 'utf8');
+  const source = fs.readFileSync('curriculum-map.js', 'utf8');
+  assert.match(html, /ホームに戻る/);
+  assert.match(html, /履修予定に追加/);
+  assert.match(source, /履修予定に追加/);
+  assert.match(source, /履修済みに追加/);
+  assert.match(source, /changeEnrollment/);
+  assert.match(source, /utils\.saveEnrollmentState\(storage, keys, nextRegistered, nextCompleted\)/);
+  assert.doesNotMatch(source, /fourYearSimulatorPlanV1/);
 });

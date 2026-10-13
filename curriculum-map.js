@@ -82,6 +82,25 @@
     return { scale, x: anchor.x - (anchor.x - camera.x) * scale / camera.scale, y: anchor.y - (anchor.y - camera.y) * scale / camera.scale };
   };
   const centerOn = (box, viewport, scale = 1) => ({ scale, x: viewport.width / 2 - (box.x + box.width / 2) * scale, y: viewport.height / 2 - (box.y + box.height / 2) * scale });
+  // The map opens on the central upper part of the curriculum, where the
+  // first-year subject bands form a useful orientation point. Keeping this
+  // separate from region/search cameras means those explicit movements retain
+  // their existing targets.
+  const initialCamera = (layout, viewport) => {
+    const firstYear = layout.years[0];
+    const centralField = layout.fields.find((field) => field.field === '文化・思想');
+    const centralCard = layout.positions
+      .filter((box) => box.region === 'year-1' && box.field === centralField?.field)
+      .sort((a, b) => a.x - b.x || a.y - b.y)[0];
+    const centralStart = layout.positions
+      .filter((box) => box.region === 'year-1' && box.field === '多言語')
+      .sort((a, b) => a.x - b.x || a.y - b.y)[0];
+    const firstVisibleX = viewport.width < 600
+      ? (centralCard?.x || layout.width / 2)
+      : (centralStart?.x || centralCard?.x || layout.width / 2);
+    const target = { x: firstVisibleX + viewport.width / 2, y: firstYear.y + 350 };
+    return { scale: 1, x: viewport.width / 2 - target.x, y: viewport.height / 2 - target.y };
+  };
   const fitMap = (layout, viewport) => {
     const scale = Math.min((viewport.width - 40) / layout.width, (viewport.height - 140) / layout.height, 1);
     return { scale: Math.max(.05, scale), x: (viewport.width - layout.width * scale) / 2, y: (viewport.height - layout.height * scale) / 2 + 20 };
@@ -136,9 +155,9 @@
         cameraFrame = null;
         world.style.transform = `translate(${camera.x}px, ${camera.y}px) scale(${camera.scale})`;
         doc.getElementById('map-zoom-value').textContent = `${Math.round(camera.scale * 100)}%`;
-        // The leftmost fully readable field is the navigation context on a
-        // wide monitor, where several neighboring fields share the viewport.
-        const center = { x: (Math.min(size().width / 2, 280) - camera.x) / camera.scale, y: (size().height / 2 - camera.y) / camera.scale };
+        // The viewport center is the navigation context so the label follows
+        // the central map area on both desktop and phone layouts.
+        const center = { x: (size().width / 2 - camera.x) / camera.scale, y: (size().height / 2 - camera.y) / camera.scale };
         const year = layout.years.find((region) => center.y >= region.y && center.y < region.y + region.height);
         const field = layout.fields.find((region) => center.x >= region.x && center.x < region.x + region.width);
         doc.getElementById('map-location').textContent = center.y < layout.introHeight ? '導入科目' : center.y >= layout.projectY ? '卒業プロジェクト' : year ? `${year.year}年次 · ${field?.field || '分野を選択'}` : 'カリキュラムマップ';
@@ -157,14 +176,15 @@
       return layout.years.find((year) => centerY >= year.y && centerY < year.y + year.height)?.year || 1;
     };
     const currentField = () => {
-      const centerX = (Math.min(size().width / 2, 280) - camera.x) / camera.scale;
+      const centerX = (size().width / 2 - camera.x) / camera.scale;
       return layout.fields.find((field) => centerX >= field.x && centerX < field.x + field.width)?.field || '情報';
     };
     const regionCamera = (year, field) => ({
       scale: 1,
-      // Start with a complete card near the left edge. Centering an entire
-      // field wasted much of a phone viewport and hid the adjacent cards.
-      x: (size().width < 600 ? 40 : 24) - field.x - 18,
+      // On desktop center the selected field so its location label matches
+      // the view. On phones keep the first card near the left edge because a
+      // full field is wider than the viewport.
+      x: size().width < 600 ? 40 - field.x - 18 : size().width / 2 - field.x - field.width / 2,
       // Keep the preceding row completely above the viewport. The year
       // heading still clears the floating toolbar at normal zoom.
       y: 62 - year.y
@@ -243,7 +263,7 @@
         node.classList.toggle('is-registered', registered.has(id));
         node.classList.toggle('is-completed', completed.has(id));
         node.classList.toggle('is-selected', selectedId === id);
-        node.querySelector('.course-state').textContent = completed.has(id) ? '履修済み' : registered.has(id) ? 'マイ履修 ✓' : '';
+        node.querySelector('.course-state').textContent = completed.has(id) ? '履修済み ✓' : registered.has(id) ? '履修予定 ✓' : '';
       }
       doc.getElementById('map-enrollment-count').textContent = enrollment.registered.ids.length;
       drawRelations();
@@ -282,30 +302,40 @@
       doc.getElementById('map-enrollment-toggle').setAttribute('aria-expanded', 'false');
       if (lastFocus?.isConnected) lastFocus.focus({ preventScroll: true });
     };
-    const saveEnrollment = (id, remove = false) => {
+    const changeEnrollment = (id, target) => {
       // Re-read immediately before a write to preserve changes made in another
-      // Hub tab. Never create a second plan or treat registered as completed.
+      // Hub tab. The two lists are mutually exclusive and the simulator plan
+      // is intentionally not part of this transaction.
+      if (!['registered', 'completed'].includes(target) || !catalog.has(id)) return false;
       const current = utils.readEnrollmentState(storage, keys);
-      const next = new Set(current.registered.ids);
-      if (remove) next.delete(id);
-      else if (!current.completed.ids.includes(id) && catalog.has(id)) next.add(id);
-      const result = utils.saveEnrollmentState(storage, keys, next, current.completed.ids);
+      const nextRegistered = new Set(current.registered.ids);
+      const nextCompleted = new Set(current.completed.ids);
+      const active = target === 'registered' ? nextRegistered.has(id) : nextCompleted.has(id);
+      if (target === 'registered') {
+        if (active) nextRegistered.delete(id);
+        else { nextRegistered.add(id); nextCompleted.delete(id); }
+      } else if (active) {
+        nextCompleted.delete(id);
+      } else {
+        nextCompleted.add(id); nextRegistered.delete(id);
+      }
+      const result = utils.saveEnrollmentState(storage, keys, nextRegistered, nextCompleted);
       enrollment = utils.readEnrollmentState(storage, keys);
       updateNodes();
       if (drawerMode === 'enrollment') renderEnrollment();
       else if (drawerMode === 'detail') renderDetail(selectedId, false);
       if (!result.saved) {
-        console.warn('通常履修を保存できませんでした:', result.error);
+        console.warn('履修状態を保存できませんでした:', result.error);
         status(result.rollbackSucceeded ? '保存できませんでした。再度お試しください。' : '保存状態を確認できません。ページを再読み込みしてください。', true);
-      } else status(remove ? '削除しました' : '追加しました');
+      } else status(active ? '削除しました' : target === 'registered' ? '履修予定に追加しました' : '履修済みに追加しました');
       return result.saved;
     };
-    const renderEnrollment = () => {
-      drawerContent.replaceChildren();
-      const known = enrollment.registered.ids.map((id) => catalog.get(id)).filter(Boolean);
-      drawerContent.append(element('p', `${known.length}科目 · ${known.reduce((sum, course) => sum + Number(course.credits), 0)}単位`));
-      if (!enrollment.registered.ids.length) drawerContent.append(element('p', '科目を選んで追加してください。'));
-      for (const id of enrollment.registered.ids) {
+    const appendEnrollmentGroup = (title, ids, target) => {
+      const section = element('section', undefined, 'enrollment-group');
+      section.append(element('h3', title));
+      const known = ids.map((id) => catalog.get(id)).filter(Boolean);
+      section.append(element('p', `${known.length}科目 · ${known.reduce((sum, course) => sum + Number(course.credits), 0)}単位`));
+      for (const id of ids) {
         const course = catalog.get(id);
         const row = element('div', undefined, 'enrollment-row');
         const detail = element('button', course?.subject || '未確認の科目');
@@ -314,12 +344,19 @@
         detail.addEventListener('click', () => { focusCourse(id); renderDetail(id); });
         const remove = element('button', '削除', 'remove');
         remove.type = 'button';
-        remove.setAttribute('aria-label', `${course?.subject || '未確認の科目'}をマイ履修から削除`);
+        remove.setAttribute('aria-label', `${course?.subject || '未確認の科目'}を${title}から削除`);
         remove.disabled = !enrollment.writable;
-        remove.addEventListener('click', () => saveEnrollment(id, true));
+        remove.addEventListener('click', () => changeEnrollment(id, target));
         row.append(detail, remove);
-        drawerContent.append(row);
+        section.append(row);
       }
+      drawerContent.append(section);
+    };
+    const renderEnrollment = () => {
+      drawerContent.replaceChildren();
+      if (!enrollment.registered.ids.length && !enrollment.completed.ids.length) drawerContent.append(element('p', '科目を選んで追加してください。'));
+      if (enrollment.registered.ids.length) appendEnrollmentGroup('履修予定', enrollment.registered.ids, 'registered');
+      if (enrollment.completed.ids.length) appendEnrollmentGroup('履修済み', enrollment.completed.ids, 'completed');
     };
     const renderDetail = (id, open = true) => {
       const course = catalog.get(id);
@@ -333,11 +370,19 @@
         if (value) metadata.append(element('dt', label), element('dd', value));
       }
       drawerContent.append(metadata);
-      const action = element('button', enrollment.completed.ids.includes(id) ? '履修済み' : enrollment.registered.ids.includes(id) ? 'マイ履修から削除' : 'マイ履修に追加', 'enrollment-action');
-      action.type = 'button';
-      action.disabled = !enrollment.writable || enrollment.completed.ids.includes(id);
-      action.addEventListener('click', () => saveEnrollment(id, enrollment.registered.ids.includes(id)));
-      drawerContent.append(action);
+      const planned = enrollment.registered.ids.includes(id);
+      const completed = enrollment.completed.ids.includes(id);
+      const actions = element('div', undefined, 'enrollment-actions');
+      const plannedAction = element('button', planned ? '履修予定から削除' : '履修予定に追加', 'enrollment-action enrollment-action-planned');
+      plannedAction.type = 'button';
+      plannedAction.disabled = !enrollment.writable;
+      plannedAction.addEventListener('click', () => changeEnrollment(id, 'registered'));
+      const completedAction = element('button', completed ? '履修済みから削除' : '履修済みに追加', 'enrollment-action enrollment-action-completed');
+      completedAction.type = 'button';
+      completedAction.disabled = !enrollment.writable;
+      completedAction.addEventListener('click', () => changeEnrollment(id, 'completed'));
+      actions.append(plannedAction, completedAction);
+      drawerContent.append(actions);
       if (course.description) drawerContent.append(element('p', course.description));
       const rating = difficulty[id];
       if (rating && typeof rating.average === 'number') {
@@ -385,7 +430,7 @@
     dropTarget.addEventListener('drop', (event) => {
       event.preventDefault();
       const id = event.dataTransfer.getData('application/x-zen-course-id') || event.dataTransfer.getData('text/plain');
-      if (catalog.has(id)) saveEnrollment(id);
+      if (catalog.has(id)) changeEnrollment(id, 'registered');
       dropTarget.hidden = true;
       dropTarget.classList.remove('is-over');
       dragging = false;
@@ -521,10 +566,9 @@
     win.addEventListener('resize', applyCamera);
     doc.getElementById('map-app').hidden = false;
     doc.getElementById('map-unavailable').hidden = true;
-    // Start at the first dense year/field panel instead of centering on a
-    // single card; this keeps whole cards and the panel heading in view.
-    const firstField = layout.fields.find((field) => field.field === '情報');
-    camera = regionCamera(layout.years[0], firstField);
+    // Start in the map's central upper area at readable scale. Search, year,
+    // field, and fit controls continue to use their explicit camera targets.
+    camera = initialCamera(layout, size());
     applyCamera(); updateNodes();
     if (!enrollment.writable) status('保存データを読み取れません。既存データは変更しません。', true);
     // Optional datasets do not block the map or enrollment if unavailable.
@@ -533,5 +577,5 @@
       fetchJSON('difficulty.json').then((data) => { difficulty = Array.isArray(data) ? Object.fromEntries(data.map((item) => [item.courseId || item.id, item])) : data; }).catch((error) => console.warn('難易度を読み込めません:', error))
     ]);
   }
-  return { buildLayout, intersects, zoomAt, centerOn, fitMap, start };
+  return { buildLayout, intersects, zoomAt, centerOn, initialCamera, fitMap, start };
 }));
