@@ -3,22 +3,23 @@
 This runbook is preparatory documentation only. None of the release, merge,
 push, or deployment steps below were executed in Phase 11, 12, 13, or 14.
 
-## Phase 14 gate status
+## Current gate status
 
-- `app.js` contains the single release setting
-  `CURRICULUM_TREE_PUBLIC_ENABLED = false`. The tree remains OFF for public
-  navigation and is available only on `localhost`/`127.0.0.1` with
-  `?curriculumPreview=1`.
+- `curriculum-config.js` contains the single release setting
+  `CURRICULUM_TREE_PUBLIC_ENABLED = false`. The standalone `curriculum.html`
+  and its navigation remain OFF for public access and are available only on
+  `localhost`/`127.0.0.1` with `?curriculumPreview=1`.
 - When a separately approved release commit changes that setting to `true`,
-  the same navigation and tree initialization path is enabled on non-local
-  hosts without a query parameter. This is a release-artifact change, not an
+  navigation and standalone map are enabled on non-local hosts without a
+  query parameter. This is a release-artifact change, not an
   end-user setting or an access-control mechanism.
 - The repository has no `netlify.toml`, `package.json`, or CI workflow, so the
   Netlify UI values for production branch, publish directory, build command,
   auto-publish, and Deploy Preview policy must be confirmed by a Netlify
   project administrator before release.
-- `_redirects` is present at the repository root. The directory deny rules
-  (`/docs/*`, `/tests/*`, `/tmp/*`) use supported Netlify splats. The existing
+- `_redirects` is present at the repository root. Forced directory deny rules
+  (`/docs/*`, `/tests/*`, `/tmp/*`, `/scripts/*`) avoid Netlify's default
+  shadowing by existing files if the repository root is published. The existing
   `/*.pdf` and `/**/*.pdf` patterns are not treated as a reliable extension
   wildcard by the documented redirect grammar; do not rely on them as a PDF
   access boundary. The current checkout contains no PDF files, and a future
@@ -52,7 +53,7 @@ push, or deployment steps below were executed in Phase 11, 12, 13, or 14.
 1. Obtain explicit publication approval and confirm Netlify production
    branch, base/publish directory, build command, and Deploy Preview policy.
 2. Create a dedicated release commit that changes only
-   `CURRICULUM_TREE_PUBLIC_ENABLED` from `false` to `true`. Do not enable the
+   `CURRICULUM_TREE_PUBLIC_ENABLED` in `curriculum-config.js` from `false` to `true`. Do not enable the
    flag in a preparation or audit commit.
 3. Run syntax checks, the complete test suite, `git diff --check`, and verify
    the four entry points (list, four-year plan β, graduation analysis,

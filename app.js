@@ -3,7 +3,7 @@
  */
 // 公開切替はリリース成果物の設定として明示的に行う。localStorageやURLから
 // 変更できないため、通常のfeature成果物を誤って公開しても正式導線は開かない。
-const CURRICULUM_TREE_PUBLIC_ENABLED = false;
+const CURRICULUM_TREE_PUBLIC_ENABLED = window.CurriculumAccess?.publicEnabled === true;
 
 document.addEventListener('DOMContentLoaded', async () => {
   const list = document.getElementById('list');
@@ -2352,8 +2352,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     };
 
-    // 公開OFFでもlocalhost限定プレビューは維持する。公開ON時はホストやURLに
-    // 依存せず同じ初期化経路を使うため、リリース前後で本体処理を分岐させない。
+    // ナビゲーション表示は独立ページと同じ公開設定に従う。ローカルの
+    // 明示的プレビューだけは、公開OFFのままリンク先を確認できる。
     const curriculumTreePreviewEnabled = ['localhost', '127.0.0.1'].includes(window.location.hostname)
       && new URLSearchParams(window.location.search).get('curriculumPreview') === '1';
     const curriculumTreeEnabled = CURRICULUM_TREE_PUBLIC_ENABLED || curriculumTreePreviewEnabled;
@@ -2445,7 +2445,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     };
 
-    nav.addEventListener('click', () => setMode(!document.body.classList.contains('curriculum-tree-mode')));
+    nav.addEventListener('click', () => {
+      if (!previewEnabled) return;
+      window.location.assign(`curriculum.html${curriculumTreePreviewEnabled ? '?curriculumPreview=1' : ''}`);
+    });
     document.getElementById('course-list-nav')?.addEventListener('click', () => setMode(false));
     close?.addEventListener('click', () => setMode(false));
     mobileEnrollmentToggle?.addEventListener('click', () => {

@@ -9,7 +9,8 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 test('release flag exists once and is committed disabled', () => {
   const app = read('app.js');
   assert.equal((app.match(/CURRICULUM_TREE_PUBLIC_ENABLED/g) || []).length, 2);
-  assert.match(app, /const CURRICULUM_TREE_PUBLIC_ENABLED = false;/);
+  assert.match(read('curriculum-config.js'), /const CURRICULUM_TREE_PUBLIC_ENABLED = false;/);
+  assert.match(app, /window.CurriculumAccess\?\.publicEnabled === true/);
 });
 
 test('public access and localhost preview share one curriculum gate', () => {
@@ -37,22 +38,25 @@ test('public-off navigation keeps the tree button hidden in the HTML baseline', 
 });
 
 test('public-on test injection changes only the explicit release flag', () => {
-  const app = read('app.js');
-  const enabled = app.replace(
+  const config = read('curriculum-config.js');
+  const enabled = config.replace(
     'const CURRICULUM_TREE_PUBLIC_ENABLED = false;',
     'const CURRICULUM_TREE_PUBLIC_ENABLED = true;'
   );
-  assert.notEqual(enabled, app);
+  assert.notEqual(enabled, config);
   assert.match(enabled, /const CURRICULUM_TREE_PUBLIC_ENABLED = true;/);
-  assert.match(enabled, /const curriculumTreeEnabled = CURRICULUM_TREE_PUBLIC_ENABLED \|\| curriculumTreePreviewEnabled;/);
-  assert.match(enabled, /loadCurriculumLayoutDefinition\(\)/);
+  const vm = require('node:vm');
+  const context = { URLSearchParams };
+  vm.runInNewContext(enabled, context);
+  assert.equal(context.CurriculumAccess.canAccess({ hostname: 'example.com', search: '' }), true);
 });
 
-test('navigation still uses the existing list and tree mode transitions', () => {
+test('navigation opens the standalone map and retains list mode transitions', () => {
   const app = read('app.js');
   assert.match(app, /syncPrimaryViewNavigation\(enabled \? 'tree' : 'list'\)/);
   assert.match(app, /course-list-nav'\)\?\.addEventListener\('click', \(\) => setMode\(false\)/);
-  assert.match(app, /nav\.addEventListener\('click', \(\) => setMode\(!document\.body\.classList\.contains\('curriculum-tree-mode'\)\)/);
+  assert.match(app, /window.location.assign\(`curriculum.html/);
+  assert.match(read('curriculum.html'), /id="map-back" href="index.html"/);
 });
 
 test('release flag does not alter enrollment storage keys', () => {

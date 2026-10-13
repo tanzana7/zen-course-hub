@@ -1,0 +1,75 @@
+{
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 1440,
+        "height": 900,
+        "top": 0,
+        "right": 1440,
+        "bottom": 900,
+        "left": 0
+      },
+      "scrollWidth": 1440,
+      "scale": "100%",
+      "drawerHidden": true,
+      "transform": "translate(-652px, -1712px) scale(1)"
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 800,
+        "top": 0,
+        "right": 1280,
+        "bottom": 800,
+        "left": 0
+      },
+      "scrollWidth": 1280,
+      "scale": "100%",
+      "drawerHidden": true,
+      "transform": "translate(-732px, -1762px) scale(1)"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844,
+        "top": 0,
+        "right": 390,
+        "bottom": 844,
+        "left": 0
+      },
+      "scrollWidth": 390,
+      "scale": "100%",
+      "drawerHidden": true,
+      "transform": "translate(-1177px, -1740px) scale(1)"
+    }
+  ],
+  "exceptions": [],
+  "failedRequests": [
+    "net::ERR_ABORTED"
+  ],
+  "allCoursesReachable": 825,
+  "backToHub": "PASS",
+  "advisoryRelations": 335,
+  "pinch": "PASS",
+  "touchPan": "PASS",
+  "touchCourseDetail": "PASS",
+  "saveFailureRollback": "PASS",
+  "hubSynchronization": "PASS",
+  "reload": "PASS",
+  "enrollment": "PASS",
+  "nativeDragRegistration": "PASS",
+  "profileIsolated": true,
+  "storageRestored": true
+}

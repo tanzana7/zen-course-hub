@@ -12,7 +12,8 @@ test('root publish candidate contains every runtime asset referenced by the app'
     'index.html', 'style.css', 'app.js', 'quality-utils.js', 'course-sorting.js',
     'simulator-rules.js', 'graduation-requirements.js', 'graduation-requirements.json',
     'courses.json', 'difficulty.json', 'course-relations.json',
-    'curriculum-tree-layout.json', 'tutorial.json', '_redirects'
+    'curriculum-tree-layout.json', 'curriculum.html', 'curriculum-map.css',
+    'curriculum-map.js', 'curriculum-config.js', 'tutorial.json', '_redirects'
   ];
   for (const file of required) assert.equal(exists(file), true, file);
   const index = read('index.html');
@@ -32,8 +33,8 @@ test('development evidence is outside the root runtime asset set', () => {
 
 test('redirect deny rules use valid Netlify splat paths for development directories', () => {
   const redirects = read('_redirects').split(/\r?\n/).filter((line) => line && !line.startsWith('#'));
-  for (const prefix of ['/docs/*', '/tests/*', '/tmp/*']) {
-    assert.ok(redirects.some((line) => new RegExp(`^${prefix.replace('*', '\\*')}\\s+/404\\s+404$`).test(line)), prefix);
+  for (const prefix of ['/docs/*', '/tests/*', '/tmp/*', '/scripts/*']) {
+    assert.ok(redirects.some((line) => new RegExp(`^${prefix.replace('*', '\\*')}\\s+/404\\s+404!$`).test(line)), prefix);
   }
   assert.ok(redirects.every((line) => line.trim().split(/\s+/).length >= 3));
 });

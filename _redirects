@@ -1,6 +1,7 @@
 # Development-only material must not be served from a root-publish Netlify site.
-/docs/*   /404   404
-/tests/*  /404   404
-/tmp/*    /404   404
+/docs/*    /404   404!
+/tests/*   /404   404!
+/tmp/*     /404   404!
+/scripts/* /404   404!
 /*.pdf    /404   404
 /**/*.pdf /404   404
