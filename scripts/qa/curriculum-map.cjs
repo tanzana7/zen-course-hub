@@ -159,7 +159,8 @@ async function run() {
         if(!candidate)throw Error('search missing '+course.id); candidate.click();
         await new Promise(requestAnimationFrame);
         const node=document.querySelector('[data-course-id="'+course.id+'"]');const r=node.getBoundingClientRect();
-        results.push({id:course.id,year:course.year,inside:r.left>=0&&r.top>=64&&r.right<=innerWidth&&r.bottom<=innerHeight-70,readable:getComputedStyle(node).fontSize==='17px'&&document.getElementById('map-zoom-value').value==='100%'});
+        const expectedSize=node.classList.contains('is-prominent')?'20px':'17px';
+        results.push({id:course.id,year:course.year,inside:r.left>=0&&r.top>=64&&r.right<=innerWidth&&r.bottom<=innerHeight-70,readable:getComputedStyle(node).fontSize===expectedSize&&document.getElementById('map-zoom-value').value==='100%'});
       } return results;
     })()`);
     assert.ok(checks.every((course)=>course.inside && course.readable),JSON.stringify(checks.filter(x=>!x.inside||!x.readable)));

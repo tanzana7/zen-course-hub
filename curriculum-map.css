@@ -28,6 +28,10 @@ a { color: #087764; }
 .map-course { position: absolute; display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; text-align: left; padding: 15px; border-radius: 12px; border: 1px solid #9bb5bc; box-shadow: 0 3px 9px #23434a18; font-size: 17px; line-height: 1.35; user-select: none; overflow: hidden; touch-action: none; }
 .map-course strong { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; overflow-wrap: anywhere; }
 .map-course small { font-size: 12px; color: #466067; font-weight: 500; }
+.map-course.is-prominent { border-width: 2px; padding: 18px; font-size: 20px; box-shadow: 0 5px 14px #23434a2b; }
+.map-course.is-prominent strong { -webkit-line-clamp: 3; }
+.map-course.is-prominent::after { content: '必修・中核'; align-self: flex-start; margin-top: 4px; padding: 2px 7px; border-radius: 999px; background: #e9f2ff; color: #2853a5; font-size: 11px; font-weight: 800; line-height: 1.4; }
+.map-course[data-stage="卒業プロジェクト"].is-prominent::after { content: '卒業プロジェクト'; background: #fff0d6; color: #8a5600; }
 .map-course.is-registered { border: 3px solid #088972; padding: 13px; }
 .map-course.is-completed { border: 3px solid #5362ac; padding: 13px; }
 .map-course.is-selected { outline: 4px solid #f08020; outline-offset: 4px; z-index: 3; }

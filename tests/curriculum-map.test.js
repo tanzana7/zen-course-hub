@@ -20,6 +20,14 @@ test('display layout contains all 275 courses, eliminates partial overlap and pr
   const layout = map.buildLayout(definition, courses);
   assert.equal(layout.positions.length, 275);
   assert.equal(new Set(layout.positions.map((box) => box.id)).size, 275);
+  const prominent = layout.positions.filter((box) => box.prominence === 'prominent');
+  assert.ok(prominent.length > 0);
+  assert.ok(prominent.every((box) => box.width > 224 && box.height > 128));
+  assert.ok(prominent.every((box) => {
+    const course = courses.find((item) => item.id === box.id);
+    const placement = definition.coursePlacements.find((item) => item.courseId === box.id);
+    return course.category === '必修' || placement.category === '卒業プロジェクト';
+  }));
   for (let i = 0; i < layout.positions.length; i++) {
     const box = layout.positions[i];
     assert.ok(box.width >= 200 && box.height >= 120);

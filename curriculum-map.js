@@ -15,8 +15,10 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, () => {
   const CARD_WIDTH = 224;
   const CARD_HEIGHT = 128;
-  const CARD_PITCH_X = 240;
-  const CARD_PITCH_Y = 144;
+  const PROMINENT_CARD_WIDTH = 264;
+  const PROMINENT_CARD_HEIGHT = 156;
+  const CARD_PITCH_X = 280;
+  const CARD_PITCH_Y = 176;
   const FIELD_ORDER = ['情報', '数理', '多言語', '文化・思想', '社会・ネットワーク', '経済・マーケット', 'デジタル産業', '社会接続', '自由科目'];
   const FIELD_COLORS = { 情報: '#e1eafb', 数理: '#e1eafb', 多言語: '#ffe5ed', '文化・思想': '#e2f4f1', '社会・ネットワーク': '#e2f4f1', '経済・マーケット': '#e2f4f1', デジタル産業: '#e2f4f1', 社会接続: '#f0f0df', 自由科目: '#eee6f4' };
   const intersects = (a, b) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
@@ -32,7 +34,28 @@
     if (entries.some((entry) => !byId.has(entry.courseId) || !Number.isFinite(entry.x) || !Number.isFinite(entry.y))) throw new Error('科目配置を確認できません');
     const sortBySource = (a, b) => a.y - b.y || a.x - b.x || a.courseId.localeCompare(b.courseId);
     const placed = [];
-    const put = (entry, x, y, region) => placed.push({ id: entry.courseId, x, y, width: CARD_WIDTH, height: CARD_HEIGHT, sourceX: entry.x, sourceY: entry.y, year: byId.get(entry.courseId).year, field: entry.field, stage: entry.category, region });
+    const put = (entry, x, y, region) => {
+      const course = byId.get(entry.courseId);
+      // Mandatory courses and the graduation project are the map's primary
+      // wayfinding anchors. Their larger blocks make the official stage
+      // hierarchy visible without inventing a new importance score from
+      // course names or descriptions.
+      const prominent = course.category === '必修' || entry.category === '卒業プロジェクト';
+      placed.push({
+        id: entry.courseId,
+        x,
+        y,
+        width: prominent ? PROMINENT_CARD_WIDTH : CARD_WIDTH,
+        height: prominent ? PROMINENT_CARD_HEIGHT : CARD_HEIGHT,
+        prominence: prominent ? 'prominent' : 'standard',
+        sourceX: entry.x,
+        sourceY: entry.y,
+        year: course.year,
+        field: entry.field,
+        stage: entry.category,
+        region
+      });
+    };
     const intro = entries.filter((entry) => entry.category === '導入科目').sort(sortBySource);
     const introColumns = [...new Set(intro.map((entry) => entry.x))].sort((a, b) => a - b);
     const introSlots = new Map();
@@ -249,6 +272,8 @@
       node.dataset.year = Number.parseInt(course.year, 10);
       node.dataset.field = box.field;
       node.dataset.stage = box.stage;
+      node.dataset.prominence = box.prominence;
+      node.classList.toggle('is-prominent', box.prominence === 'prominent');
       node.draggable = true;
       node.setAttribute('aria-label', `${course.subject}の詳細`);
       Object.assign(node.style, { left: `${box.x}px`, top: `${box.y}px`, width: `${box.width}px`, height: `${box.height}px`, background: course.credits === 1 ? '#a7d8e6' : course.credits === 4 ? '#fff6bf' : '#fff' });
