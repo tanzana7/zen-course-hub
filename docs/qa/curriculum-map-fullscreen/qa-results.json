@@ -16,11 +16,11 @@
       "scrollWidth": 1440,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-1866px, -556px) scale(1)",
+      "transform": "translate(-2146px, -652px) scale(1)",
       "opening": {
         "label": "1年次 · 文化・思想",
         "leftClipped": 0,
-        "visible": 16
+        "visible": 11
       }
     },
     {
@@ -39,7 +39,7 @@
       "scrollWidth": 1280,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-1866px, -606px) scale(1)",
+      "transform": "translate(-2146px, -702px) scale(1)",
       "opening": {
         "label": "1年次 · 文化・思想",
         "leftClipped": 0,
@@ -62,17 +62,16 @@
       "scrollWidth": 390,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-2158px, -584px) scale(1)",
+      "transform": "translate(-2478px, -680px) scale(1)",
       "opening": {
         "label": "1年次 · 文化・思想",
         "leftClipped": 0,
-        "visible": 4
+        "visible": 3
       }
     }
   ],
   "exceptions": [],
   "failedRequests": [
-    "net::ERR_ABORTED",
     "net::ERR_ABORTED"
   ],
   "allCoursesReachable": 825,
