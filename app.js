@@ -1373,6 +1373,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     return planned ? '不足' : '未達';
   };
 
+  let homeGraduationDetailState = null;
+
+  const renderHomeGraduationCourseList = (detailsElement) => {
+    const key = detailsElement.dataset.homeGraduationKey;
+    const target = detailsElement.querySelector('.graduation-course-breakdown-content');
+    if (!key || !target || !homeGraduationDetailState) return;
+    const category = key.startsWith('category:') ? key.slice('category:'.length) : null;
+    const courseIds = category
+      ? state.predefinedData.filter((course) => course.category === category).map((course) => course.id)
+      : getRequirementDetail(homeGraduationDetailState, key)?.targetCourseIds;
+    if (!Array.isArray(courseIds)) return;
+    target.replaceChildren();
+    if (!courseIds.length) {
+      const empty = document.createElement('p');
+      empty.textContent = '対象科目はありません。';
+      target.append(empty);
+      return;
+    }
+    const list = document.createElement('ul');
+    list.className = 'graduation-course-breakdown-list';
+    for (const courseId of courseIds) {
+      const course = state.coursesMap.get(courseId);
+      if (!course) continue;
+      const item = document.createElement('li');
+      const name = document.createElement('span');
+      name.textContent = course.subject;
+      const metadata = document.createElement('small');
+      metadata.textContent = `${course.credits}単位 · ${course.category}`;
+      const status = document.createElement('strong');
+      status.textContent = state.completedClasses.has(courseId) ? '履修済み'
+        : state.registeredClasses.has(courseId) ? '履修予定' : '未履修';
+      item.append(name, metadata, status);
+      list.append(item);
+    }
+    target.append(list);
+  };
+
   const renderGraduationAnalysis = (completedAnalysis, plannedAnalysis, targetElement = null, options = {}) => {
     const analysisResultElement = targetElement || document.getElementById('analysis-result');
     if (!analysisResultElement) return;
@@ -1380,10 +1417,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     const completedDescription = options.completedDescription || '履修済みのみ';
     const plannedLabel = options.plannedLabel || '予定込み';
     const plannedDescription = options.plannedDescription || '履修済み＋履修予定';
+    if (!targetElement) homeGraduationDetailState = null;
     if (!completedAnalysis.valid || !plannedAnalysis.valid) {
       analysisResultElement.innerHTML = `<div class="analysis-box graduation-analysis-error" role="alert">${escapeHTML(completedAnalysis.message || plannedAnalysis.message || '科目データを確認できないため、卒業要件を判定できません。')}</div>`;
       return;
     }
+
+    // Keep the official analyzer as the single source for category membership.
+    // The historical detail lists are restored only in the Hub modal; Simulator
+    // retains its existing course-detail interaction and projected plan semantics.
+    if (!targetElement) {
+      const result = window.GraduationRequirementsEngine?.buildRequirementDetails?.(
+        [...state.completedClasses, ...state.registeredClasses],
+        state.predefinedData,
+        state.graduationDefinition
+      );
+      homeGraduationDetailState = result?.valid ? result.details : null;
+    }
+
+    const breakdown = (key, label, completedRequirement, plannedRequirement) => {
+      if (!homeGraduationDetailState || targetElement) return '';
+      const completedCredits = completedRequirement.credits ?? completedRequirement.countedCredits;
+      const projectedCredits = plannedRequirement.credits ?? plannedRequirement.countedCredits;
+      const plannedCredits = Math.max(0, projectedCredits - completedCredits);
+      const targetCredits = plannedRequirement.targetCredits;
+      const missingCredits = Math.max(0, targetCredits - projectedCredits);
+      return `<details class="graduation-course-breakdown" data-home-graduation-key="${escapeHTML(key)}">
+        <summary aria-label="${escapeHTML(label)}の対象科目を表示">対象科目・単位内訳</summary>
+        <p class="graduation-breakdown-credits">必要 ${targetCredits}単位 · 修得済み ${completedCredits}単位 · 履修予定 ${plannedCredits}単位 · 不足 ${missingCredits}単位${plannedRequirement.satisfied ? '' : missingCredits === 0 ? ' · 内訳の要件が未達' : ''}</p>
+        <div class="graduation-course-breakdown-content"></div>
+      </details>`;
+    };
+    const categoryBreakdown = (category) => {
+      if (!homeGraduationDetailState || targetElement) return '';
+      const courses = state.predefinedData.filter((course) => course.category === category);
+      const completedCredits = courses.filter((course) => state.completedClasses.has(course.id)).reduce((sum, course) => sum + course.credits, 0);
+      const plannedCredits = courses.filter((course) => state.registeredClasses.has(course.id) && !state.completedClasses.has(course.id)).reduce((sum, course) => sum + course.credits, 0);
+      return `<details class="graduation-category-breakdown" data-home-graduation-key="category:${escapeHTML(category)}">
+        <summary>${escapeHTML(category)}科目（${courses.length}科目）</summary>
+        <p class="graduation-breakdown-credits">修得済み ${completedCredits}単位 · 履修予定 ${plannedCredits}単位 · 区分単独の必要単位設定なし</p>
+        <div class="graduation-course-breakdown-content"></div>
+      </details>`;
+    };
 
     const ratio = (requirement, planned) => {
       const status = graduationStatus(requirement, planned);
@@ -1398,7 +1473,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         <strong>${escapeHTML(label)}</strong>
         <span>${escapeHTML(completedLabel)} ${ratio(completedRequirement, false)}</span>
         <span>${escapeHTML(plannedLabel)} ${ratio(plannedRequirement, true)}</span>
-      </div>`;
+      </div>${breakdown(key, label, completedRequirement, plannedRequirement)}`;
     const foundationGroups = completedAnalysis.foundation.groups.map((group, index) => {
       const plannedGroup = plannedAnalysis.foundation.groups[index];
       return dual(`基礎：${group.label}`, group, plannedGroup, `foundation.groups.${group.key}`);
@@ -1409,7 +1484,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         <strong>社会接続</strong>
         <span>${escapeHTML(completedLabel)}取得：${completedAnalysis.socialConnection.actualCredits}単位 / 算入：${completedAnalysis.socialConnection.countedCredits}単位</span>
         <span>${escapeHTML(plannedLabel)}取得：${plannedAnalysis.socialConnection.actualCredits}単位 / 算入：${plannedAnalysis.socialConnection.countedCredits}単位（上限${plannedAnalysis.socialConnection.capCredits}単位）</span>
-      </div>`;
+      </div>${!targetElement && homeGraduationDetailState ? `<details class="graduation-course-breakdown" data-home-graduation-key="socialConnection">
+        <summary aria-label="社会接続の対象科目を表示">対象科目・単位内訳</summary>
+        <p class="graduation-breakdown-credits">修得済み ${completedAnalysis.socialConnection.actualCredits}単位 · 履修予定 ${Math.max(0, plannedAnalysis.socialConnection.actualCredits - completedAnalysis.socialConnection.actualCredits)}単位 · 卒業算入 ${plannedAnalysis.socialConnection.countedCredits}単位（上限${plannedAnalysis.socialConnection.capCredits}単位）</p>
+        <div class="graduation-course-breakdown-content"></div>
+      </details>` : ''}`;
 
     const projectCompleted = completedAnalysis.projectPractice;
     const projectPlanned = plannedAnalysis.projectPractice;
@@ -1422,6 +1501,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           ${escapeHTML(completedLabel)}：<strong>${completedAnalysis.satisfied ? '達成' : '未達'}</strong> ／
           ${escapeHTML(plannedLabel)}：<strong>${plannedAnalysis.satisfied ? '達成見込み' : '不足'}</strong>
         </div>
+        ${categoryBreakdown('必修')}
+        ${categoryBreakdown('選択必修')}
         ${dual('総卒業算入単位', completedAnalysis.totalCredits, plannedAnalysis.totalCredits, 'totalCredits')}
         ${dual('導入科目', completedAnalysis.introduction, plannedAnalysis.introduction, 'introduction')}
         <div class="graduation-requirement-group">
@@ -1438,6 +1519,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           <span>${escapeHTML(completedLabel)} ${ratio(industryCompleted, false)}</span>
           <span>${escapeHTML(plannedLabel)} ${ratio(industryPlanned, true)}</span>
         </div>
+        ${breakdown('worldUnderstanding.industryHistory', '世界理解内：産業史系', industryCompleted, industryPlanned)}
         ${socialRow}
         ${dual('プロジェクト実践', projectCompleted, projectPlanned, 'projectPractice')}
         <p id="graduation-analysis-note" class="graduation-analysis-note">各要件は重複して充当される場合があるため、内訳の必要単位数を合計しないでください。</p>
@@ -3004,6 +3086,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modal = document.getElementById('analysis-modal');
     const btn = document.getElementById('analysis-btn');
     const closeButton = document.getElementById('close-modal');
+    const analysisResult = document.getElementById('analysis-result');
+
+    // Large categories (including the 124-credit total) are populated only
+    // when opened, so normal list updates do not build hundreds of hidden rows.
+    analysisResult?.addEventListener('toggle', (event) => {
+      const detail = event.target;
+      if (detail instanceof HTMLDetailsElement && detail.open && detail.dataset.homeGraduationKey) {
+        renderHomeGraduationCourseList(detail);
+      }
+    }, true);
 
     if (modal && closeButton) {
       // ×ボタンをモーダルの右上に常に固定し、コンテンツが伸びても隠れないように設定

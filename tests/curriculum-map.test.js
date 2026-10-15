@@ -20,6 +20,14 @@ test('display layout contains all 275 courses, eliminates partial overlap and pr
   const layout = map.buildLayout(definition, courses);
   assert.equal(layout.positions.length, 275);
   assert.equal(new Set(layout.positions.map((box) => box.id)).size, 275);
+  const prominent = layout.positions.filter((box) => box.prominence === 'prominent');
+  assert.ok(prominent.length > 0);
+  assert.ok(prominent.every((box) => box.width > 224 && box.height > 128));
+  assert.ok(prominent.every((box) => {
+    const course = courses.find((item) => item.id === box.id);
+    const placement = definition.coursePlacements.find((item) => item.courseId === box.id);
+    return course.category === '必修' || placement.category === '卒業プロジェクト';
+  }));
   for (let i = 0; i < layout.positions.length; i++) {
     const box = layout.positions[i];
     assert.ok(box.width >= 200 && box.height >= 120);
@@ -38,6 +46,20 @@ test('every course in all four years can be centered at readable 100 percent', (
       assert.ok(camera.x + box.x >= 0 && camera.x + box.x + box.width <= viewport.width);
       assert.ok(camera.y + box.y >= 0 && camera.y + box.y + box.height <= viewport.height);
     }
+  }
+});
+
+test('initial camera starts at the central upper curriculum area at 100 percent', () => {
+  const layout = map.buildLayout(definition, courses);
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    const camera = map.initialCamera(layout, viewport);
+    const centerX = (viewport.width / 2 - camera.x) / camera.scale;
+    const centerY = (viewport.height / 2 - camera.y) / camera.scale;
+    assert.equal(camera.scale, 1);
+    const centralField = layout.fields.find((field) => field.field === '文化・思想');
+    assert.ok(centerX >= centralField.x && centerX < centralField.x + centralField.width);
+    assert.ok(centerY >= layout.years[0].y && centerY < layout.years[0].y + layout.years[0].height);
+    assert.ok(layout.positions.some((box) => box.region === 'year-1' && box.x <= centerX + viewport.width / 2 && box.x + box.width >= centerX - viewport.width / 2 && box.y <= centerY + viewport.height / 2 && box.y + box.height >= centerY - viewport.height / 2));
   }
 });
 
@@ -71,4 +93,16 @@ test('standalone runtime uses shared enrollment rollback and safe text/link rend
   assert.doesNotMatch(source, /innerHTML|localStorage\.clear|fourYearSimulatorPlanV1/);
   assert.match(source, /utils.sanitizeExternalUrl/);
   assert.match(source, /textContent = text/);
+});
+
+test('standalone map exposes separate planned and completed enrollment actions', () => {
+  const html = fs.readFileSync('curriculum.html', 'utf8');
+  const source = fs.readFileSync('curriculum-map.js', 'utf8');
+  assert.match(html, /ホームに戻る/);
+  assert.match(html, /履修予定に追加/);
+  assert.match(source, /履修予定に追加/);
+  assert.match(source, /履修済みに追加/);
+  assert.match(source, /changeEnrollment/);
+  assert.match(source, /utils\.saveEnrollmentState\(storage, keys, nextRegistered, nextCompleted\)/);
+  assert.doesNotMatch(source, /fourYearSimulatorPlanV1/);
 });

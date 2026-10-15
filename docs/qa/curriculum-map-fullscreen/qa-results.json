@@ -16,11 +16,11 @@
       "scrollWidth": 1440,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-58px, -594px) scale(1)",
+      "transform": "translate(-2146px, -652px) scale(1)",
       "opening": {
-        "label": "1年次 · 情報",
+        "label": "1年次 · 文化・思想",
         "leftClipped": 0,
-        "visible": 16
+        "visible": 11
       }
     },
     {
@@ -39,11 +39,11 @@
       "scrollWidth": 1280,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-58px, -594px) scale(1)",
+      "transform": "translate(-2146px, -702px) scale(1)",
       "opening": {
-        "label": "1年次 · 情報",
+        "label": "1年次 · 文化・思想",
         "leftClipped": 0,
-        "visible": 15
+        "visible": 11
       }
     },
     {
@@ -62,9 +62,9 @@
       "scrollWidth": 390,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-42px, -594px) scale(1)",
+      "transform": "translate(-2478px, -680px) scale(1)",
       "opening": {
-        "label": "1年次 · 情報",
+        "label": "1年次 · 文化・思想",
         "leftClipped": 0,
         "visible": 3
       }
@@ -80,6 +80,7 @@
   "pinch": "PASS",
   "touchPan": "PASS",
   "touchCourseDetail": "PASS",
+  "enrollmentTransitions": "PASS",
   "existingHubViews": "PASS",
   "saveFailureRollback": "PASS",
   "hubSynchronization": "PASS",

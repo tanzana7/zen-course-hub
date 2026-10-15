@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const http = require('node:http');
+const net = require('node:net');
 const { spawn } = require('node:child_process');
 const assert = require('node:assert/strict');
 const geometry = require('../../curriculum-map.js');
@@ -32,16 +33,25 @@ const server = http.createServer((req, res) => {
     res.end(data);
   });
 });
-let chrome, socket;
+let chrome, socket, debugPort;
+const freePort = () => new Promise((resolve, reject) => {
+  const probe = net.createServer();
+  probe.once('error', reject);
+  probe.listen(0, '127.0.0.1', () => {
+    const port = probe.address().port;
+    probe.close(() => resolve(port));
+  });
+});
 async function run() {
   await new Promise((resolve, reject) => {
     server.once('error', reject);
     server.listen(8087, '127.0.0.1', resolve);
   });
-  chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe', ['--headless=new', '--disable-gpu', '--no-sandbox', '--no-proxy-server', '--remote-debugging-port=9229', `--user-data-dir=${profile}`, 'about:blank'], { windowsHide: true, stdio: 'ignore' });
+  debugPort = await freePort();
+  chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe', ['--headless=new', '--disable-gpu', '--no-sandbox', '--no-proxy-server', `--remote-debugging-port=${debugPort}`, '--no-first-run', '--no-default-browser-check', `--user-data-dir=${profile}`, 'about:blank'], { windowsHide: true, stdio: 'ignore' });
   let targets;
   for (let i = 0; i < 40; i++) {
-    try { targets = await (await fetch('http://127.0.0.1:9229/json/list')).json(); break; } catch { await pause(250); }
+    try { targets = await (await fetch(`http://127.0.0.1:${debugPort}/json/list`)).json(); break; } catch { await pause(250); }
   }
   assert.ok(targets?.length, 'Chrome debugging target');
   socket = new WebSocket(targets.find((target) => target.type === 'page').webSocketDebuggerUrl);
@@ -108,7 +118,7 @@ async function run() {
     const result = await summary();
     assert.equal(result.viewport.width, width); assert.equal(result.viewport.height, height); assert.equal(result.scrollWidth, width); assert.equal(result.scale, '100%'); assert.equal(result.drawerHidden, true);
     const opening = await evaluate(`(() => {const cards=[...document.querySelectorAll('.map-course')].map(node=>node.getBoundingClientRect());return {label:document.getElementById('map-location').textContent,leftClipped:cards.filter(r=>r.right>0&&r.left<0&&r.bottom>64&&r.top<innerHeight).length,visible:cards.filter(r=>r.left>=0&&r.right<=innerWidth&&r.top>=120&&r.bottom<=innerHeight-65).length};})()`);
-    assert.equal(opening.label,'1年次 · 情報');
+    assert.equal(opening.label,'1年次 · 文化・思想');
     assert.equal(opening.leftClipped,0,'initial cards are not cut off at the left edge');
     assert.ok(opening.visible>=3,'initial map shows a cluster of whole readable cards');
     result.opening = opening;
@@ -149,7 +159,8 @@ async function run() {
         if(!candidate)throw Error('search missing '+course.id); candidate.click();
         await new Promise(requestAnimationFrame);
         const node=document.querySelector('[data-course-id="'+course.id+'"]');const r=node.getBoundingClientRect();
-        results.push({id:course.id,year:course.year,inside:r.left>=0&&r.top>=64&&r.right<=innerWidth&&r.bottom<=innerHeight-70,readable:getComputedStyle(node).fontSize==='17px'&&document.getElementById('map-zoom-value').value==='100%'});
+        const expectedSize=node.classList.contains('is-prominent')?'20px':'17px';
+        results.push({id:course.id,year:course.year,inside:r.left>=0&&r.top>=64&&r.right<=innerWidth&&r.bottom<=innerHeight-70,readable:getComputedStyle(node).fontSize===expectedSize&&document.getElementById('map-zoom-value').value==='100%'});
       } return results;
     })()`);
     assert.ok(checks.every((course)=>course.inside && course.readable),JSON.stringify(checks.filter(x=>!x.inside||!x.readable)));
@@ -187,10 +198,19 @@ async function run() {
   // add/delete/reload, and validate shared Hub reads the same stored state.
   await size(1440,900);
   await evaluate(`document.getElementById('map-search').value='アカデミックリテラシー';document.getElementById('map-search-form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}))`); await pause(150);
-  await click('[data-course-id="academic_literacy"]'); await click('.enrollment-action');
+  await click('[data-course-id="academic_literacy"]'); await click('.enrollment-action-planned');
   let saved = await storage();
   assert.deepEqual(JSON.parse(saved.myClasses), ['unknown_saved_course','academic_literacy']);
   assert.equal(saved.completedClasses,seed.completedClasses); assert.equal(saved.fourYearSimulatorPlanV1,seed.fourYearSimulatorPlanV1);
+  await click('.enrollment-action-completed');
+  saved = await storage();
+  assert.deepEqual(JSON.parse(saved.myClasses), ['unknown_saved_course']);
+  assert.deepEqual(JSON.parse(saved.completedClasses), ['it_literacy', 'academic_literacy']);
+  await click('.enrollment-action-planned');
+  saved = await storage();
+  assert.deepEqual(JSON.parse(saved.myClasses), ['unknown_saved_course', 'academic_literacy']);
+  assert.deepEqual(JSON.parse(saved.completedClasses), ['it_literacy']);
+  evidence.enrollmentTransitions = 'PASS';
   await send('Page.reload');await wait(`document.querySelector('[data-course-id="academic_literacy"].is-registered')`);
   await nav('http://foo.localhost:8087/public/index.html', `document.getElementById('registered-count')?.textContent === '1'`);
   assert.ok(await evaluate(`document.getElementById('list').textContent.includes('アカデミックリテラシー')`));
@@ -223,6 +243,7 @@ async function run() {
   await send('Page.reload');await wait(`document.querySelectorAll('.map-course').length === 275`);
   // Native Chrome drag, not a DOM-only simulated drop. The target appears
   // during dragstart and disappears after a successful drop.
+  await evaluate(`document.getElementById('map-search').value='データサイエンス概論';document.getElementById('map-search-form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}))`); await pause(150);
   const dragStart = await evaluate(`(() => { const r=document.querySelector('[data-course-id="data_science_intro"]').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);
   await send('Input.dispatchMouseEvent',{type:'mouseMoved',...dragStart});
   await send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...dragStart});
