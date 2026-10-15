@@ -2343,6 +2343,61 @@ body.curriculum-tree-explorer-mode #curriculum-tree-close { position: sticky; to
   border-bottom: 0;
 }
 
+.graduation-category-breakdown,
+.graduation-course-breakdown {
+  margin: 4px 0 10px;
+  border: 1px solid #cbdff5;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.graduation-category-breakdown > summary,
+.graduation-course-breakdown > summary {
+  padding: 8px 10px;
+  color: #1d4ed8;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.graduation-category-breakdown > summary:focus-visible,
+.graduation-course-breakdown > summary:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: -2px;
+}
+
+.graduation-breakdown-credits {
+  margin: 4px 10px 10px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.graduation-course-breakdown-list {
+  margin: 0;
+  padding: 0 10px 10px;
+  list-style: none;
+}
+
+.graduation-course-breakdown-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: baseline;
+  padding: 7px 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.graduation-course-breakdown-list span {
+  overflow-wrap: anywhere;
+}
+
+.graduation-course-breakdown-list small {
+  color: #4b5563;
+}
+
+.graduation-course-breakdown-list strong {
+  white-space: nowrap;
+}
+
 .graduation-requirement-group {
   margin-left: 12px;
   padding-left: 12px;
@@ -2371,6 +2426,19 @@ body.curriculum-tree-explorer-mode #curriculum-tree-close { position: sticky; to
   .graduation-social-row {
     grid-template-columns: 1fr;
     gap: 4px;
+  }
+
+  .graduation-course-breakdown-list li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .graduation-course-breakdown-list small {
+    grid-column: 1;
+  }
+
+  .graduation-course-breakdown-list strong {
+    grid-column: 2;
+    grid-row: 1 / 3;
   }
 
   .graduation-requirement-group {
