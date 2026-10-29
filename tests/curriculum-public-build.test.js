@@ -30,3 +30,16 @@ test('Netlify publishes only the reviewed runtime asset allowlist', () => {
     assert.deepEqual(fs.readFileSync(path.join(output, file)), fs.readFileSync(path.join(root, file)), file);
   }
 });
+
+test('repeated builds do not rewrite an unchanged generated stylesheet', () => {
+  const file = path.join(__dirname, '..', 'style.css');
+  const previous = fs.statSync(file);
+  const timestamp = new Date('2020-01-01T00:00:00Z');
+  try {
+    fs.utimesSync(file, timestamp, timestamp);
+    build();
+    assert.equal(fs.statSync(file).mtimeMs, timestamp.getTime());
+  } finally {
+    fs.utimesSync(file, previous.atime, previous.mtime);
+  }
+});

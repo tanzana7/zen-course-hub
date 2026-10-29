@@ -78,7 +78,11 @@ function build() {
   ) {
     throw new Error('生成スタイルの保存先を確認できません');
   }
-  fs.writeFileSync(stylesheet, compileStyles());
+  const generatedStyles = compileStyles();
+  // Tests and watchers may read the stylesheet concurrently. An unchanged build must not truncate it.
+  if (!fs.existsSync(stylesheet) || fs.readFileSync(stylesheet, 'utf8') !== generatedStyles) {
+    fs.writeFileSync(stylesheet, generatedStyles);
+  }
   if (path.dirname(output) !== root || path.basename(output) !== 'netlify-dist') {
     throw new Error('公開先ディレクトリを確認できません');
   }

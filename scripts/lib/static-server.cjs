@@ -30,8 +30,11 @@ function createStaticServer({
         response.end();
         return;
       }
-      const target = path.resolve(root, file);
-      if (!target.startsWith(path.resolve(root) + path.sep) || (await fs.realpath(target)) !== target) {
+      // Windows runner TEMP paths may use an 8.3 alias. Resolve the trusted root first,
+      // while still refusing any junction/symlink introduced below that root.
+      const canonicalRoot = await fs.realpath(root);
+      const target = path.resolve(canonicalRoot, file);
+      if (!target.startsWith(canonicalRoot + path.sep) || (await fs.realpath(target)) !== target) {
         response.writeHead(403);
         response.end();
         return;
