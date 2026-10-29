@@ -54,3 +54,17 @@ git clone https://github.com/tanzana7/zen-course-hub.git
 ## ライセンス
 
 MIT License
+
+## コード構成と検証
+
+- `app.js`: ホーム・履修管理・4年計画の画面制御。任意データの読込失敗は各ローダーで処理します。
+- `quality-utils.js`: 保存形式の検証・巻き戻し・HTMLとURLの安全な処理。
+- `graduation-requirements.js` / `simulator-rules.js`: 卒業要件と4年計画の判定。
+- `curriculum-map.js`: 独立したマップ画面。
+- `exam-schedule.js`: DOMや保存先に依存しない試験日程の検証・検索・重複判定。
+- `exam-feedback.js`: ホームとマップへ試験日程を描画するアダプター。
+- `feedback.js`: カタログに基づく報告対象の入力とフォーム制御。
+
+自動テスト: `node --test tests/*.test.js`
+公開ビルド: `node scripts/build-public.cjs`
+ブラウザQA: `node scripts/qa/exam-feedback.cjs` と `node scripts/qa/curriculum-map.cjs`（Windows版Chromeを使用）。

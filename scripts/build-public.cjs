@@ -20,6 +20,7 @@ const publicFiles = Object.freeze([
   'difficulty.json',
   'exam-schedule-catalog.json',
   'exam-feedback.js',
+  'exam-schedule.js',
   'feedback.html',
   'feedback.js',
   'google05151c606a13d780.html',

@@ -71,7 +71,10 @@
     }
   ],
   "exceptions": [],
-  "failedRequests": [],
+  "failedRequests": [
+    "net::ERR_ABORTED",
+    "net::ERR_ABORTED"
+  ],
   "allCoursesReachable": 825,
   "backToHub": "PASS",
   "advisoryRelations": 335,

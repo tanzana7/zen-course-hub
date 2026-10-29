@@ -12,6 +12,6 @@ test('exam schedule preserves source identity and leaves three unmatched subject
  assert.ok(data.unmatched.every(c=>!c.courseId));assert.equal(courses.length,275);
 });
 test('static Netlify form and runtime schedule are included in public build without enrollment fields',()=>{
- const {publicFiles}=require('../scripts/build-public.cjs');for(const f of ['exam-schedule-catalog.json','exam-feedback.js','feedback.html','feedback.js'])assert.ok(publicFiles.includes(f));
+ const {publicFiles}=require('../scripts/build-public.cjs');for(const f of ['exam-schedule-catalog.json','exam-feedback.js','exam-schedule.js','feedback.html','feedback.js'])assert.ok(publicFiles.includes(f));
  const html=fs.readFileSync('feedback.html','utf8');assert.match(html,/method="POST" data-netlify="true"/);assert.match(html,/name="form-name" value="feedback"/);assert.doesNotMatch(html,/name="(?:myClasses|completedClasses|fourYearSimulatorPlanV1)"/);
 });

@@ -1,1 +1,57 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ご意見・不具合報告 | ZEN履修登録Hub</title><link rel="stylesheet" href="style.css"><script defer src="feedback.js"></script></head><body data-page="feedback"><main><section><a href="index.html">ホーム</a><h1>ご意見・不具合報告</h1><form name="feedback" method="POST" data-netlify="true" netlify-honeypot="bot-field"><input type="hidden" name="form-name" value="feedback"><p hidden><label>入力しないでください<input name="bot-field"></label></p><p><label>カテゴリ<select name="category" required><option>不具合</option><option>科目情報の誤り</option><option>試験日程の誤り</option><option>機能要望</option><option>その他</option></select></label></p><p><label>科目ID<input name="courseId" maxlength="100" readonly></label></p><p><label>科目名<input name="courseName" maxlength="200" readonly></label></p><p><label>内容<textarea name="message" rows="8" maxlength="5000" required></textarea></label></p><p><label>連絡先（任意）<input name="email" type="email" maxlength="254"></label></p><p>送信するのはこのフォームの内容のみです。個人情報の記載は必要最小限にしてください。</p><p id="feedback-status" role="status"></p><button type="submit">送信</button></form></section></main></body></html>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ご意見・不具合報告 | ZEN履修登録Hub</title>
+<link rel="stylesheet" href="style.css">
+<script defer src="feedback.js">
+</script>
+</head>
+<body data-page="feedback">
+<main>
+<section>
+<a href="index.html">ホーム</a>
+<h1>ご意見・不具合報告</h1>
+<form name="feedback" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+<input type="hidden" name="form-name" value="feedback">
+<p hidden>
+<label>入力しないでください<input name="bot-field">
+</label>
+</p>
+<p>
+<label>カテゴリ<select name="category" required>
+<option>不具合</option>
+<option>科目情報の誤り</option>
+<option>試験日程の誤り</option>
+<option>機能要望</option>
+<option>その他</option>
+</select>
+</label>
+</p>
+<p>
+<label>科目ID<input name="courseId" maxlength="100" readonly>
+</label>
+</p>
+<p>
+<label>科目名<input name="courseName" maxlength="200" readonly>
+</label>
+</p>
+<p>
+<label>内容<textarea name="message" rows="8" maxlength="5000" required>
+</textarea>
+</label>
+</p>
+<p>
+<label>連絡先（任意）<input name="email" type="email" maxlength="254">
+</label>
+</p>
+<p>送信するのはこのフォームの内容のみです。個人情報の記載は必要最小限にしてください。</p>
+<p id="feedback-status" role="status">
+</p>
+<button type="submit">送信</button>
+</form>
+</section>
+</main>
+</body>
+</html>

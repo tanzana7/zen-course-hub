@@ -14,6 +14,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const dataStatus = document.getElementById('data-status');
   const storageWarning = document.getElementById('storage-warning');
 
+  // Each caller owns its recovery policy: optional data can fail without disabling enrollment.
+  const fetchJSON = async (file) => {
+    const response = await fetch(file);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  };
+
   /**
    * localStorageのキー管理
    */
@@ -377,12 +384,7 @@ document.addEventListener('DOMContentLoaded', async () => {
    */
   const loadDifficultyData = async () => {
     try {
-      const response = await fetch('difficulty.json');
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const difficultyData = await response.json();
+      const difficultyData = await fetchJSON('difficulty.json');
       if (!Array.isArray(difficultyData)) {
         throw new TypeError('難易度データのルート要素が配列ではありません');
       }
@@ -403,9 +405,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const loadGraduationDefinitionData = async () => {
     try {
       if (!window.GraduationRequirementsEngine) throw new Error('卒業要件エンジンが読み込まれていません');
-      const response = await fetch('graduation-requirements.json');
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const definition = await response.json();
+      const definition = await fetchJSON('graduation-requirements.json');
       const validation = window.GraduationRequirementsEngine.validateRequirementsDefinition(definition);
       if (!validation.valid) throw new Error(validation.message);
       return definition;
@@ -421,9 +421,7 @@ document.addEventListener('DOMContentLoaded', async () => {
    */
   const loadCourseRelationsData = async () => {
     try {
-      const response = await fetch('course-relations.json');
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const relations = await response.json();
+      const relations = await fetchJSON('course-relations.json');
       if (!Array.isArray(relations)) throw new TypeError('関係データのルート要素が配列ではありません');
       return relations;
     } catch (error) {
@@ -434,9 +432,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const loadCurriculumLayoutDefinition = async () => {
     try {
-      const response = await fetch('curriculum-tree-layout.json');
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const definition = await response.json();
+      const definition = await fetchJSON('curriculum-tree-layout.json');
       if (!definition?.canvas || !Array.isArray(definition.columns) || !Array.isArray(definition.bands)) {
         throw new TypeError('カリキュラムツリー配置定義の形式が不正です');
       }
