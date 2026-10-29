@@ -4,11 +4,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
-const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+const app = require('./helpers/hub-source.cjs').readHubSource();
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const layout = JSON.parse(fs.readFileSync(path.join(root, 'curriculum-tree-layout.json'), 'utf8'));
 const courses = JSON.parse(fs.readFileSync(path.join(root, 'courses.json'), 'utf8'));
-const evidence = JSON.parse(fs.readFileSync(path.join(root, 'docs/curriculum-tree-phase9-duplicate-evidence.json'), 'utf8'));
+const evidence = JSON.parse(
+  fs.readFileSync(path.join(root, 'docs/curriculum-tree-phase9-duplicate-evidence.json'), 'utf8'),
+);
 
 test('phase 9 evidence covers all 18 duplicate pairs and catalog IDs', () => {
   assert.equal(evidence.pairs.length, 18);
@@ -17,7 +19,9 @@ test('phase 9 evidence covers all 18 duplicate pairs and catalog IDs', () => {
   assert.equal(new Set(pairIds).size, 36);
   assert.ok(pairIds.every((id) => courseIds.has(id)));
   assert.ok(evidence.pairs.every((pair) => pair.positionVerdict === 'DIFFERENT_POSITION'));
-  assert.ok(evidence.pairs.every((pair) => pair.pdfFoundA && pair.pdfFoundB && pair.nameMatchA && pair.nameMatchB));
+  assert.ok(
+    evidence.pairs.every((pair) => pair.pdfFoundA && pair.pdfFoundB && pair.nameMatchA && pair.nameMatchB),
+  );
 });
 
 test('phase 9 evidence records direct PDF geometry and correction provenance', () => {
@@ -41,7 +45,9 @@ test('phase 9 evidence records direct PDF geometry and correction provenance', (
 
 test('phase 9 removes exact duplicate source rectangles without deleting placements', () => {
   assert.equal(layout.coursePlacements.length, 275);
-  const keys = layout.coursePlacements.map((entry) => [entry.x, entry.y, entry.width, entry.height].join('|'));
+  const keys = layout.coursePlacements.map((entry) =>
+    [entry.x, entry.y, entry.width, entry.height].join('|'),
+  );
   assert.equal(new Set(keys).size, keys.length);
   assert.equal(evidence.summary.remainingDuplicateSlots, 0);
   assert.equal(evidence.summary.correctedPairs, 18);

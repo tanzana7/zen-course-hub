@@ -6,7 +6,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const layout = JSON.parse(fs.readFileSync(path.join(root, 'curriculum-tree-layout.json'), 'utf8'));
 const courses = JSON.parse(fs.readFileSync(path.join(root, 'courses.json'), 'utf8'));
-const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+const app = require('./helpers/hub-source.cjs').readHubSource();
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
 
@@ -14,8 +14,14 @@ test('phase 5 high-resolution audit records additional individual placements', (
   assert.equal(layout.pdfPage.inspection.highResolution.renderDpi, 150);
   assert.equal(layout.pdfPage.inspection.highResolution.regions, 16);
   assert.ok(layout.coursePlacements.length >= 120);
-  assert.equal(layout.coursePlacements.filter((entry) => entry.confidence === 'confirmed').length, layout.coursePlacements.length);
-  assert.equal(layout.coursePlacements.filter((entry) => entry.verificationMethod === 'visual-tile-150dpi').length, 38);
+  assert.equal(
+    layout.coursePlacements.filter((entry) => entry.confidence === 'confirmed').length,
+    layout.coursePlacements.length,
+  );
+  assert.equal(
+    layout.coursePlacements.filter((entry) => entry.verificationMethod === 'visual-tile-150dpi').length,
+    38,
+  );
 });
 
 test('phase 5 placement IDs remain a complete subset of the catalog', () => {

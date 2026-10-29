@@ -14,7 +14,7 @@
         allowedStarts: [1],
         start: 1,
         end: 4,
-        contiguous: true
+        contiguous: true,
       };
     }
 
@@ -33,19 +33,37 @@
       return { start, end, label: `${start}-${end}Q`, contiguous: true };
     });
     if (!label || options.some((option) => !option || !Number.isInteger(option.start))) {
-      return { label: label || 'Q未定', quarters: [], options: [], allowedStarts: [], start: null, end: null, contiguous: false };
+      return {
+        label: label || 'Q未定',
+        quarters: [],
+        options: [],
+        allowedStarts: [],
+        start: null,
+        end: null,
+        contiguous: false,
+      };
     }
 
-    const uniqueOptions = options.filter((option, index, list) => list.findIndex((candidate) => candidate.start === option.start) === index);
-    const quarters = [...new Set(uniqueOptions.flatMap((option) => Array.from(
-      { length: option.end - option.start + 1 }, (_, index) => option.start + index
-    )))].sort((a, b) => a - b);
+    const uniqueOptions = options.filter(
+      (option, index, list) => list.findIndex((candidate) => candidate.start === option.start) === index,
+    );
+    const quarters = [
+      ...new Set(
+        uniqueOptions.flatMap((option) =>
+          Array.from({ length: option.end - option.start + 1 }, (_, index) => option.start + index),
+        ),
+      ),
+    ].sort((a, b) => a - b);
     // A range is an opening window. Keep its first start as the legacy span,
     // while exposing later listed quarters as single-Q starts so a course can
     // be placed in every explicitly advertised opening quarter.
-    const allowedStarts = [...new Set(options.flatMap((option) => Array.from(
-      { length: option.end - option.start + 1 }, (_, index) => option.start + index
-    )))].sort((a, b) => a - b);
+    const allowedStarts = [
+      ...new Set(
+        options.flatMap((option) =>
+          Array.from({ length: option.end - option.start + 1 }, (_, index) => option.start + index),
+        ),
+      ),
+    ].sort((a, b) => a - b);
     const firstOption = uniqueOptions[0];
     return {
       label,
@@ -54,17 +72,19 @@
       allowedStarts,
       start: firstOption?.start || null,
       end: firstOption?.end || null,
-      contiguous: uniqueOptions.length === 1 && firstOption.contiguous
+      contiguous: uniqueOptions.length === 1 && firstOption.contiguous,
     };
   };
 
   const canPlaceCourseAt = (course, year, quarter) => {
     const q = Number(quarter);
     return Boolean(
-      course
-      && Number.isInteger(year) && year >= 1 && year <= 4
-      && Number.isInteger(q)
-      && getQuarterInfo(course).allowedStarts.includes(q)
+      course &&
+      Number.isInteger(year) &&
+      year >= 1 &&
+      year <= 4 &&
+      Number.isInteger(q) &&
+      getQuarterInfo(course).allowedStarts.includes(q),
     );
   };
 
@@ -75,10 +95,15 @@
     const quarter = Number(placement?.selectedQuarter);
     if (!Number.isInteger(year) || year < 1 || year > 4) return null;
     const option = getPlacementOptions(course).find((candidate) => candidate.start === quarter);
-    return option ? ((year - 1) * 4) + option.start : null;
+    return option ? (year - 1) * 4 + option.start : null;
   };
 
-  const isPrerequisiteSatisfied = (prerequisiteCourse, prerequisitePlacement, successorCourse, successorPlacement) => {
+  const isPrerequisiteSatisfied = (
+    prerequisiteCourse,
+    prerequisitePlacement,
+    successorCourse,
+    successorPlacement,
+  ) => {
     const prerequisiteStart = getPlacementStart(prerequisiteCourse, prerequisitePlacement);
     const successorStart = getPlacementStart(successorCourse, successorPlacement);
     return prerequisiteStart !== null && successorStart !== null && prerequisiteStart <= successorStart;
@@ -91,9 +116,10 @@
       const q = Number(placement.selectedQuarter);
       issues.push({
         type: 'quarter',
-        message: Number.isInteger(q) && q >= 1 && q <= 4
-          ? `この科目はQ${q}には開講されません。配置を修正してください。`
-          : '配置Qを確認できません。開講Qへの配置に修正してください。'
+        message:
+          Number.isInteger(q) && q >= 1 && q <= 4
+            ? `この科目はQ${q}には開講されません。配置を修正してください。`
+            : '配置Qを確認できません。開講Qへの配置に修正してください。',
       });
     }
 
@@ -116,8 +142,8 @@
       reason: null,
       placements: [
         ...current.filter((placement) => placement.courseId !== course.id),
-        { courseId: course.id, year, selectedQuarter: Number(quarter) }
-      ]
+        { courseId: course.id, year, selectedQuarter: Number(quarter) },
+      ],
     };
   };
 
@@ -142,12 +168,15 @@
 
   const getPlacementOptions = (course) => {
     const info = getQuarterInfo(course);
-    return info.allowedStarts.map((start) => info.options.find((option) => option.start === start) || {
-      start,
-      end: start,
-      label: `${start}Q`,
-      contiguous: true
-    });
+    return info.allowedStarts.map(
+      (start) =>
+        info.options.find((option) => option.start === start) || {
+          start,
+          end: start,
+          label: `${start}Q`,
+          contiguous: true,
+        },
+    );
   };
 
   // Graduation projection is intentionally limited to IDs that still exist in
@@ -156,23 +185,31 @@
   // correctly fails closed on unknown IDs.
   const getKnownSimulatorCourseIds = (placements, knownCourseIds) => {
     const known = knownCourseIds instanceof Set ? knownCourseIds : new Set(knownCourseIds || []);
-    return [...new Set((Array.isArray(placements) ? placements : [])
-      .map((placement) => placement?.courseId)
-      .filter((courseId) => typeof courseId === 'string' && known.has(courseId)))];
+    return [
+      ...new Set(
+        (Array.isArray(placements) ? placements : [])
+          .map((placement) => placement?.courseId)
+          .filter((courseId) => typeof courseId === 'string' && known.has(courseId)),
+      ),
+    ];
   };
 
   const getUnknownSimulatorCourseIds = (placements, knownCourseIds) => {
     const known = knownCourseIds instanceof Set ? knownCourseIds : new Set(knownCourseIds || []);
-    return [...new Set((Array.isArray(placements) ? placements : [])
-      .map((placement) => placement?.courseId)
-      .filter((courseId) => typeof courseId === 'string' && courseId && !known.has(courseId)))];
+    return [
+      ...new Set(
+        (Array.isArray(placements) ? placements : [])
+          .map((placement) => placement?.courseId)
+          .filter((courseId) => typeof courseId === 'string' && courseId && !known.has(courseId)),
+      ),
+    ];
   };
 
   const buildGraduationProjectionCourseIds = (completedCourseIds, placements, knownCourseIds) => [
     ...new Set([
       ...(Array.isArray(completedCourseIds) ? completedCourseIds : []),
-      ...getKnownSimulatorCourseIds(placements, knownCourseIds)
-    ])
+      ...getKnownSimulatorCourseIds(placements, knownCourseIds),
+    ]),
   ];
 
   return Object.freeze({
@@ -188,6 +225,6 @@
     resetPlanStorage,
     getKnownSimulatorCourseIds,
     getUnknownSimulatorCourseIds,
-    buildGraduationProjectionCourseIds
+    buildGraduationProjectionCourseIds,
   });
 });

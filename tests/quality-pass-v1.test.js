@@ -9,7 +9,9 @@ const createStorage = (initial = {}, { failOn = null, mismatchOn = null } = {}) 
   let failuresRemaining = failOn ? 1 : 0;
   return {
     values,
-    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    getItem(key) {
+      return values.has(key) ? values.get(key) : null;
+    },
     setItem(key, value) {
       if (key === failOn && failuresRemaining > 0) {
         failuresRemaining -= 1;
@@ -18,12 +20,18 @@ const createStorage = (initial = {}, { failOn = null, mismatchOn = null } = {}) 
       if (key === mismatchOn) return;
       values.set(key, String(value));
     },
-    removeItem(key) { values.delete(key); },
-    mismatchOn
+    removeItem(key) {
+      values.delete(key);
+    },
+    mismatchOn,
   };
 };
 
-const keys = { registered: 'myClasses', completed: 'completedClasses', schemaVersion: 'zenCourseHubStorageSchemaVersion' };
+const keys = {
+  registered: 'myClasses',
+  completed: 'completedClasses',
+  schemaVersion: 'zenCourseHubStorageSchemaVersion',
+};
 
 test('legacy enrollment arrays load without a destructive migration and preserve unknown IDs', () => {
   const storage = createStorage({ myClasses: '["known", "old-course", "known"]', completedClasses: '[]' });
@@ -50,7 +58,7 @@ test('future schema versions are read-only and remain untouched', () => {
   const storage = createStorage({
     myClasses: '["old"]',
     completedClasses: '["done"]',
-    [keys.schemaVersion]: '99'
+    [keys.schemaVersion]: '99',
   });
   const loaded = quality.readEnrollmentState(storage, keys);
   assert.equal(loaded.schema.status, 'future');
@@ -71,7 +79,10 @@ test('successful enrollment save preserves unknown IDs and writes schema metadat
 });
 
 test('second-key write failure rolls both enrollment keys back', () => {
-  const storage = createStorage({ myClasses: '["before"]', completedClasses: '["done"]' }, { failOn: 'completedClasses' });
+  const storage = createStorage(
+    { myClasses: '["before"]', completedClasses: '["done"]' },
+    { failOn: 'completedClasses' },
+  );
   const result = quality.saveEnrollmentState(storage, keys, new Set(['after']), new Set());
   assert.equal(result.saved, false);
   assert.equal(result.rollbackSucceeded, true);
@@ -81,7 +92,10 @@ test('second-key write failure rolls both enrollment keys back', () => {
 });
 
 test('first-key write failure leaves both enrollment keys untouched', () => {
-  const storage = createStorage({ myClasses: '["before"]', completedClasses: '["done"]' }, { failOn: 'myClasses' });
+  const storage = createStorage(
+    { myClasses: '["before"]', completedClasses: '["done"]' },
+    { failOn: 'myClasses' },
+  );
   const result = quality.saveEnrollmentState(storage, keys, new Set(['after']), new Set());
   assert.equal(result.saved, false);
   assert.equal(result.rollbackSucceeded, true);
@@ -93,11 +107,13 @@ test('first-key write failure leaves both enrollment keys untouched', () => {
 test('rollback failure marks the state uncertain instead of reporting success', () => {
   const values = new Map([
     [keys.registered, '["before"]'],
-    [keys.completed, '["done"]']
+    [keys.completed, '["done"]'],
   ]);
   let completedWrites = 0;
   const storage = {
-    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    getItem(key) {
+      return values.has(key) ? values.get(key) : null;
+    },
     setItem(key, value) {
       if (key === keys.completed) {
         completedWrites += 1;
@@ -105,7 +121,9 @@ test('rollback failure marks the state uncertain instead of reporting success', 
       }
       values.set(key, String(value));
     },
-    removeItem(key) { values.delete(key); }
+    removeItem(key) {
+      values.delete(key);
+    },
   };
   const result = quality.saveEnrollmentState(storage, keys, new Set(['after']), new Set());
   assert.equal(result.saved, false);
@@ -115,7 +133,10 @@ test('rollback failure marks the state uncertain instead of reporting success', 
 });
 
 test('read-back mismatch is treated as a failed save', () => {
-  const storage = createStorage({ myClasses: '[]', completedClasses: '[]' }, { mismatchOn: 'completedClasses' });
+  const storage = createStorage(
+    { myClasses: '[]', completedClasses: '[]' },
+    { mismatchOn: 'completedClasses' },
+  );
   const result = quality.saveEnrollmentState(storage, keys, new Set(['next']), new Set(['done']));
   assert.equal(result.saved, false);
   assert.equal(result.rollbackSucceeded, true);
@@ -126,7 +147,11 @@ test('read-back mismatch is treated as a failed save', () => {
 test('quota and security failures are handled as non-successful writes', () => {
   for (const errorName of ['QuotaExceededError', 'SecurityError']) {
     const storage = createStorage({ myClasses: '[]', completedClasses: '[]' }, { failOn: 'myClasses' });
-    storage.setItem = () => { const error = new Error(errorName); error.name = errorName; throw error; };
+    storage.setItem = () => {
+      const error = new Error(errorName);
+      error.name = errorName;
+      throw error;
+    };
     const result = quality.saveEnrollmentState(storage, keys, new Set(['next']), new Set());
     assert.equal(result.saved, false);
     assert.equal(result.rollbackSucceeded, false);
@@ -137,7 +162,12 @@ test('quota and security failures are handled as non-successful writes', () => {
 
 test('a reload-style read preserves a successfully saved state and its schema', () => {
   const storage = createStorage({ myClasses: '[]', completedClasses: '[]' });
-  const saved = quality.saveEnrollmentState(storage, keys, new Set(['known', 'unknown']), new Set(['completed']));
+  const saved = quality.saveEnrollmentState(
+    storage,
+    keys,
+    new Set(['known', 'unknown']),
+    new Set(['completed']),
+  );
   assert.equal(saved.saved, true);
   const reloaded = quality.readEnrollmentState(storage, keys);
   assert.deepEqual(reloaded.registered.ids, ['known', 'unknown']);
@@ -153,21 +183,30 @@ test('escapeHTML handles numbers and malicious course text without producing mar
 });
 
 test('external URL sanitizer allows only http(s) and rejects script, data, and relative URLs', () => {
-  assert.equal(quality.sanitizeExternalUrl('https://example.com/syllabus?q=1'), 'https://example.com/syllabus?q=1');
+  assert.equal(
+    quality.sanitizeExternalUrl('https://example.com/syllabus?q=1'),
+    'https://example.com/syllabus?q=1',
+  );
   assert.equal(quality.sanitizeExternalUrl('HTTP://example.com/'), 'http://example.com/');
-  for (const value of ['javascript:alert(1)', 'data:text/html,<svg>', '//example.com', '/relative', 'not a url']) {
+  for (const value of [
+    'javascript:alert(1)',
+    'data:text/html,<svg>',
+    '//example.com',
+    '/relative',
+    'not a url',
+  ]) {
     assert.equal(quality.sanitizeExternalUrl(value), null);
   }
 });
 
 test('app loads courses before optional data and uses sanitized syllabus URLs', () => {
-  const app = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
+  const app = require('./helpers/hub-source.cjs').readHubSource();
   const index = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
   assert.match(app, /const coursesRes = await fetch\('courses\.json'\)/);
   assert.match(app, /const difficultyPromise = loadDifficultyData\(\)/);
-  assert.match(app, /if \(!state\.coursesReady\) return;/);
+  assert.match(app, /if \(!(?:context\.)?state\.coursesReady\) return;/);
   assert.match(app, /授業データの読み込みに失敗しました。ページを再読み込みしてください。/);
-  assert.match(app, /const safeSyllabusUrl = sanitizeExternalUrl\(data\.url\)/);
+  assert.match(app, /const safeSyllabusUrl = (?:context\.)?sanitizeExternalUrl\(data\.url\)/);
   assert.match(app, /if \(!result\.saved\)/);
   assert.match(index, /授業データを読み込み中…/);
 });

@@ -12,15 +12,13 @@
     Object.freeze({ value: 'year-asc', label: '推奨学年：低い順' }),
     Object.freeze({ value: 'year-desc', label: '推奨学年：高い順' }),
     Object.freeze({ value: 'credits-asc', label: '単位数：少ない順' }),
-    Object.freeze({ value: 'credits-desc', label: '単位数：多い順' })
+    Object.freeze({ value: 'credits-desc', label: '単位数：多い順' }),
   ]);
   const SORT_VALUES = new Set(COURSE_SORT_OPTIONS.map(({ value }) => value));
   const SUBJECT_COLLATOR = new Intl.Collator('ja', { numeric: true, sensitivity: 'base' });
 
   const getDifficultyAverage = (difficultyMap, courseId) => {
-    const entry = difficultyMap instanceof Map
-      ? difficultyMap.get(courseId)
-      : difficultyMap?.[courseId];
+    const entry = difficultyMap instanceof Map ? difficultyMap.get(courseId) : difficultyMap?.[courseId];
     return Number.isFinite(entry?.average) ? entry.average : null;
   };
 
@@ -58,50 +56,49 @@
       'difficulty-asc': {
         value: (course) => getDifficultyAverage(difficultyMap, course?.id),
         direction: 'asc',
-        compare: (a, b) => a - b
+        compare: (a, b) => a - b,
       },
       'difficulty-desc': {
         value: (course) => getDifficultyAverage(difficultyMap, course?.id),
         direction: 'desc',
-        compare: (a, b) => a - b
+        compare: (a, b) => a - b,
       },
       'name-asc': {
         value: getSubjectName,
         direction: 'asc',
-        compare: (a, b) => SUBJECT_COLLATOR.compare(a, b)
+        compare: (a, b) => SUBJECT_COLLATOR.compare(a, b),
       },
       'year-asc': {
         value: getRecommendedYear,
         direction: 'asc',
-        compare: (a, b) => a - b
+        compare: (a, b) => a - b,
       },
       'year-desc': {
         value: getRecommendedYear,
         direction: 'desc',
-        compare: (a, b) => a - b
+        compare: (a, b) => a - b,
       },
       'credits-asc': {
         value: getCredits,
         direction: 'asc',
-        compare: (a, b) => a - b
+        compare: (a, b) => a - b,
       },
       'credits-desc': {
         value: getCredits,
         direction: 'desc',
-        compare: (a, b) => a - b
-      }
+        compare: (a, b) => a - b,
+      },
     }[sortMode];
 
     if (!sortDefinition) return [...courses];
 
     return courses
       .map((item, index) => ({ item, index, value: sortDefinition.value(item) }))
-      .sort((a, b) => compareSortableValues(
-        a.value,
-        b.value,
-        sortDefinition.direction,
-        sortDefinition.compare
-      ) || (a.index - b.index))
+      .sort(
+        (a, b) =>
+          compareSortableValues(a.value, b.value, sortDefinition.direction, sortDefinition.compare) ||
+          a.index - b.index,
+      )
       .map(({ item }) => item);
   };
 

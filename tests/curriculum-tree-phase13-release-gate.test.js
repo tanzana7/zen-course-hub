@@ -9,15 +9,35 @@ const exists = (file) => fs.existsSync(path.join(root, file));
 
 test('root publish candidate contains every runtime asset referenced by the app', () => {
   const required = [
-    'index.html', 'style.css', 'app.js', 'quality-utils.js', 'course-sorting.js',
-    'simulator-rules.js', 'graduation-requirements.js', 'graduation-requirements.json',
-    'courses.json', 'difficulty.json', 'course-relations.json',
-    'curriculum-tree-layout.json', 'curriculum.html', 'curriculum-map.css',
-    'curriculum-map.js', 'curriculum-config.js', 'tutorial.json', '_redirects'
+    'index.html',
+    'style.css',
+    'app.js',
+    'quality-utils.js',
+    'course-sorting.js',
+    'simulator-rules.js',
+    'graduation-requirements.js',
+    'graduation-requirements.json',
+    'courses.json',
+    'difficulty.json',
+    'course-relations.json',
+    'curriculum-tree-layout.json',
+    'curriculum.html',
+    'curriculum-map.css',
+    'curriculum-map.js',
+    'curriculum-config.js',
+    'tutorial.json',
+    '_redirects',
   ];
   for (const file of required) assert.equal(exists(file), true, file);
   const index = read('index.html');
-  for (const file of ['style.css', 'quality-utils.js', 'course-sorting.js', 'simulator-rules.js', 'graduation-requirements.js', 'app.js']) {
+  for (const file of [
+    'style.css',
+    'quality-utils.js',
+    'course-sorting.js',
+    'simulator-rules.js',
+    'graduation-requirements.js',
+    'app.js',
+  ]) {
     assert.match(index, new RegExp(`(?:src|href)=["']${file.replace('.', '\\.')}`));
   }
 });
@@ -28,21 +48,35 @@ test('development evidence is outside the root runtime asset set', () => {
   // Git does not preserve empty directories; create the QA workspace on fresh clones.
   fs.mkdirSync(path.join(root, 'tmp'), { recursive: true });
   assert.equal(fs.statSync(path.join(root, 'tmp')).isDirectory(), true);
-  assert.deepEqual(fs.readdirSync(path.join(root, 'tmp')), []);
-  assert.equal(fs.readdirSync(path.join(root, 'docs', 'qa')).some((name) => name.includes('phase13')), true);
-  assert.equal(fs.readdirSync(root, { withFileTypes: true }).some((entry) => entry.isFile() && entry.name.toLowerCase().endsWith('.pdf')), false);
+  assert.match(read('.gitignore'), /^tmp\/$/m);
+  assert.ok(!require('../scripts/build-public.cjs').publicFiles.some((file) => file.startsWith('tmp/')));
+  assert.equal(
+    fs.readdirSync(path.join(root, 'docs', 'qa')).some((name) => name.includes('phase13')),
+    true,
+  );
+  assert.equal(
+    fs
+      .readdirSync(root, { withFileTypes: true })
+      .some((entry) => entry.isFile() && entry.name.toLowerCase().endsWith('.pdf')),
+    false,
+  );
 });
 
 test('redirect deny rules use valid Netlify splat paths for development directories', () => {
-  const redirects = read('_redirects').split(/\r?\n/).filter((line) => line && !line.startsWith('#'));
+  const redirects = read('_redirects')
+    .split(/\r?\n/)
+    .filter((line) => line && !line.startsWith('#'));
   for (const prefix of ['/docs/*', '/tests/*', '/tmp/*', '/scripts/*']) {
-    assert.ok(redirects.some((line) => new RegExp(`^${prefix.replace('*', '\\*')}\\s+/404\\s+404!$`).test(line)), prefix);
+    assert.ok(
+      redirects.some((line) => new RegExp(`^${prefix.replace('*', '\\*')}\\s+/404\\s+404!$`).test(line)),
+      prefix,
+    );
   }
   assert.ok(redirects.every((line) => line.trim().split(/\s+/).length >= 3));
 });
 
 test('preview gate is local-only and public navigation remains hidden by default', () => {
-  const app = read('app.js');
+  const app = require('./helpers/hub-source.cjs').readHubSource();
   const index = read('index.html');
   assert.match(app, /\['localhost', '127\.0\.0\.1'\]\.includes\(window\.location\.hostname\)/);
   assert.match(app, /get\('curriculumPreview'\) === '1'/);
@@ -50,7 +84,7 @@ test('preview gate is local-only and public navigation remains hidden by default
 });
 
 test('existing storage boundaries remain unchanged', () => {
-  const app = read('app.js');
+  const app = require('./helpers/hub-source.cjs').readHubSource();
   assert.match(app, /myClasses/);
   assert.match(app, /completedClasses/);
   assert.match(app, /fourYearSimulatorPlanV1/);
@@ -67,5 +101,8 @@ test('catalog and curriculum relation baselines remain intact', () => {
   assert.equal(relations.length, 335);
   assert.equal(new Set(relations.map((item) => `${item.prerequisiteId}:${item.successorId}`)).size, 335);
   assert.equal(relations.filter((item) => item.prerequisiteId === item.successorId).length, 0);
-  assert.equal(relations.filter((item) => !ids.has(item.prerequisiteId) || !ids.has(item.successorId)).length, 0);
+  assert.equal(
+    relations.filter((item) => !ids.has(item.prerequisiteId) || !ids.has(item.successorId)).length,
+    0,
+  );
 });

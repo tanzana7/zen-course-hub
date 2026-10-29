@@ -1,0 +1,321 @@
+/* 埋め込みマップの座標系と表示領域の調整。 */
+body.curriculum-tree-mode .curriculum-mobile-enrollment-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid #2563eb;
+  border-radius: 7px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+@media (max-width: 640px) {
+}
+
+@media screen and (max-width: 420px) {
+  .input-area {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* スマートフォン用のページ上部への戻るボタン。固定UI同士が重ならないよう使い方ボタンの上に配置する。 */
+#back-to-top-btn {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  #back-to-top-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    right: 12px;
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+    z-index: 2999;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background-color: #475569;
+    color: #fff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+  }
+
+  #back-to-top-btn:focus-visible {
+    outline: 3px solid #93c5fd;
+    outline-offset: 2px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .simulator-shell {
+    padding: 10px 12px 28px;
+  }
+
+  .simulator-toolbar {
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    padding: 10px 0;
+  }
+
+  .simulator-toolbar h1 {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    font-size: 1.35rem;
+  }
+
+  .simulator-back {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .simulator-total-summary {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    padding: 7px 9px;
+  }
+
+  .simulator-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .simulator-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .simulator-scheduled-panel {
+    position: static;
+    margin-top: 0;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .simulator-palette-list {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .simulator-year-row {
+    display: block;
+  }
+
+  .simulator-year-label {
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    text-align: left;
+  }
+
+  .simulator-quarter-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .sim-course-picker-item,
+  .sim-unplaced-item,
+  .sim-scheduled-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sim-course-placement-controls,
+  .sim-course-placement-open {
+    width: 100%;
+  }
+
+  .sim-course-placement-open {
+    min-height: 44px;
+  }
+
+  .simulator-placement-dialog {
+    width: calc(100vw - 1rem);
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100vh - 1rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    padding: 12px;
+  }
+
+  .sim-course-card {
+    display: block;
+    min-width: 0;
+    height: 44px;
+    min-height: 44px;
+    max-height: 52px;
+    padding: 3px 5px;
+  }
+
+  .sim-course-card-title {
+    width: 100%;
+    height: 16px;
+    padding-right: 0;
+  }
+
+  .sim-course-credits {
+    display: none;
+  }
+
+  .sim-course-card.has-inline-issue {
+    height: 52px;
+  }
+
+  .sim-course-card.has-inline-issue .sim-course-credits {
+    bottom: 18px;
+  }
+
+  .sim-course-quarter-warning {
+    position: absolute;
+    right: 2px;
+    bottom: 22px;
+    left: 5px;
+  }
+
+  .sim-course-card-actions {
+    top: auto;
+    right: 1px;
+    bottom: 1px;
+    height: 24px;
+    min-height: 24px;
+    background: #fff;
+  }
+
+  .sim-course-card-actions button {
+    flex-basis: 21px;
+    width: 21px;
+    min-width: 21px;
+    min-height: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+
+  .simulator-placement-options {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .simulator-placement-year {
+    padding: 8px;
+  }
+
+  .simulator-course-detail {
+    align-items: end;
+    padding: 0;
+  }
+
+  .simulator-course-detail-panel {
+    width: 100%;
+    max-height: 76vh;
+    padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+    border-radius: 12px 12px 0 0;
+  }
+
+  .section-heading-row {
+    align-items: center;
+  }
+
+  .mobile-section-jump {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 6px 2px;
+  }
+
+  .course-list-toolbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .search-count {
+    margin-bottom: 8px;
+  }
+
+  .clear-filter-btn,
+  .empty-reset-btn {
+    min-height: 40px;
+  }
+
+  .right-column,
+  .left-column {
+    scroll-margin-top: 12px;
+  }
+
+  .actions button,
+  .delete-btn {
+    min-height: 42px;
+  }
+}
+
+/* Keep the subject recognizable when a single-Q card becomes narrower than the
+   action cluster. Credits are secondary in that case; the title gets its own
+   line and the actions remain independently tappable below it. */
+@container sim-course-card (max-width: 50px) {
+  .sim-course-card {
+    padding: 2px 4px;
+  }
+
+  .sim-course-card-title {
+    width: 100%;
+    height: 15px;
+    line-height: 1.1;
+  }
+
+  .sim-course-credits {
+    display: none;
+  }
+
+  .sim-course-card-actions {
+    top: auto;
+    right: 1px;
+    bottom: 1px;
+    height: 19px;
+    min-height: 19px;
+    background: #fff;
+  }
+
+  .sim-course-card-actions button {
+    flex-basis: 21px;
+    width: 21px;
+    min-width: 21px;
+    height: 19px;
+    min-height: 19px;
+    font-size: 0.72rem;
+  }
+}
+
+/* 既存の狭幅用input-area指定より後に置き、検索欄とpanel入口を常に1列へ固定する。 */
+@media screen and (max-width: 768px) {
+  .input-area {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .input-area #search-bar,
+  .input-area .filter-actions {
+    grid-column: 1 !important;
+  }
+}
+
+/* hidden属性は既存のinline-flex指定より優先して、未適用時のバッジを確実に隠す。 */
+.filter-active-count[hidden] {
+  display: none !important;
+}
+
+@media screen and (max-width: 768px) {
+  .filter-actions {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  }
+
+  .filter-options-toggle {
+    white-space: nowrap;
+    font-size: 0.9rem;
+    gap: 5px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}

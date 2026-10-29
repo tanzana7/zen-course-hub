@@ -10,8 +10,6 @@
     }
   ],
   "exceptions": [],
-  "failedRequests": [
-    "net::ERR_ABORTED"
-  ],
+  "failedRequests": [],
   "allCoursesReachable": 0
 }

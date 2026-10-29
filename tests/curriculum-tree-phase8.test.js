@@ -4,10 +4,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
-const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+const app = require('./helpers/hub-source.cjs').readHubSource();
 const style = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const audit = JSON.parse(fs.readFileSync(path.join(root, 'docs/curriculum-tree-phase8-course-audit.json'), 'utf8'));
+const audit = JSON.parse(
+  fs.readFileSync(path.join(root, 'docs/curriculum-tree-phase8-course-audit.json'), 'utf8'),
+);
 const layout = JSON.parse(fs.readFileSync(path.join(root, 'curriculum-tree-layout.json'), 'utf8'));
 const courses = JSON.parse(fs.readFileSync(path.join(root, 'courses.json'), 'utf8'));
 
@@ -20,7 +22,11 @@ test('phase 8 audit covers all catalog courses and every exact duplicate slot', 
   assert.equal(audit.coordinateCorrections, 0);
   assert.equal(audit.demotedEntries, 0);
   assert.equal(audit.duplicateGroups.length, 18);
-  assert.ok(audit.duplicateGroups.every((group) => group.status === 'unresolved' && group.coordinateAction === 'preserved'));
+  assert.ok(
+    audit.duplicateGroups.every(
+      (group) => group.status === 'unresolved' && group.coordinateAction === 'preserved',
+    ),
+  );
   assert.equal(new Set(audit.entries.map((entry) => entry.courseId)).size, 275);
   assert.ok(audit.entries.every((entry) => courses.some((course) => course.id === entry.courseId)));
 });
@@ -51,8 +57,8 @@ test('phase 8 keeps selected relation readability and relation modes explicit', 
   assert.match(app, /curriculumState\.relationMode === 'selected' && focusIds\.size > 0/);
   assert.match(index, /id="curriculum-relation-mode"/);
   assert.match(index, /公式の前提条件ではありません/);
-  assert.match(style, /curriculum-node\.is-out-of-focus \{ opacity: 0\.78; \}/);
-  assert.match(style, /curriculum-edge\.is-out-of-focus \{ opacity: 0\.12; \}/);
+  assert.match(style, /curriculum-node\.is-out-of-focus \{\s*opacity: 0\.78;\s*\}/);
+  assert.match(style, /curriculum-edge\.is-out-of-focus \{\s*opacity: 0\.12;\s*\}/);
 });
 
 test('phase 8 keeps the preview gate and existing storage boundaries', () => {

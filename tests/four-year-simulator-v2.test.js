@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const simulatorRules = require('../simulator-rules.js');
 const courseSorting = require('../course-sorting.js');
 
-const app = fs.readFileSync('app.js', 'utf8');
+const app = require('./helpers/hub-source.cjs').readHubSource();
 const index = fs.readFileSync('index.html', 'utf8');
 const style = fs.readFileSync('style.css', 'utf8');
 const courses = JSON.parse(fs.readFileSync('courses.json', 'utf8'));
@@ -13,7 +13,7 @@ const relations = JSON.parse(fs.readFileSync('course-relations.json', 'utf8'));
 
 test('v1 simulator storage and placement logic remain available', () => {
   assert.match(app, /fourYearSimulatorPlanV1/);
-  assert.match(app, /state\.simulatorPlan\.placements/);
+  assert.match(app, /(?:context\.)?state\.simulatorPlan\.placements/);
   assert.match(app, /const placeSimulatorCourse/);
   assert.match(app, /const removeSimulatorCourse/);
 });
@@ -28,10 +28,19 @@ test('palette has independent placement-state filtering', () => {
 });
 
 test('simulator palette uses the requested labels and keeps myClasses separate from the plan', () => {
-  assert.match(index, /id="sim-palette-scheduled"[^>]*data-sim-palette-mode="scheduled"[^>]*>マイ履修</);
-  assert.match(index, /id="sim-palette-all"[^>]*data-sim-palette-mode="all"[^>]*>すべての教科</);
-  assert.match(app, /state\.registeredClasses\]\n\s*\.some\(\(courseId\) => state\.coursesMap\.has\(courseId\)\)/);
-  assert.match(app, /state\.simulatorPaletteMode === 'scheduled' && !state\.registeredClasses\.has\(course\.id\)/);
+  assert.match(
+    index,
+    /id="sim-palette-scheduled"[^>]*data-sim-palette-mode="scheduled"[^>]*>\s*マイ履修\s*</,
+  );
+  assert.match(index, /id="sim-palette-all"[^>]*data-sim-palette-mode="all"[^>]*>\s*すべての教科\s*</);
+  assert.match(
+    app,
+    /(?:context\.)?state\.registeredClasses\]\s*\.some\(\(courseId\) =>\s*(?:context\.)?state\.coursesMap\.has\(courseId\),?\s*\)/,
+  );
+  assert.match(
+    app,
+    /(?:context\.)?state\.simulatorPaletteMode === 'scheduled' &&\s*!(?:context\.)?state\.registeredClasses\.has\(course\.id\)/,
+  );
   assert.match(app, /履修予定の科目はありません/);
   assert.match(app, /simulatorPaletteDefaulted/);
 });
@@ -39,9 +48,15 @@ test('simulator palette uses the requested labels and keeps myClasses separate f
 test('simulator reuses the main difficulty sort helper after filtering', () => {
   assert.match(app, /const \{ COURSE_SORT_OPTIONS, sortCourses \} = courseSorting/);
   assert.match(app, /querySelectorAll\('\[data-course-sort-control\]'\)/);
-  assert.match(app, /const sorted = sortCourses\(filtered, state\.difficultySort, state\.difficultyMap\)/);
-  assert.match(app, /matches = sortCourses\(matches, state\.difficultySort, state\.difficultyMap\)/);
-  assert.match(index, /<script src="course-sorting\.js"><\/script>/);
+  assert.match(
+    app,
+    /const sorted = (?:context\.)?sortCourses\(filtered, (?:context\.)?state\.difficultySort, (?:context\.)?state\.difficultyMap\)/,
+  );
+  assert.match(
+    app,
+    /matches = (?:context\.)?sortCourses\(matches, (?:context\.)?state\.difficultySort, (?:context\.)?state\.difficultyMap\)/,
+  );
+  assert.match(index, /<script defer src="course-sorting\.js"><\/script>/);
   assert.match(index, /id="course-sort-toggle"[^>]*aria-haspopup="menu"/);
   assert.match(index, /id="sim-course-sort-toggle"[^>]*aria-haspopup="menu"/);
   assert.match(index, /id="course-sort-menu"[^>]*role="menu"/);
@@ -59,7 +74,7 @@ test('Main Hub and simulator use identical sort options and stable comparator be
     { value: 'year-asc', label: '推奨学年：低い順' },
     { value: 'year-desc', label: '推奨学年：高い順' },
     { value: 'credits-asc', label: '単位数：少ない順' },
-    { value: 'credits-desc', label: '単位数：多い順' }
+    { value: 'credits-desc', label: '単位数：多い順' },
   ]);
 
   const coursesFixture = [
@@ -67,16 +82,18 @@ test('Main Hub and simulator use identical sort options and stable comparator be
     { id: 'missing' },
     { id: 'high' },
     { id: 'tie-second' },
-    { id: 'low' }
+    { id: 'low' },
   ];
   const difficultyMap = new Map([
     ['tie-first', { average: 4 }],
     ['high', { average: 9 }],
     ['tie-second', { average: 4 }],
-    ['low', { average: 1 }]
+    ['low', { average: 1 }],
   ]);
-  const mainHubSort = (mode) => courseSorting.sortCourses(coursesFixture, mode, difficultyMap).map(({ id }) => id);
-  const simulatorSort = (mode) => courseSorting.sortCourses(coursesFixture, mode, difficultyMap).map(({ id }) => id);
+  const mainHubSort = (mode) =>
+    courseSorting.sortCourses(coursesFixture, mode, difficultyMap).map(({ id }) => id);
+  const simulatorSort = (mode) =>
+    courseSorting.sortCourses(coursesFixture, mode, difficultyMap).map(({ id }) => id);
 
   for (const { value } of courseSorting.COURSE_SORT_OPTIONS) {
     assert.deepEqual(simulatorSort(value), mainHubSort(value), value);
@@ -93,7 +110,7 @@ test('course sorting handles Japanese names, recommended years, credits, missing
     { id: 'k', subject: '10デザイン', year: '2年次', credits: 2 },
     { id: 'm', subject: '2デザイン', year: '2年次', credits: 1 },
     { id: 'missing', subject: '', year: '', credits: null },
-    { id: 'same-year', subject: 'えん', year: '2年次', credits: 4 }
+    { id: 'same-year', subject: 'えん', year: '2年次', credits: 4 },
   ];
   const ids = (mode) => courseSorting.sortCourses(fixture, mode).map(({ id }) => id);
 
@@ -119,14 +136,28 @@ test('all supported sorts preserve the full 275-course set', () => {
 
 test('shared sort remains parity-safe after every supported filter combination', () => {
   const coursesFixture = [
-    { id: 'math-low', subject: '数学', year: '1年次', quarter: '1Q', category: '数理', placement: 'unplaced' },
+    {
+      id: 'math-low',
+      subject: '数学',
+      year: '1年次',
+      quarter: '1Q',
+      category: '数理',
+      placement: 'unplaced',
+    },
     { id: 'math-high', subject: '数学', year: '2年次', quarter: '2Q', category: '数理', placement: 'placed' },
-    { id: 'art', subject: '芸術', year: '1年次', quarter: '3Q', category: '文化・思想', placement: 'unplaced' }
+    {
+      id: 'art',
+      subject: '芸術',
+      year: '1年次',
+      quarter: '3Q',
+      category: '文化・思想',
+      placement: 'unplaced',
+    },
   ];
   const difficultyMap = new Map([
     ['math-low', { average: 2 }],
     ['math-high', { average: 8 }],
-    ['art', { average: 5 }]
+    ['art', { average: 5 }],
   ]);
   const filters = [
     { apply: (course) => course.subject === '数学', expected: ['math-low', 'math-high'] },
@@ -134,13 +165,13 @@ test('shared sort remains parity-safe after every supported filter combination',
     { apply: (course) => course.quarter === '2Q', expected: ['math-high'] },
     { apply: (course) => course.category === '数理', expected: ['math-low', 'math-high'] },
     { apply: (course) => course.placement === 'placed', expected: ['math-high'] },
-    { apply: () => true, expected: ['math-low', 'art', 'math-high'] }
+    { apply: () => true, expected: ['math-low', 'art', 'math-high'] },
   ];
   for (const { apply, expected } of filters) {
     const filtered = coursesFixture.filter(apply);
     assert.deepEqual(
       courseSorting.sortCourses(filtered, 'difficulty-asc', difficultyMap).map(({ id }) => id),
-      expected
+      expected,
     );
   }
 });
@@ -149,7 +180,10 @@ test('palette exposes separate detail and placement controls while retaining dra
   assert.match(app, /data-sim-detail-course/);
   assert.match(app, /openSimulatorCourseDetail\(detailButton\.dataset\.simDetailCourse\)/);
   assert.match(app, /data-sim-placement-course/);
-  assert.match(app, /openSimulatorPlacementPicker\(placementButton\.dataset\.simPlacementCourse, placementButton\)/);
+  assert.match(
+    app,
+    /openSimulatorPlacementPicker\(placementButton\.dataset\.simPlacementCourse, placementButton\)/,
+  );
   assert.match(app, /item\.dataset\.simSkipClick = 'true'/);
   assert.match(app, /card\?\.dataset\.simDragging === 'true'/);
   assert.doesNotMatch(app, /sim-mobile-place-button/);
@@ -157,15 +191,18 @@ test('palette exposes separate detail and placement controls while retaining dra
 
 test('placed cards expose an explicit detail control without changing delete semantics', () => {
   assert.match(app, /class="sim-course-detail-view"/);
-  assert.match(app, /data-sim-detail-course="\$\{escapeHTML\(course\.id\)\}"/);
-  assert.match(app, /aria-label="\$\{escapeHTML\(course\.subject\)\}の詳細を見る"/);
+  assert.match(app, /data-sim-detail-course="\$\{(?:context\.)?escapeHTML\(course\.id\)\}"/);
+  assert.match(app, /aria-label="\$\{(?:context\.)?escapeHTML\(course\.subject\)\}の詳細を見る"/);
   assert.match(app, /title="科目詳細を見る">👁<\/button>/);
   assert.match(app, /const detailButton = event\.target\.closest\('\[data-sim-detail-course\]'\)/);
-  assert.match(app, /data-sim-remove-course="\$\{escapeHTML\(course\.id\)\}"/);
+  assert.match(app, /data-sim-remove-course="\$\{(?:context\.)?escapeHTML\(course\.id\)\}"/);
   assert.match(app, /has-warning/);
-  assert.match(app, /isPrerequisiteSatisfied\(prerequisite, prerequisitePlacement, course, placement\)/);
-  assert.match(app, /'getPlacementStart', 'isPrerequisiteSatisfied', 'getPlacementIssues'/);
-  assert.match(app, /state\.completedClasses\.has\(prerequisite\.id\)/);
+  assert.match(
+    app,
+    /isPrerequisiteSatisfied\(\s*prerequisite,\s*prerequisitePlacement,\s*course,\s*placement,?\s*\)/,
+  );
+  assert.match(app, /'getPlacementStart',\s*'isPrerequisiteSatisfied',\s*'getPlacementIssues'/);
+  assert.match(app, /(?:context\.)?state\.completedClasses\.has\(prerequisite\.id\)/);
 });
 
 test('warning cards reserve the action cluster and hide secondary credits at narrow desktop widths', () => {
@@ -177,7 +214,7 @@ test('warning cards reserve the action cluster and hide secondary credits at nar
 });
 
 test('placement destinations are created on demand in an accessible native dialog', () => {
-  assert.match(index, /<dialog id="simulator-placement-dialog"/);
+  assert.match(index, /<dialog\s+id="simulator-placement-dialog"/);
   assert.match(index, /aria-labelledby="simulator-placement-title"/);
   assert.match(app, /optionsContainer\.innerHTML = \[1, 2, 3, 4\]/);
   assert.match(app, /dialog\.showModal\(\)/);
@@ -186,8 +223,8 @@ test('placement destinations are created on demand in an accessible native dialo
 });
 
 test('simulator and course detail expose dialog semantics and focus restoration', () => {
-  assert.match(index, /id="simulator-modal"[^>]*role="dialog" aria-modal="true"/);
-  assert.match(index, /id="simulator-course-detail"[^>]*role="dialog" aria-modal="true"/);
+  assert.match(index, /id="simulator-modal"[^>]*role="dialog"\s+aria-modal="true"/);
+  assert.match(index, /id="simulator-course-detail"[^>]*role="dialog"\s+aria-modal="true"/);
   assert.match(app, /simulatorTriggerElement = button/);
   assert.match(app, /title\?\.focus\(\)/);
   assert.match(app, /focusElement\(simulatorTriggerElement \|\| button\)/);
@@ -207,11 +244,26 @@ test('prerequisite timing accepts same-Q and earlier placements, but rejects lat
   const prerequisite = courses.find((course) => course.id === 'academic_literacy');
   const successor = courses.find((course) => course.id === 'academic_literacy');
   const placement = (year, selectedQuarter) => ({ year, selectedQuarter });
-  assert.equal(simulatorRules.isPrerequisiteSatisfied(prerequisite, placement(1, 1), successor, placement(1, 1)), true);
-  assert.equal(simulatorRules.isPrerequisiteSatisfied(prerequisite, placement(1, 1), successor, placement(1, 3)), true);
-  assert.equal(simulatorRules.isPrerequisiteSatisfied(prerequisite, placement(1, 3), successor, placement(1, 1)), false);
-  assert.equal(simulatorRules.isPrerequisiteSatisfied(prerequisite, placement(2, 1), successor, placement(1, 4)), false);
-  assert.equal(simulatorRules.isPrerequisiteSatisfied(prerequisite, placement(1, 1), successor, placement(2, 1)), true);
+  assert.equal(
+    simulatorRules.isPrerequisiteSatisfied(prerequisite, placement(1, 1), successor, placement(1, 1)),
+    true,
+  );
+  assert.equal(
+    simulatorRules.isPrerequisiteSatisfied(prerequisite, placement(1, 1), successor, placement(1, 3)),
+    true,
+  );
+  assert.equal(
+    simulatorRules.isPrerequisiteSatisfied(prerequisite, placement(1, 3), successor, placement(1, 1)),
+    false,
+  );
+  assert.equal(
+    simulatorRules.isPrerequisiteSatisfied(prerequisite, placement(2, 1), successor, placement(1, 4)),
+    false,
+  );
+  assert.equal(
+    simulatorRules.isPrerequisiteSatisfied(prerequisite, placement(1, 1), successor, placement(2, 1)),
+    true,
+  );
   assert.equal(simulatorRules.isPrerequisiteSatisfied(prerequisite, null, successor, placement(1, 1)), false);
 });
 
@@ -219,29 +271,45 @@ test('prerequisite timing uses the selected start Q for spans and alternatives',
   const span = courses.find((course) => course.id === 'ai_practical_usage');
   const successor = courses.find((course) => course.id === 'academic_literacy');
   assert.equal(simulatorRules.getPlacementStart(span, { year: 1, selectedQuarter: 1 }), 1);
-  assert.equal(simulatorRules.isPrerequisiteSatisfied(span, { year: 1, selectedQuarter: 1 }, successor, { year: 1, selectedQuarter: 1 }), true);
-  assert.equal(simulatorRules.isPrerequisiteSatisfied(span, { year: 1, selectedQuarter: 3 }, successor, { year: 1, selectedQuarter: 1 }), false);
+  assert.equal(
+    simulatorRules.isPrerequisiteSatisfied(span, { year: 1, selectedQuarter: 1 }, successor, {
+      year: 1,
+      selectedQuarter: 1,
+    }),
+    true,
+  );
+  assert.equal(
+    simulatorRules.isPrerequisiteSatisfied(span, { year: 1, selectedQuarter: 3 }, successor, {
+      year: 1,
+      selectedQuarter: 1,
+    }),
+    false,
+  );
 });
 
 test('recommended and strongly recommended relations use the same chronological satisfaction rule', () => {
   const cases = [
     { strength: 'strongly_recommended', prerequisiteId: 'linear_algebra_1', successorId: 'group_theory' },
-    { strength: 'recommended', prerequisiteId: 'modern_society_math', successorId: 'it_literacy' }
+    { strength: 'recommended', prerequisiteId: 'modern_society_math', successorId: 'it_literacy' },
   ];
   for (const candidate of cases) {
-    assert.ok(relations.some((relation) => (
-      relation.strength === candidate.strength &&
-      relation.prerequisiteId === candidate.prerequisiteId &&
-      relation.successorId === candidate.successorId
-    )));
+    assert.ok(
+      relations.some(
+        (relation) =>
+          relation.strength === candidate.strength &&
+          relation.prerequisiteId === candidate.prerequisiteId &&
+          relation.successorId === candidate.successorId,
+      ),
+    );
     const prerequisite = courses.find((course) => course.id === candidate.prerequisiteId);
     const successor = courses.find((course) => course.id === candidate.successorId);
-    assert.equal(simulatorRules.isPrerequisiteSatisfied(
-      prerequisite,
-      { year: 1, selectedQuarter: 1 },
-      successor,
-      { year: 1, selectedQuarter: 1 }
-    ), true);
+    assert.equal(
+      simulatorRules.isPrerequisiteSatisfied(prerequisite, { year: 1, selectedQuarter: 1 }, successor, {
+        year: 1,
+        selectedQuarter: 1,
+      }),
+      true,
+    );
   }
 });
 
@@ -249,20 +317,38 @@ test('multiple-Q, span alternatives, and full-year courses use only their actual
   const multiple = courses.find((course) => course.id === 'academic_literacy');
   const alternatives = courses.find((course) => course.id === 'ai_practical_usage');
   const fullYear = courses.find((course) => course.quarter === '通期');
-  assert.deepEqual(simulatorRules.getQuarterInfo(multiple).options.map((option) => option.start), [1, 3]);
-  assert.deepEqual(simulatorRules.getQuarterInfo(alternatives).options.map((option) => option.start), [1, 3]);
+  assert.deepEqual(
+    simulatorRules.getQuarterInfo(multiple).options.map((option) => option.start),
+    [1, 3],
+  );
+  assert.deepEqual(
+    simulatorRules.getQuarterInfo(alternatives).options.map((option) => option.start),
+    [1, 3],
+  );
   assert.equal(simulatorRules.canPlaceCourseAt(alternatives, 2, 1), true);
   assert.equal(simulatorRules.canPlaceCourseAt(alternatives, 2, 2), true);
   assert.equal(simulatorRules.canPlaceCourseAt(multiple, 2, 2), false);
-  assert.deepEqual(simulatorRules.getQuarterInfo(fullYear).options.map(({ start, end }) => ({ start, end })), [{ start: 1, end: 4 }]);
+  assert.deepEqual(
+    simulatorRules.getQuarterInfo(fullYear).options.map(({ start, end }) => ({ start, end })),
+    [{ start: 1, end: 4 }],
+  );
   assert.equal(simulatorRules.canPlaceCourseAt(fullYear, 4, 2), false);
 });
 
 test('range opening windows allow every listed start while preserving the legacy first-span layout', () => {
   const range = courses.find((course) => course.quarter === '1-2Q');
   assert.ok(range);
-  assert.deepEqual(simulatorRules.getQuarterInfo(range).options.map(({ start, end }) => [start, end]), [[1, 2]]);
-  assert.deepEqual(simulatorRules.getPlacementOptions(range).map(({ start, end }) => [start, end]), [[1, 2], [2, 2]]);
+  assert.deepEqual(
+    simulatorRules.getQuarterInfo(range).options.map(({ start, end }) => [start, end]),
+    [[1, 2]],
+  );
+  assert.deepEqual(
+    simulatorRules.getPlacementOptions(range).map(({ start, end }) => [start, end]),
+    [
+      [1, 2],
+      [2, 2],
+    ],
+  );
   assert.equal(simulatorRules.canPlaceCourseAt(range, 1, 1), true);
   assert.equal(simulatorRules.canPlaceCourseAt(range, 1, 2), true);
   assert.equal(simulatorRules.canPlaceCourseAt(range, 1, 3), false);
@@ -275,7 +361,10 @@ test('placement rejects an invalid move without changing legacy data and prevent
   const rejected = simulatorRules.applyPlacement(legacyPlan, course, 2, 2);
   assert.equal(rejected.allowed, false);
   assert.equal(rejected.placements, legacyPlan);
-  assert.deepEqual(simulatorRules.getPlacementIssues(course, legacyPlan[0]).map((issue) => issue.type), ['quarter']);
+  assert.deepEqual(
+    simulatorRules.getPlacementIssues(course, legacyPlan[0]).map((issue) => issue.type),
+    ['quarter'],
+  );
 
   const moved = simulatorRules.applyPlacement(legacyPlan, course, 3, 3);
   assert.equal(moved.allowed, true);
@@ -291,9 +380,21 @@ test('every catalog Q value parses, while unrelated numbers and unknown labels f
   for (const course of courses) {
     assert.ok(simulatorRules.getQuarterInfo(course).options.length, `${course.id}: ${course.quarter}`);
   }
-  assert.deepEqual(simulatorRules.getQuarterInfo({ quarter: '1Q, 3Q' }).options.map((option) => option.start), [1, 3]);
-  assert.deepEqual(simulatorRules.getQuarterInfo({ quarter: '1-2Q, 3-4Q' }).options.map(({ start, end }) => [start, end]), [[1, 2], [3, 4]]);
-  assert.deepEqual(simulatorRules.getQuarterInfo({ quarter: '通期' }).options.map(({ start, end }) => [start, end]), [[1, 4]]);
+  assert.deepEqual(
+    simulatorRules.getQuarterInfo({ quarter: '1Q, 3Q' }).options.map((option) => option.start),
+    [1, 3],
+  );
+  assert.deepEqual(
+    simulatorRules.getQuarterInfo({ quarter: '1-2Q, 3-4Q' }).options.map(({ start, end }) => [start, end]),
+    [
+      [1, 2],
+      [3, 4],
+    ],
+  );
+  assert.deepEqual(
+    simulatorRules.getQuarterInfo({ quarter: '通期' }).options.map(({ start, end }) => [start, end]),
+    [[1, 4]],
+  );
   for (const quarter of ['2027年度 1Q', '2単位 1Q', 'Q1', '1-3Q', '1Q, 不明', '', null]) {
     const course = { quarter };
     assert.deepEqual(simulatorRules.getQuarterInfo(course).options, [], String(quarter));
@@ -311,7 +412,7 @@ test('all catalog quarter spellings expose the intended allowed start quarters',
     ['3-4Q', [3, 4]],
     ['1-2Q, 3-4Q', [1, 2, 3, 4]],
     ['1-2Q、3-4Q', [1, 2, 3, 4]],
-    ['通期', [1]]
+    ['通期', [1]],
   ]);
   for (const [label, starts] of expected) {
     assert.deepEqual(simulatorRules.getQuarterInfo({ quarter: label }).allowedStarts, starts, label);
@@ -322,13 +423,21 @@ test('failed add, move, delete, and reset saves preserve the previous plan', () 
   const course = courses.find((item) => item.id === 'academic_literacy');
   const key = 'fourYearSimulatorPlanV1';
   const initial = { version: 1, placements: [{ courseId: course.id, year: 1, selectedQuarter: 1 }] };
-  let saved = JSON.stringify(initial);
+  const saved = JSON.stringify(initial);
   const storage = {
     getItem: () => saved,
-    setItem: () => { throw new Error('QuotaExceededError'); }
+    setItem: () => {
+      throw new Error('QuotaExceededError');
+    },
   };
-  const add = { version: 1, placements: [...initial.placements, { courseId: 'old_course_123', year: 2, selectedQuarter: 1 }] };
-  const move = { version: 1, placements: simulatorRules.applyPlacement(initial.placements, course, 2, 3).placements };
+  const add = {
+    version: 1,
+    placements: [...initial.placements, { courseId: 'old_course_123', year: 2, selectedQuarter: 1 }],
+  };
+  const move = {
+    version: 1,
+    placements: simulatorRules.applyPlacement(initial.placements, course, 2, 3).placements,
+  };
   const remove = { version: 1, placements: [] };
   const reset = simulatorRules.createEmptyPlan();
   for (const candidate of [add, move, remove, reset]) {
@@ -341,26 +450,43 @@ test('failed add, move, delete, and reset saves preserve the previous plan', () 
     assert.equal(storage.getItem(key), saved);
   }
   assert.match(app, /if \(!saveSimulatorPlan\(nextPlan\)\)/);
-  assert.match(app, /state\.simulatorPlan = nextPlan;/);
-  assert.match(app, /return commitSimulatorPlan\(\{ \.\.\.state\.simulatorPlan, placements: result\.placements \}\)/);
-  assert.match(app, /return commitSimulatorPlan\(\{ \.\.\.state\.simulatorPlan, placements \}\)/);
-  assert.match(app, /commitSimulatorPlan\(simulatorRules\.createEmptyPlan\(\)\)/);
+  assert.match(app, /(?:context\.)?state\.simulatorPlan = nextPlan;/);
+  assert.match(
+    app,
+    /return commitSimulatorPlan\(\{ \.\.\.(?:context\.)?state\.simulatorPlan, placements: result\.placements \}\)/,
+  );
+  assert.match(
+    app,
+    /return commitSimulatorPlan\(\{ \.\.\.(?:context\.)?state\.simulatorPlan, placements \}\)/,
+  );
+  assert.match(app, /commitSimulatorPlan\((?:context\.)?simulatorRules\.createEmptyPlan\(\)\)/);
 });
 
 test('unknown saved IDs are retained for explicit removal, not silently cleaned up', () => {
   const key = 'fourYearSimulatorPlanV1';
-  const initial = { version: 1, placements: [
-    { courseId: 'academic_literacy', year: 1, selectedQuarter: 1 },
-    { courseId: 'old_course_123', year: 2, selectedQuarter: 1 }
-  ] };
+  const initial = {
+    version: 1,
+    placements: [
+      { courseId: 'academic_literacy', year: 1, selectedQuarter: 1 },
+      { courseId: 'old_course_123', year: 2, selectedQuarter: 1 },
+    ],
+  };
   let saved = JSON.stringify(initial);
-  const storage = { getItem: () => saved, setItem: (_key, value) => { saved = value; } };
+  const storage = {
+    getItem: () => saved,
+    setItem: (_key, value) => {
+      saved = value;
+    },
+  };
   assert.equal(JSON.parse(storage.getItem(key)).placements.length, 2);
   assert.doesNotMatch(app, /cleanupSimulatorPlan\(\)/);
   assert.match(app, /!getCourse\(placement\.courseId\)/);
   assert.match(app, /info\.textContent = `科目ID:/);
   assert.match(app, /removeSimulatorCourse\(removeButton\.dataset\.simRemoveCourse\)/);
-  const withoutUnknown = { ...initial, placements: initial.placements.filter((item) => item.courseId !== 'old_course_123') };
+  const withoutUnknown = {
+    ...initial,
+    placements: initial.placements.filter((item) => item.courseId !== 'old_course_123'),
+  };
   assert.equal(simulatorRules.savePlanChange(storage, key, withoutUnknown).saved, true);
   assert.deepEqual(JSON.parse(saved).placements, withoutUnknown.placements);
   assert.equal(simulatorRules.savePlanChange(storage, key, simulatorRules.createEmptyPlan()).saved, true);
@@ -371,20 +497,28 @@ test('missing rules disables only simulator entry while main Hub bootstrap remai
   let onReady;
   let fetchCount = 0;
   const document = {
-    addEventListener: (name, callback) => { if (name === 'DOMContentLoaded') onReady = callback; },
+    addEventListener: (name, callback) => {
+      if (name === 'DOMContentLoaded') onReady = callback;
+    },
     getElementById: () => null,
-    querySelectorAll: () => []
+    querySelectorAll: () => [],
   };
   vm.runInNewContext(app, {
     document,
     window: { addEventListener() {}, clearTimeout() {}, setTimeout() {}, CourseSorting: courseSorting },
     localStorage: { getItem: () => null },
-    fetch: () => { fetchCount += 1; return new Promise(() => {}); },
-    console, URL, Map, Set
+    fetch: () => {
+      fetchCount += 1;
+      return new Promise(() => {});
+    },
+    console,
+    URL,
+    Map,
+    Set,
   });
   assert.doesNotThrow(() => onReady());
   assert.equal(fetchCount, 3); // courses, optional difficulty, optional relations
-  assert.match(app, /const simulatorAvailable = Boolean\(simulatorRules/);
+  assert.match(app, /const simulatorAvailable = Boolean\(\s*simulatorRules/);
   assert.match(app, /button\.disabled = true/);
   assert.match(app, /if \(simulatorAvailable\) renderSimulator\(\)/);
   assert.match(index, /id="simulator-unavailable"[^>]*role="alert"/);
@@ -393,20 +527,31 @@ test('missing rules disables only simulator entry while main Hub bootstrap remai
 
 test('reset writes only the simulator storage key and keeps the v1 schema', () => {
   const values = new Map([
-    ['fourYearSimulatorPlanV1', JSON.stringify({ version: 1, placements: [{ courseId: 'academic_literacy', year: 1, selectedQuarter: 1 }] })],
+    [
+      'fourYearSimulatorPlanV1',
+      JSON.stringify({
+        version: 1,
+        placements: [{ courseId: 'academic_literacy', year: 1, selectedQuarter: 1 }],
+      }),
+    ],
     ['myClasses', '["it_literacy"]'],
     ['completedClasses', '["economics_intro"]'],
-    ['courseFilterPreferences', '{"excludePixiv":true}']
+    ['courseFilterPreferences', '{"excludePixiv":true}'],
   ]);
   const storage = {
     getItem: (key) => values.get(key) ?? null,
-    setItem: (key, value) => values.set(key, String(value))
+    setItem: (key, value) => values.set(key, String(value)),
   };
-  const unaffected = ['myClasses', 'completedClasses', 'courseFilterPreferences'].map((key) => storage.getItem(key));
+  const unaffected = ['myClasses', 'completedClasses', 'courseFilterPreferences'].map((key) =>
+    storage.getItem(key),
+  );
   const emptyPlan = simulatorRules.resetPlanStorage(storage, 'fourYearSimulatorPlanV1');
   assert.deepEqual(emptyPlan, { version: 1, placements: [] });
   assert.deepEqual(JSON.parse(storage.getItem('fourYearSimulatorPlanV1')), emptyPlan);
-  assert.deepEqual(['myClasses', 'completedClasses', 'courseFilterPreferences'].map((key) => storage.getItem(key)), unaffected);
+  assert.deepEqual(
+    ['myClasses', 'completedClasses', 'courseFilterPreferences'].map((key) => storage.getItem(key)),
+    unaffected,
+  );
   assert.match(index, /id="simulator-reset-dialog"/);
   assert.match(index, /4年間の計画をすべて削除します/);
 });
@@ -456,10 +601,16 @@ test('simulator polish keeps dynamic rows, compact cards, and usable palette con
   assert.match(style, /\.simulator-quarter-header\s*\{[\s\S]*?height:\s*24px;[\s\S]*?white-space:\s*nowrap;/);
   assert.match(style, /\.sim-course-card\s*\{[\s\S]*?min-height:\s*34px;[\s\S]*?max-height:\s*48px;/);
   assert.match(style, /\.sim-course-card\s*\{[\s\S]*?height:\s*36px;/);
-  assert.match(style, /\.sim-course-card-title\s*\{[\s\S]*?text-overflow:\s*ellipsis;[\s\S]*?white-space:\s*nowrap;/);
+  assert.match(
+    style,
+    /\.sim-course-card-title\s*\{[\s\S]*?text-overflow:\s*ellipsis;[\s\S]*?white-space:\s*nowrap;/,
+  );
   assert.match(style, /\.sim-course-card\s*\{[\s\S]*?container:\s*sim-course-card\s*\/\s*inline-size;/);
   assert.match(style, /@container sim-course-card \(max-width: 50px\)/);
   assert.match(style, /\.sim-course-detail-view\s*\{/);
-  assert.match(style, /\.sim-course-picker-item,\s*\n\.sim-unplaced-item,\s*\n\.sim-scheduled-item\s*\{[\s\S]*?padding:\s*6px 8px;/);
+  assert.match(
+    style,
+    /\.sim-course-picker-item,\s*\n\.sim-unplaced-item,\s*\n\.sim-scheduled-item\s*\{[\s\S]*?padding:\s*6px 8px;/,
+  );
   assert.match(style, /\.sim-course-placement-open\s*\{[\s\S]*?min-height:\s*36px;/);
 });

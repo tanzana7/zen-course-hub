@@ -1,17 +1,24 @@
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import test from 'node:test';
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const test = require('node:test');
 
-const readJson = (name) => JSON.parse(fs.readFileSync(new URL(`../${name}`, import.meta.url), 'utf8'));
+const readJson = (name) => JSON.parse(fs.readFileSync(path.resolve(__dirname, `../${name}`), 'utf8'));
 const courses = readJson('courses.json');
 const definition = readJson('graduation-requirements.json');
-import engine from '../graduation-requirements.js';
+const engine = require('../graduation-requirements.js');
 
 test('産業史要件は明示された科目IDの単位数で判定する', () => {
-  const history = courses.filter((course) => definition.requirements.industryHistory.courseIds.includes(course.id));
+  const history = courses.filter((course) =>
+    definition.requirements.industryHistory.courseIds.includes(course.id),
+  );
   assert.equal(history.length, 4);
   assert.equal(history.find((course) => course.subject === 'IT産業史')?.credits, 2);
-  const analysis = engine.analyzeGraduationRequirements(history.map((course) => course.id), courses, definition);
+  const analysis = engine.analyzeGraduationRequirements(
+    history.map((course) => course.id),
+    courses,
+    definition,
+  );
   assert.equal(analysis.worldUnderstanding.industryHistory.credits, 8);
   assert.equal(analysis.worldUnderstanding.industryHistory.satisfied, true);
 });
@@ -21,7 +28,10 @@ test('重複した選択IDは単位へ一度だけ加算する', () => {
   const once = engine.analyzeGraduationRequirements([history.id], courses, definition);
   const duplicated = engine.analyzeGraduationRequirements([history.id, history.id], courses, definition);
   assert.equal(once.totalCredits.actualCredits, duplicated.totalCredits.actualCredits);
-  assert.equal(once.worldUnderstanding.industryHistory.credits, duplicated.worldUnderstanding.industryHistory.credits);
+  assert.equal(
+    once.worldUnderstanding.industryHistory.credits,
+    duplicated.worldUnderstanding.industryHistory.credits,
+  );
 });
 
 test('プロジェクト実践は定義ファイルの指定IDと単位数で判定する', () => {

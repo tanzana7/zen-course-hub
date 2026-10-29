@@ -7,12 +7,14 @@
   let enrolledIds = [];
 
   const ready = fetch('exam-schedule-catalog.json')
-    .then(response => {
+    .then((response) => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response.json();
     })
-    .then(data => { catalog = createCatalog(data); })
-    .catch(error => {
+    .then((data) => {
+      catalog = createCatalog(data);
+    })
+    .catch((error) => {
       failed = true;
       console.error('試験日程を読み込めません:', error);
     });
@@ -23,19 +25,24 @@
       entry: catalog.get(course.id),
       reports: [
         ...(catalog.has(course.id) ? [{ label: '試験日程の誤りを報告', category: '試験日程の誤り' }] : []),
-        { label: 'この科目の情報を報告', category: '科目情報の誤り' }
-      ].map(report => ({ ...report, url: reportUrl(course, report.category) }))
+        { label: 'この科目の情報を報告', category: '科目情報の誤り' },
+      ].map((report) => ({ ...report, url: reportUrl(course, report.category) })),
     };
   }
 
   function detail(course) {
     const { entry, reports } = getDetail(course);
     const schedule = entry
-      ? `<section><h5>${MESSAGES.title}</h5><p>${MESSAGES.notice}</p><ul>${entry.examSlots.map(slot =>
-        `<li>${escapeHTML(slot.date)} ${slot.period}限</li>`).join('')}</ul></section>`
-      : failed ? `<p>${MESSAGES.error}</p>` : '';
-    return schedule + reports.map(report =>
-      `<p><a href="${escapeHTML(report.url)}">${report.label}</a></p>`).join('');
+      ? `<section><h5>${MESSAGES.title}</h5><p>${MESSAGES.notice}</p><ul>${entry.examSlots
+          .map((slot) => `<li>${escapeHTML(slot.date)} ${slot.period}限</li>`)
+          .join('')}</ul></section>`
+      : failed
+        ? `<p>${MESSAGES.error}</p>`
+        : '';
+    return (
+      schedule +
+      reports.map((report) => `<p><a href="${escapeHTML(report.url)}">${report.label}</a></p>`).join('')
+    );
   }
 
   function appendDetail(host, course) {
@@ -67,11 +74,17 @@
     enrolledIds = [...new Set(ids)];
     const host = root.document.getElementById('exam-list');
     if (!host) return;
-    if (failed) { host.textContent = MESSAGES.error; return; }
+    if (failed) {
+      host.textContent = MESSAGES.error;
+      return;
+    }
     const query = root.document.getElementById('exam-search')?.value || '';
     const rows = getEnrollmentRows(catalog, enrolledIds, query);
     host.replaceChildren();
-    if (!rows.length) { host.textContent = MESSAGES.empty; return; }
+    if (!rows.length) {
+      host.textContent = MESSAGES.empty;
+      return;
+    }
     const fragment = host.ownerDocument.createDocumentFragment();
     let previousDate;
     for (const row of rows) {

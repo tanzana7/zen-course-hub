@@ -1,0 +1,17 @@
+node_modules/
+netlify-dist/
+tmp/
+docs/qa/
+# Reference datasets retain the exact reviewed source representation.
+*.json
+!package.json
+!.prettierrc.json
+!package-lock.json
+
+# Generated single-request stylesheet; edit src/styles/.
+style.css
+
+# Historical release evidence and domain verification are immutable references.
+docs/curriculum*.md
+docs/exam-feedback-validation.md
+google*.html

@@ -1,60 +1,114 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="robots" content="noindex">
-  <title>カリキュラムマップ | ZEN履修登録Hub</title>
-  <link rel="stylesheet" href="curriculum-map.css">
-  <script defer src="curriculum-config.js"></script>
-  <script defer src="quality-utils.js"></script>
-  <script defer src="exam-schedule.js"></script>
-<script defer src="exam-feedback.js"></script>
-  <script defer src="curriculum-map.js"></script>
-</head>
-<body>
-  <main id="map-app" hidden>
-    <div id="map-viewport" tabindex="0" aria-label="カリキュラムマップ。矢印キーで移動、プラス・マイナスで拡大縮小">
-      <div id="map-world"><div id="map-background"></div><svg id="map-relations" aria-hidden="true"></svg><div id="map-courses"></div></div>
-    </div>
-    <header class="map-toolbar">
-      <button id="map-menu-toggle" class="icon-button" type="button" aria-label="メニュー" aria-expanded="false" aria-controls="map-menu">☰</button>
-      <form id="map-search-form" role="search">
-        <input id="map-search" type="search" placeholder="科目を検索" aria-label="科目を検索" autocomplete="off" aria-controls="map-search-results">
-        <button class="icon-button" type="submit" aria-label="検索">⌕</button>
-      </form>
-      <button id="map-enrollment-toggle" type="button" aria-controls="map-drawer" aria-expanded="false">マイ履修 <span id="map-enrollment-count">0</span></button>
-      <div id="map-search-results" hidden role="region" aria-label="検索結果"></div>
-    </header>
-    <output id="map-location" aria-label="表示中の領域"></output>
-    <nav id="map-menu" class="map-menu" hidden aria-label="マップメニュー">
-      <h1>カリキュラムマップ</h1>
-      <a href="feedback.html">ご意見・不具合報告</a>
-      <a id="map-back" href="index.html">ホームに戻る</a>
-      <div class="year-actions" aria-label="学年へ移動">
-        <button type="button" data-map-year="1">1年次</button><button type="button" data-map-year="2">2年次</button><button type="button" data-map-year="3">3年次</button><button type="button" data-map-year="4">4年次</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex" />
+    <title>カリキュラムマップ | ZEN履修登録Hub</title>
+    <link rel="stylesheet" href="curriculum-map.css" />
+    <script defer src="curriculum-config.js"></script>
+    <script defer src="quality-utils.js"></script>
+    <script defer src="exam-schedule.js"></script>
+    <script defer src="exam-feedback.js"></script>
+    <script defer src="src/features/map/geometry.js"></script>
+    <script defer src="curriculum-map.js"></script>
+  </head>
+  <body>
+    <main id="map-app" hidden>
+      <div
+        id="map-viewport"
+        tabindex="0"
+        aria-label="カリキュラムマップ。矢印キーで移動、プラス・マイナスで拡大縮小"
+      >
+        <div id="map-world">
+          <div id="map-background"></div>
+          <svg id="map-relations" aria-hidden="true"></svg>
+          <div id="map-courses"></div>
+        </div>
       </div>
-      <label>分野<select id="map-field"><option value="">すべて</option></select></label>
-      <label>参考関係線<select id="map-relation-mode"><option value="off">OFF</option><option value="selected">選択科目</option><option value="all">すべて</option></select></label>
-      <p>非公式ツール。正式な履修登録は大学のシステムで行ってください。</p>
-      <p>参考関係線は公式の履修前提条件ではありません。</p>
-      <a href="https://zen.ac.jp/academics" target="_blank" rel="noopener noreferrer">大学公式情報</a>
-      <small>配置参考：公式カリキュラム図。開講情報は各科目のシラバスをご確認ください。</small>
-    </nav>
-    <div class="map-zoom" aria-label="表示倍率">
-      <button id="map-zoom-out" class="icon-button" type="button" aria-label="縮小">−</button>
-      <output id="map-zoom-value" aria-label="現在の倍率">100%</output>
-      <button id="map-zoom-in" class="icon-button" type="button" aria-label="拡大">＋</button>
-      <button id="map-normal" type="button">等倍</button>
-      <button id="map-fit" type="button">全体表示</button>
-    </div>
-    <div id="map-status" role="status" aria-live="polite" hidden></div>
-    <aside id="map-drawer" class="map-drawer" role="dialog" aria-modal="false" aria-labelledby="map-drawer-title" hidden>
-      <header><h2 id="map-drawer-title">マイ履修</h2><button id="map-drawer-close" class="icon-button" type="button" aria-label="閉じる">×</button></header>
-      <div id="map-drawer-content"></div>
-    </aside>
-    <div id="map-drop-target" hidden role="region" aria-label="履修予定に追加">履修予定に追加</div>
-  </main>
-  <section id="map-unavailable" class="unavailable"><h1>カリキュラムマップ</h1><p id="map-loading-message">読み込み中…</p><a href="index.html">ホームに戻る</a></section>
-</body>
+      <header class="map-toolbar">
+        <button
+          id="map-menu-toggle"
+          class="icon-button"
+          type="button"
+          aria-label="メニュー"
+          aria-expanded="false"
+          aria-controls="map-menu"
+        >
+          ☰
+        </button>
+        <form id="map-search-form" role="search">
+          <input
+            id="map-search"
+            type="search"
+            placeholder="科目を検索"
+            aria-label="科目を検索"
+            autocomplete="off"
+            aria-controls="map-search-results"
+          />
+          <button class="icon-button" type="submit" aria-label="検索">⌕</button>
+        </form>
+        <button id="map-enrollment-toggle" type="button" aria-controls="map-drawer" aria-expanded="false">
+          マイ履修 <span id="map-enrollment-count">0</span>
+        </button>
+        <div id="map-search-results" hidden role="region" aria-label="検索結果"></div>
+      </header>
+      <output id="map-location" aria-label="表示中の領域"></output>
+      <nav id="map-menu" class="map-menu" hidden aria-label="マップメニュー">
+        <h1>カリキュラムマップ</h1>
+        <a href="feedback.html">ご意見・不具合報告</a>
+        <a id="map-back" href="index.html">ホームに戻る</a>
+        <div class="year-actions" aria-label="学年へ移動">
+          <button type="button" data-map-year="1">1年次</button
+          ><button type="button" data-map-year="2">2年次</button
+          ><button type="button" data-map-year="3">3年次</button
+          ><button type="button" data-map-year="4">4年次</button>
+        </div>
+        <label
+          >分野<select id="map-field">
+            <option value="">すべて</option>
+          </select></label
+        >
+        <label
+          >参考関係線<select id="map-relation-mode">
+            <option value="off">OFF</option>
+            <option value="selected">選択科目</option>
+            <option value="all">すべて</option>
+          </select></label
+        >
+        <p>非公式ツール。正式な履修登録は大学のシステムで行ってください。</p>
+        <p>参考関係線は公式の履修前提条件ではありません。</p>
+        <a href="https://zen.ac.jp/academics" target="_blank" rel="noopener noreferrer">大学公式情報</a>
+        <small>配置参考：公式カリキュラム図。開講情報は各科目のシラバスをご確認ください。</small>
+      </nav>
+      <div class="map-zoom" aria-label="表示倍率">
+        <button id="map-zoom-out" class="icon-button" type="button" aria-label="縮小">−</button>
+        <output id="map-zoom-value" aria-label="現在の倍率">100%</output>
+        <button id="map-zoom-in" class="icon-button" type="button" aria-label="拡大">＋</button>
+        <button id="map-normal" type="button">等倍</button>
+        <button id="map-fit" type="button">全体表示</button>
+      </div>
+      <div id="map-status" role="status" aria-live="polite" hidden></div>
+      <aside
+        id="map-drawer"
+        class="map-drawer"
+        role="dialog"
+        aria-modal="false"
+        aria-labelledby="map-drawer-title"
+        hidden
+      >
+        <header>
+          <h2 id="map-drawer-title">マイ履修</h2>
+          <button id="map-drawer-close" class="icon-button" type="button" aria-label="閉じる">×</button>
+        </header>
+        <div id="map-drawer-content"></div>
+      </aside>
+      <div id="map-drop-target" hidden role="region" aria-label="履修予定に追加">履修予定に追加</div>
+    </main>
+    <section id="map-unavailable" class="unavailable">
+      <h1>カリキュラムマップ</h1>
+      <p id="map-loading-message">読み込み中…</p>
+      <a href="index.html">ホームに戻る</a>
+    </section>
+  </body>
 </html>

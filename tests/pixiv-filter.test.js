@@ -1,9 +1,11 @@
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import test from 'node:test';
+const path = require('node:path');
+const hubSource = require('./helpers/hub-source.cjs');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const test = require('node:test');
 
-const courses = JSON.parse(fs.readFileSync(new URL('../courses.json', import.meta.url), 'utf8'));
-const appSource = fs.readFileSync(new URL('../app.js', import.meta.url), 'utf8');
+const courses = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../courses.json'), 'utf8'));
+const appSource = hubSource.readHubSource();
 
 const expectedPixivIds = [
   'digital_image_tech_1',
@@ -25,7 +27,7 @@ const expectedPixivIds = [
   'illustration_apps_a',
   'illustration_apps_b',
   'illustration_apps_c',
-  'illustration_apps_d'
+  'illustration_apps_d',
 ].sort();
 
 test('pixiv provider is assigned to exactly the confirmed 20 courses', () => {

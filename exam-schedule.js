@@ -3,24 +3,35 @@
   const api = factory();
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.ZenExamSchedule = api;
-}(typeof globalThis !== 'undefined' ? globalThis : this, () => {
+})(typeof globalThis !== 'undefined' ? globalThis : this, () => {
   const MESSAGES = Object.freeze({
     title: '試験日程（2027年2月・4Q）',
     notice: '日程は変更される可能性があります。',
     error: '試験日程を読み込めません。再読み込みしてください。',
     empty: '該当する試験日程はありません。',
-    collision: ' — 同じ日時に複数科目の候補があります'
+    collision: ' — 同じ日時に複数科目の候補があります',
   });
 
   function createCatalog(data) {
     if (!Array.isArray(data?.matched)) throw new TypeError('Invalid exam catalog');
     const catalog = new Map();
     for (const record of data.matched) {
-      if (!record || typeof record.courseId !== 'string' || !record.courseId ||
-          typeof record.courseName !== 'string' || catalog.has(record.courseId) ||
-          !Array.isArray(record.examSlots) || record.examSlots.some(slot =>
-            !slot || !/^2027-02-\d{2}$/.test(slot.date) ||
-            !Number.isInteger(slot.period) || slot.period < 1 || slot.period > 7)) {
+      if (
+        !record ||
+        typeof record.courseId !== 'string' ||
+        !record.courseId ||
+        typeof record.courseName !== 'string' ||
+        catalog.has(record.courseId) ||
+        !Array.isArray(record.examSlots) ||
+        record.examSlots.some(
+          (slot) =>
+            !slot ||
+            !/^2027-02-\d{2}$/.test(slot.date) ||
+            !Number.isInteger(slot.period) ||
+            slot.period < 1 ||
+            slot.period > 7,
+        )
+      ) {
         throw new TypeError('Invalid exam record');
       }
       catalog.set(record.courseId, record);
@@ -43,10 +54,15 @@
         rows.push({ ...slot, courseId: id, courseName: course.courseName, key });
       }
     }
-    return rows.filter(row => row.courseName.includes(query.trim()))
+    return rows
+      .filter((row) => row.courseName.includes(query.trim()))
       .map(({ key, ...row }) => ({ ...row, collision: groups.get(key).size > 1 }))
-      .sort((a, b) => a.date.localeCompare(b.date) || a.period - b.period ||
-        a.courseName.localeCompare(b.courseName, 'ja'));
+      .sort(
+        (a, b) =>
+          a.date.localeCompare(b.date) ||
+          a.period - b.period ||
+          a.courseName.localeCompare(b.courseName, 'ja'),
+      );
   }
 
   function reportUrl(course, category) {
@@ -54,4 +70,4 @@
   }
 
   return { MESSAGES, createCatalog, getEnrollmentRows, reportUrl };
-}));
+});

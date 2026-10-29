@@ -7,7 +7,7 @@
 
   function prefillCategory() {
     const category = params.get('category');
-    if ([...form.elements.category.options].some(option => option.value === category)) {
+    if ([...form.elements.category.options].some((option) => option.value === category)) {
       form.elements.category.value = category;
     }
   }
@@ -20,7 +20,7 @@
       const courses = await response.json();
       if (!Array.isArray(courses)) throw new TypeError('Invalid course catalog');
       // Never trust the subject supplied by a URL; derive it from the existing catalog ID.
-      const course = courses.find(item => item.id === params.get('courseId'));
+      const course = courses.find((item) => item.id === params.get('courseId'));
       if (course) {
         form.elements.courseId.value = course.id;
         form.elements.courseName.value = course.subject;
@@ -35,7 +35,7 @@
   prefillCourse();
   // Native POST delegates acceptance and the result page to Netlify.
   // A local preview must never claim that the service accepted a submission.
-  form.addEventListener('submit', event => {
+  form.addEventListener('submit', (event) => {
     if (['localhost', '127.0.0.1'].includes(root.location.hostname) || root.location.protocol === 'file:') {
       event.preventDefault();
       status.textContent = 'この環境では送信できません。公開サイトから送信してください。';

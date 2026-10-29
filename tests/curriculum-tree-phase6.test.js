@@ -15,7 +15,12 @@ test('phase 6 records every catalog course with a visually verified placement', 
   assert.equal(new Set(placements.map((entry) => entry.courseId)).size, placements.length);
   assert.ok(placements.every((entry) => ids.has(entry.courseId)));
   assert.ok(placements.every((entry) => entry.confidence === 'confirmed'));
-  assert.equal(placements.filter((entry) => entry.verificationDpi === 200 && entry.verificationNote === 'Phase 6 direct regional render').length, 145);
+  assert.equal(
+    placements.filter(
+      (entry) => entry.verificationDpi === 200 && entry.verificationNote === 'Phase 6 direct regional render',
+    ).length,
+    145,
+  );
 });
 
 test('phase 6 placement geometry is normalized and complete', () => {
@@ -33,6 +38,10 @@ test('phase 6 placement geometry is normalized and complete', () => {
 test('phase 6 keeps PDF-only labels separate from catalog IDs', () => {
   assert.deepEqual(layout.pdfOnlySubjects, ['日本文学Ⅱ', '文化人類学Ⅱ', '人生設計とお金の管理']);
   const ids = new Set(courses.map((course) => course.id));
-  assert.ok(layout.pdfOnlySubjects.every((subject) => !layout.coursePlacements.some((entry) => entry.courseId === subject)));
+  assert.ok(
+    layout.pdfOnlySubjects.every(
+      (subject) => !layout.coursePlacements.some((entry) => entry.courseId === subject),
+    ),
+  );
   assert.ok(layout.coursePlacements.every((entry) => ids.has(entry.courseId)));
 });

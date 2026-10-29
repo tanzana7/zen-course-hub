@@ -47,7 +47,7 @@ test('curriculum relations preserve strong and normal recommendation distinction
 
 test('curriculum tree is wired to the existing planned-state storage and accessible actions', () => {
   const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+  const app = require('./helpers/hub-source.cjs').readHubSource();
 
   assert.match(index, /id="curriculum-tree-view"/);
   assert.match(index, /id="curriculum-drop-zone"/);
