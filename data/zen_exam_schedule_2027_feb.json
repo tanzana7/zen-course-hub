@@ -1,0 +1,1190 @@
+{
+  "source": "User-supplied examination timetable in conversation",
+  "yearMonth": "2027-02",
+  "notes": [
+    "Three dates per course are reproduced in source-column order; their official roles are not specified.",
+    "Unlabeled 60/90 column is recorded without assuming the unit or meaning.",
+    "Period numbers do not imply a start/end clock time.",
+    "Verify updates against official announcements before relying on these dates."
+  ],
+  "courses": [
+    {
+      "courseCode": "011A120044",
+      "courseName": "デジタルツールの使い方",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 4
+        },
+        {
+          "date": "2027-02-19",
+          "period": 6
+        },
+        {
+          "date": "2027-02-21",
+          "period": 1
+        }
+      ]
+    },
+    {
+      "courseCode": "011A120074",
+      "courseName": "経済入門",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 7
+        },
+        {
+          "date": "2027-02-17",
+          "period": 2
+        },
+        {
+          "date": "2027-02-20",
+          "period": 3
+        }
+      ]
+    },
+    {
+      "courseCode": "021B120024",
+      "courseName": "情報倫理と法",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 6
+        },
+        {
+          "date": "2027-02-18",
+          "period": 4
+        },
+        {
+          "date": "2027-02-21",
+          "period": 3
+        }
+      ]
+    },
+    {
+      "courseCode": "021B120034",
+      "courseName": "データサイエンス概論",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 7
+        },
+        {
+          "date": "2027-02-19",
+          "period": 1
+        },
+        {
+          "date": "2027-02-20",
+          "period": 2
+        }
+      ]
+    },
+    {
+      "courseCode": "021B120044",
+      "courseName": "数学的思考とは何か",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 3
+        },
+        {
+          "date": "2027-02-19",
+          "period": 7
+        },
+        {
+          "date": "2027-02-21",
+          "period": 4
+        }
+      ]
+    },
+    {
+      "courseCode": "021B120064",
+      "courseName": "現代社会とサイエンス",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 4
+        },
+        {
+          "date": "2027-02-20",
+          "period": 6
+        },
+        {
+          "date": "2027-02-22",
+          "period": 7
+        }
+      ]
+    },
+    {
+      "courseCode": "021B120104",
+      "courseName": "心理学",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 5
+        },
+        {
+          "date": "2027-02-18",
+          "period": 6
+        },
+        {
+          "date": "2027-02-21",
+          "period": 6
+        }
+      ]
+    },
+    {
+      "courseCode": "021B120124",
+      "courseName": "法学Ⅰ",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-18",
+          "period": 7
+        },
+        {
+          "date": "2027-02-21",
+          "period": 3
+        },
+        {
+          "date": "2027-02-22",
+          "period": 5
+        }
+      ]
+    },
+    {
+      "courseCode": "021B120144",
+      "courseName": "企業経営",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-18",
+          "period": 2
+        },
+        {
+          "date": "2027-02-19",
+          "period": 6
+        },
+        {
+          "date": "2027-02-20",
+          "period": 1
+        }
+      ]
+    },
+    {
+      "courseCode": "021B120154",
+      "courseName": "地域アントレプレナーシップ",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-19",
+          "period": 5
+        },
+        {
+          "date": "2027-02-21",
+          "period": 4
+        },
+        {
+          "date": "2027-02-22",
+          "period": 6
+        }
+      ]
+    },
+    {
+      "courseCode": "021B120164",
+      "courseName": "地域課題の解決とイノベーション",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 6
+        },
+        {
+          "date": "2027-02-20",
+          "period": 2
+        },
+        {
+          "date": "2027-02-22",
+          "period": 1
+        }
+      ]
+    },
+    {
+      "courseCode": "031C120034",
+      "courseName": "Webアプリケーション開発2",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 1
+        },
+        {
+          "date": "2027-02-18",
+          "period": 7
+        },
+        {
+          "date": "2027-02-20",
+          "period": 4
+        }
+      ]
+    },
+    {
+      "courseCode": "031C120044",
+      "courseName": "Pythonプログラミング",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 3
+        },
+        {
+          "date": "2027-02-21",
+          "period": 7
+        },
+        {
+          "date": "2027-02-22",
+          "period": 7
+        }
+      ]
+    },
+    {
+      "courseCode": "031C120054",
+      "courseName": "Webユーザーエクスペリエンス",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-19",
+          "period": 7
+        },
+        {
+          "date": "2027-02-21",
+          "period": 1
+        },
+        {
+          "date": "2027-02-22",
+          "period": 3
+        }
+      ]
+    },
+    {
+      "courseCode": "041C120014",
+      "courseName": "数学の方法",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-18",
+          "period": 1
+        },
+        {
+          "date": "2027-02-19",
+          "period": 6
+        },
+        {
+          "date": "2027-02-20",
+          "period": 2
+        }
+      ]
+    },
+    {
+      "courseCode": "041C120024",
+      "courseName": "逆さ科学史",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 2
+        },
+        {
+          "date": "2027-02-20",
+          "period": 7
+        },
+        {
+          "date": "2027-02-22",
+          "period": 6
+        }
+      ]
+    },
+    {
+      "courseCode": "041C120054",
+      "courseName": "解析学1",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-18",
+          "period": 6
+        },
+        {
+          "date": "2027-02-21",
+          "period": 3
+        },
+        {
+          "date": "2027-02-22",
+          "period": 1
+        }
+      ]
+    },
+    {
+      "courseCode": "041C120074",
+      "courseName": "解析学2",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 6
+        },
+        {
+          "date": "2027-02-18",
+          "period": 3
+        },
+        {
+          "date": "2027-02-21",
+          "period": 6
+        }
+      ]
+    },
+    {
+      "courseCode": "041C120084",
+      "courseName": "グラフ理論",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 7
+        },
+        {
+          "date": "2027-02-19",
+          "period": 3
+        },
+        {
+          "date": "2027-02-20",
+          "period": 5
+        }
+      ]
+    },
+    {
+      "courseCode": "061C120034",
+      "courseName": "哲学概論",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 5
+        },
+        {
+          "date": "2027-02-19",
+          "period": 6
+        },
+        {
+          "date": "2027-02-21",
+          "period": 2
+        }
+      ]
+    },
+    {
+      "courseCode": "061C120044",
+      "courseName": "公共哲学",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 6
+        },
+        {
+          "date": "2027-02-19",
+          "period": 4
+        },
+        {
+          "date": "2027-02-20",
+          "period": 5
+        }
+      ]
+    },
+    {
+      "courseCode": "061C120054",
+      "courseName": "マンガ絵コンテから学ぶ視覚表現",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-18",
+          "period": 2
+        },
+        {
+          "date": "2027-02-20",
+          "period": 3
+        },
+        {
+          "date": "2027-02-22",
+          "period": 7
+        }
+      ]
+    },
+    {
+      "courseCode": "061C120064",
+      "courseName": "近・現代アート概論",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 6
+        },
+        {
+          "date": "2027-02-21",
+          "period": 5
+        },
+        {
+          "date": "2027-02-22",
+          "period": 4
+        }
+      ]
+    },
+    {
+      "courseCode": "071C120024",
+      "courseName": "地域研究",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 6
+        },
+        {
+          "date": "2027-02-20",
+          "period": 4
+        },
+        {
+          "date": "2027-02-22",
+          "period": 2
+        }
+      ]
+    },
+    {
+      "courseCode": "071C120034",
+      "courseName": "意思決定の能力開発",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-18",
+          "period": 1
+        },
+        {
+          "date": "2027-02-20",
+          "period": 6
+        },
+        {
+          "date": "2027-02-22",
+          "period": 7
+        }
+      ]
+    },
+    {
+      "courseCode": "071C120044",
+      "courseName": "共創地球論",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 7
+        },
+        {
+          "date": "2027-02-19",
+          "period": 4
+        },
+        {
+          "date": "2027-02-20",
+          "period": 5
+        }
+      ]
+    },
+    {
+      "courseCode": "071C120054",
+      "courseName": "情報社会の総合安全保障",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 7
+        },
+        {
+          "date": "2027-02-19",
+          "period": 1
+        },
+        {
+          "date": "2027-02-21",
+          "period": 5
+        }
+      ]
+    },
+    {
+      "courseCode": "081C120024",
+      "courseName": "マルクス経済学",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 1
+        },
+        {
+          "date": "2027-02-18",
+          "period": 7
+        },
+        {
+          "date": "2027-02-21",
+          "period": 2
+        }
+      ]
+    },
+    {
+      "courseCode": "091B120034",
+      "courseName": "アニメ産業史",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 3
+        },
+        {
+          "date": "2027-02-19",
+          "period": 7
+        },
+        {
+          "date": "2027-02-20",
+          "period": 7
+        }
+      ]
+    },
+    {
+      "courseCode": "091B120044",
+      "courseName": "日本のゲーム産業史",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 2
+        },
+        {
+          "date": "2027-02-17",
+          "period": 7
+        },
+        {
+          "date": "2027-02-21",
+          "period": 7
+        }
+      ]
+    },
+    {
+      "courseCode": "101C120014",
+      "courseName": "キャリアデザインⅠ（自己理解）",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 3
+        },
+        {
+          "date": "2027-02-20",
+          "period": 7
+        },
+        {
+          "date": "2027-02-22",
+          "period": 6
+        }
+      ]
+    },
+    {
+      "courseCode": "101C120034",
+      "courseName": "英語コミュニケーションⅡ（日常会話）",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 1
+        },
+        {
+          "date": "2027-02-18",
+          "period": 6
+        },
+        {
+          "date": "2027-02-20",
+          "period": 3
+        }
+      ]
+    },
+    {
+      "courseCode": "101C120044",
+      "courseName": "対人コミュニケーション論",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 7
+        },
+        {
+          "date": "2027-02-19",
+          "period": 2
+        },
+        {
+          "date": "2027-02-21",
+          "period": 4
+        }
+      ]
+    },
+    {
+      "courseCode": "091C250053",
+      "courseName": "二次創作の歴史から見るネット文化",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-18",
+          "period": 7
+        },
+        {
+          "date": "2027-02-19",
+          "period": 5
+        },
+        {
+          "date": "2027-02-20",
+          "period": 1
+        }
+      ]
+    },
+    {
+      "courseCode": "021A230073",
+      "courseName": "多言語ITコミュニケーション",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-18",
+          "period": 5
+        },
+        {
+          "date": "2027-02-20",
+          "period": 4
+        },
+        {
+          "date": "2027-02-22",
+          "period": 6
+        }
+      ]
+    },
+    {
+      "courseCode": "032C120074",
+      "courseName": "JavaScriptによる自動化、効率化",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 3
+        },
+        {
+          "date": "2027-02-19",
+          "period": 6
+        },
+        {
+          "date": "2027-02-20",
+          "period": 1
+        }
+      ]
+    },
+    {
+      "courseCode": "032C120084",
+      "courseName": "情報処理概論",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 7
+        },
+        {
+          "date": "2027-02-18",
+          "period": 5
+        },
+        {
+          "date": "2027-02-21",
+          "period": 4
+        }
+      ]
+    },
+    {
+      "courseCode": "032C120094",
+      "courseName": "コンピュータ概論",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 6
+        },
+        {
+          "date": "2027-02-20",
+          "period": 3
+        },
+        {
+          "date": "2027-02-22",
+          "period": 2
+        }
+      ]
+    },
+    {
+      "courseCode": "032C120104",
+      "courseName": "Webアプリケーション開発4",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 4
+        },
+        {
+          "date": "2027-02-18",
+          "period": 6
+        },
+        {
+          "date": "2027-02-20",
+          "period": 7
+        }
+      ]
+    },
+    {
+      "courseCode": "032C120154",
+      "courseName": "R言語プログラミング",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-19",
+          "period": 2
+        },
+        {
+          "date": "2027-02-21",
+          "period": 6
+        },
+        {
+          "date": "2027-02-22",
+          "period": 6
+        }
+      ]
+    },
+    {
+      "courseCode": "042C120014",
+      "courseName": "数理構造の発見と活用",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 6
+        },
+        {
+          "date": "2027-02-19",
+          "period": 5
+        },
+        {
+          "date": "2027-02-21",
+          "period": 1
+        }
+      ]
+    },
+    {
+      "courseCode": "042C120034",
+      "courseName": "記号論理",
+      "unlabeledNumericValue": 90,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 5
+        },
+        {
+          "date": "2027-02-18",
+          "period": 7
+        },
+        {
+          "date": "2027-02-21",
+          "period": 2
+        }
+      ]
+    },
+    {
+      "courseCode": "042C120074",
+      "courseName": "日常に現れる物理学",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 7
+        },
+        {
+          "date": "2027-02-20",
+          "period": 4
+        },
+        {
+          "date": "2027-02-22",
+          "period": 3
+        }
+      ]
+    },
+    {
+      "courseCode": "062C120044",
+      "courseName": "日本文学Ⅱ",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 5
+        },
+        {
+          "date": "2027-02-19",
+          "period": 7
+        },
+        {
+          "date": "2027-02-21",
+          "period": 7
+        }
+      ]
+    },
+    {
+      "courseCode": "062C120054",
+      "courseName": "文化人類学Ⅱ",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-19",
+          "period": 4
+        },
+        {
+          "date": "2027-02-21",
+          "period": 3
+        },
+        {
+          "date": "2027-02-22",
+          "period": 7
+        }
+      ]
+    },
+    {
+      "courseCode": "062C120064",
+      "courseName": "民俗学",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 1
+        },
+        {
+          "date": "2027-02-18",
+          "period": 7
+        },
+        {
+          "date": "2027-02-20",
+          "period": 5
+        }
+      ]
+    },
+    {
+      "courseCode": "062C120074",
+      "courseName": "日本科学史",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 6
+        },
+        {
+          "date": "2027-02-19",
+          "period": 3
+        },
+        {
+          "date": "2027-02-20",
+          "period": 2
+        }
+      ]
+    },
+    {
+      "courseCode": "062C120084",
+      "courseName": "芸術と文化資本Ⅰ",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 7
+        },
+        {
+          "date": "2027-02-17",
+          "period": 2
+        },
+        {
+          "date": "2027-02-20",
+          "period": 6
+        }
+      ]
+    },
+    {
+      "courseCode": "072C120094",
+      "courseName": "社会学Ⅱ",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-18",
+          "period": 2
+        },
+        {
+          "date": "2027-02-20",
+          "period": 1
+        },
+        {
+          "date": "2027-02-22",
+          "period": 6
+        }
+      ]
+    },
+    {
+      "courseCode": "082C120024",
+      "courseName": "ミクロ経済学",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 4
+        },
+        {
+          "date": "2027-02-18",
+          "period": 6
+        },
+        {
+          "date": "2027-02-20",
+          "period": 7
+        }
+      ]
+    },
+    {
+      "courseCode": "082C120034",
+      "courseName": "企業経営とファイナンス",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 1
+        },
+        {
+          "date": "2027-02-20",
+          "period": 4
+        },
+        {
+          "date": "2027-02-22",
+          "period": 7
+        }
+      ]
+    },
+    {
+      "courseCode": "082C120044",
+      "courseName": "デジタル・マーケティング",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 6
+        },
+        {
+          "date": "2027-02-18",
+          "period": 1
+        },
+        {
+          "date": "2027-02-20",
+          "period": 3
+        }
+      ]
+    },
+    {
+      "courseCode": "082C120054",
+      "courseName": "スタートアップ",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 3
+        },
+        {
+          "date": "2027-02-19",
+          "period": 7
+        },
+        {
+          "date": "2027-02-21",
+          "period": 1
+        }
+      ]
+    },
+    {
+      "courseCode": "082C120064",
+      "courseName": "農業とデジタルテクノロジー",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 7
+        },
+        {
+          "date": "2027-02-19",
+          "period": 1
+        },
+        {
+          "date": "2027-02-21",
+          "period": 7
+        }
+      ]
+    },
+    {
+      "courseCode": "082C120074",
+      "courseName": "交渉・合意形成概論",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 7
+        },
+        {
+          "date": "2027-02-21",
+          "period": 5
+        },
+        {
+          "date": "2027-02-22",
+          "period": 4
+        }
+      ]
+    },
+    {
+      "courseCode": "102C120024",
+      "courseName": "キャリアデザインⅢ（就活実践）",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 6
+        },
+        {
+          "date": "2027-02-20",
+          "period": 6
+        },
+        {
+          "date": "2027-02-22",
+          "period": 1
+        }
+      ]
+    },
+    {
+      "courseCode": "102C120034",
+      "courseName": "人生設計とお金の管理",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-18",
+          "period": 4
+        },
+        {
+          "date": "2027-02-19",
+          "period": 6
+        },
+        {
+          "date": "2027-02-21",
+          "period": 3
+        }
+      ]
+    },
+    {
+      "courseCode": "062C120094",
+      "courseName": "生命科学論　ー動的平衡の視点から「生命とはなにか」を哲学するー",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 6
+        },
+        {
+          "date": "2027-02-21",
+          "period": 6
+        },
+        {
+          "date": "2027-02-22",
+          "period": 5
+        }
+      ]
+    },
+    {
+      "courseCode": "072C120104",
+      "courseName": "日本政治外交史",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-16",
+          "period": 2
+        },
+        {
+          "date": "2027-02-19",
+          "period": 7
+        },
+        {
+          "date": "2027-02-21",
+          "period": 4
+        }
+      ]
+    },
+    {
+      "courseCode": "052B250033",
+      "courseName": "機械翻訳実践（異文化理解）",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-18",
+          "period": 3
+        },
+        {
+          "date": "2027-02-20",
+          "period": 5
+        },
+        {
+          "date": "2027-02-22",
+          "period": 7
+        }
+      ]
+    },
+    {
+      "courseCode": "052B250043",
+      "courseName": "機械翻訳実践（自然科学）",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 5
+        },
+        {
+          "date": "2027-02-18",
+          "period": 7
+        },
+        {
+          "date": "2027-02-21",
+          "period": 2
+        }
+      ]
+    },
+    {
+      "courseCode": "052B250053",
+      "courseName": "機械翻訳実践（日本研究）",
+      "unlabeledNumericValue": 60,
+      "examSlots": [
+        {
+          "date": "2027-02-17",
+          "period": 7
+        },
+        {
+          "date": "2027-02-19",
+          "period": 3
+        },
+        {
+          "date": "2027-02-21",
+          "period": 5
+        }
+      ]
+    }
+  ]
+}

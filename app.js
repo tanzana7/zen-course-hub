@@ -6,6 +6,7 @@
 const CURRICULUM_TREE_PUBLIC_ENABLED = window.CurriculumAccess?.publicEnabled === true;
 
 document.addEventListener('DOMContentLoaded', async () => {
+  if (window.ZenExam) await window.ZenExam.ready;
   const list = document.getElementById('list');
   const completedList = document.getElementById('completed-list');
   const predefinedList = document.getElementById('predefined-classes-list');
@@ -993,6 +994,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ${course.teacher ? `<div><dt>担当</dt><dd>${escapeHTML(course.teacher)}</dd></div>` : ''}
         ${difficulty ? `<div><dt>難易度</dt><dd>${difficulty.average.toFixed(2)} / 10.0（${difficulty.votes}票）<br><a href="${escapeHTML(difficulty.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHTML(difficulty.sourceLabel)}</a></dd></div>` : ''}
       </dl>
+      ${window.ZenExam.detail(course)}
       ${course.description ? `<section class="simulator-course-detail-description"><h3>概要</h3><p>${escapeHTML(course.description)}</p></section>` : ''}
       <section class="simulator-course-detail-warnings" aria-labelledby="simulator-course-detail-warning-title">
         <h3 id="simulator-course-detail-warning-title">前提科目</h3>
@@ -1560,6 +1562,7 @@ document.addEventListener('DOMContentLoaded', async () => {
    * データを保存して再描画する
    */
   const renderList = () => {
+    window.ZenExam?.renderEnrollment([...state.registeredClasses, ...state.completedClasses]);
     list.innerHTML = '';
     completedList.innerHTML = '';
 
@@ -1690,6 +1693,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         <p class="evaluation"><strong>評価方法:</strong> ${escapeHTML(data.evaluation)}</p>
         ${safeSyllabusUrl ? `<p><a href="${escapeHTML(safeSyllabusUrl)}" target="_blank" rel="noopener noreferrer" class="syllabus-link" title="ZEN大学シラバスサイトの該当ページを開きます">ZEN大学シラバスで詳細を確認</a></p>` : ''}
         <p class="description"><strong>授業概要:</strong> ${escapeHTML(data.description)}</p>
+        ${window.ZenExam.detail(data)}
         ${difficultyHtml}
         ${relationsHtml}
       </div>

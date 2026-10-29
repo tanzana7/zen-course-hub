@@ -25,7 +25,9 @@ test('root publish candidate contains every runtime asset referenced by the app'
 test('development evidence is outside the root runtime asset set', () => {
   assert.equal(fs.existsSync(path.join(root, 'docs')), true);
   assert.equal(fs.existsSync(path.join(root, 'tests')), true);
-  assert.equal(fs.existsSync(path.join(root, 'tmp')), true);
+  // Git does not preserve empty directories; create the QA workspace on fresh clones.
+  fs.mkdirSync(path.join(root, 'tmp'), { recursive: true });
+  assert.equal(fs.statSync(path.join(root, 'tmp')).isDirectory(), true);
   assert.deepEqual(fs.readdirSync(path.join(root, 'tmp')), []);
   assert.equal(fs.readdirSync(path.join(root, 'docs', 'qa')).some((name) => name.includes('phase13')), true);
   assert.equal(fs.readdirSync(root, { withFileTypes: true }).some((entry) => entry.isFile() && entry.name.toLowerCase().endsWith('.pdf')), false);

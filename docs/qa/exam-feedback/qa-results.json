@@ -1,0 +1,17 @@
+{
+  "viewports": [
+    {
+      "width": 1280,
+      "result": "PASS"
+    },
+    {
+      "width": 390,
+      "result": "PASS"
+    }
+  ],
+  "exceptions": [],
+  "failedRequests": [
+    "net::ERR_ABORTED"
+  ],
+  "allCoursesReachable": 0
+}

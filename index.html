@@ -47,6 +47,7 @@
       <button id="simulator-btn" class="primary-view-button view-simulator simulator-launch-btn" type="button" data-view="simulator" aria-pressed="false" aria-label="4年計画 β">
         <span>4年計画</span><span class="view-beta-badge" aria-hidden="true">β</span>
       </button>
+      <a href="feedback.html">ご意見・不具合報告</a>
     </nav>
     <div class="filter-actions">
       <button id="filter-options-toggle" class="filter-options-toggle" type="button" aria-expanded="false" aria-controls="filter-options-panel">
@@ -224,6 +225,7 @@
         <span>科目をここへドロップ</span>
       </div>
 
+      <details id="exam-schedule"><summary>試験日程</summary><p>2027年2月（4Q）。日程は変更される可能性があります。</p><label>科目名検索 <input id="exam-search" type="search"></label><div id="exam-list" aria-live="polite"></div></details>
       <h3 class="scheduled-title">履修予定</h3>
       <ul id="list"></ul>
 
@@ -357,6 +359,7 @@
 </div>
 
 <footer class="app-footer">
+  <a href="feedback.html">ご意見・不具合報告</a>
   <p>ZEN Course Planner (Unofficial) は非公式の履修管理支援ツールです。</p>
   <p>卒業要件分析、単位計算、履修判定結果は参考情報であり、正確性や完全性を保証するものではありません。</p>
   <p>履修登録および卒業要件の最終確認は、大学の公式情報・学生要覧・シラバス等で行ってください。</p>
@@ -389,6 +392,7 @@
 <script src="simulator-rules.js"></script>
 <script src="course-sorting.js"></script>
 <script src="graduation-requirements.js"></script>
+<script src="exam-feedback.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

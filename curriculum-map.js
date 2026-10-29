@@ -130,6 +130,7 @@
   };
 
   async function start(win) {
+    await win.ZenExam.ready;
     const doc = win.document;
     if (!win.CurriculumAccess?.canAccess(win.location)) {
       doc.getElementById('map-loading-message').textContent = '現在は公開準備中です。';
@@ -395,6 +396,9 @@
         if (value) metadata.append(element('dt', label), element('dd', value));
       }
       drawerContent.append(metadata);
+      const exam = element('section');
+      win.ZenExam.appendDetail(exam, course);
+      drawerContent.append(exam);
       const planned = enrollment.registered.ids.includes(id);
       const completed = enrollment.completed.ids.includes(id);
       const actions = element('div', undefined, 'enrollment-actions');
