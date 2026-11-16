@@ -75,6 +75,8 @@
   "allCoursesReachable": 825,
   "backToHub": "PASS",
   "advisoryRelations": 335,
+  "menuSpec": "PASS",
+  "toolbarLayout": "PASS",
   "pinch": "PASS",
   "touchPan": "PASS",
   "touchCourseDetail": "PASS",
