@@ -1,0 +1,34 @@
+/* A single form layout keeps labels, controls, and focus order consistent on small screens. */
+body[data-page='feedback'] main {
+  max-width: 640px;
+  margin: 24px auto;
+}
+body[data-page='feedback'] label {
+  display: grid;
+  gap: 6px;
+}
+body[data-page='feedback'] input,
+body[data-page='feedback'] select,
+body[data-page='feedback'] textarea {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  padding: 10px;
+  font: inherit;
+}
+body[data-page='feedback'] a {
+  display: inline-block;
+  padding: 8px 0;
+}
+#exam-schedule {
+  margin: 16px 0;
+}
+#exam-schedule input {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+#exam-schedule summary {
+  cursor: pointer;
+  padding: 8px 0;
+  font-weight: bold;
+}

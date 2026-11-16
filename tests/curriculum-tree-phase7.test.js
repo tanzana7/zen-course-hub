@@ -4,11 +4,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
-const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+const app = require('./helpers/hub-source.cjs').readHubSource();
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const style = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
-const layout = JSON.parse(fs.readFileSync(path.join(root, 'curriculum-tree-layout.json'), 'utf8'));
-const audit = JSON.parse(fs.readFileSync(path.join(root, 'docs/curriculum-tree-phase7-course-audit.json'), 'utf8'));
+const audit = JSON.parse(
+  fs.readFileSync(path.join(root, 'docs/curriculum-tree-phase7-course-audit.json'), 'utf8'),
+);
 const courses = JSON.parse(fs.readFileSync(path.join(root, 'courses.json'), 'utf8'));
 const relations = JSON.parse(fs.readFileSync(path.join(root, 'course-relations.json'), 'utf8'));
 
@@ -28,7 +29,10 @@ test('phase 7 preserves the 335 advisory relations and valid IDs', () => {
   assert.equal(relations.length, 335);
   assert.ok(relations.every((relation) => ids.has(relation.prerequisiteId) && ids.has(relation.successorId)));
   assert.ok(relations.every((relation) => relation.prerequisiteId !== relation.successorId));
-  assert.equal(new Set(relations.map((relation) => `${relation.prerequisiteId}|${relation.successorId}`)).size, relations.length);
+  assert.equal(
+    new Set(relations.map((relation) => `${relation.prerequisiteId}|${relation.successorId}`)).size,
+    relations.length,
+  );
 });
 
 test('phase 7 relation line modes default to OFF and support selected/all', () => {
@@ -41,8 +45,8 @@ test('phase 7 relation line modes default to OFF and support selected/all', () =
   assert.match(app, /relationMode === 'selected'/);
   assert.match(app, /relationMode === 'all'/);
   assert.match(app, /if \(!showAllRelations && !showSelectedRelations\) return/);
-  assert.match(style, /curriculum-edge\.is-reference[^\n]*stroke-dasharray/);
-  assert.match(style, /curriculum-edges[^\n]*pointer-events: none/);
+  assert.match(style, /curriculum-edge\.is-reference[^}]*stroke-dasharray/);
+  assert.match(style, /curriculum-edges[^}]*pointer-events: none/);
 });
 
 test('phase 7 collision cards retain an explicit accessible stack', () => {

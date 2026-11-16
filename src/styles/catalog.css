@@ -1,0 +1,395 @@
+/* フィルターUIのスタイル */
+.filter-container {
+  background: #fff;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-container select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.category-highlight {
+  color: #e53e3e; /* 赤系の色 */
+  font-weight: bold;
+  background-color: #fff5f5; /* 薄い赤の背景 */
+  padding: 0 4px;
+  border-radius: 3px;
+  border: 1px solid #feb2b2;
+}
+
+/* 詳細画面のレイアウト改善 */
+.detail-subject {
+  margin: 0 0 10px 0;
+  font-size: 1.1em;
+  color: #2d3748;
+  border-bottom: 2px solid #edf2f7;
+  padding-bottom: 5px;
+}
+
+.detail-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.badge-cat,
+.badge-item {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.85em;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  height: 24px; /* 高さを一定にしてズレを防止 */
+  box-sizing: border-box;
+  border: 1px solid transparent; /* 枠線の有無による1〜2pxのガタつきを防止 */
+}
+
+.badge-cat {
+  background: #edf2f7;
+  color: #4a5568;
+  border-color: #edf2f7;
+}
+.badge-cat.important {
+  background: #fff5f5;
+  color: #e53e3e;
+  border: 1px solid #feb2b2;
+}
+.badge-item {
+  background: #ebf8ff;
+  color: #2b6cb0;
+  border: 1px solid #bee3f8;
+}
+
+.detail-sections p {
+  margin: 6px 0;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+.detail-sections .description {
+  background: #f8fafc;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.difficulty-section {
+  margin-top: 15px;
+  padding: 12px;
+  border: 1px solid #dbeafe;
+  border-left: 4px solid #2563eb;
+  border-radius: 4px;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.difficulty-section p {
+  margin: 0 0 6px;
+}
+
+.difficulty-title {
+  margin: 0 0 10px;
+  color: #1e3a8a;
+  font-size: 1em;
+  font-weight: 700;
+}
+
+.difficulty-source-row {
+  margin-bottom: 0 !important;
+}
+
+.difficulty-source {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.difficulty-source:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.course-relations {
+  margin-top: 15px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #64748b;
+  border-radius: 4px;
+  background: #f8fafc;
+  color: #334155;
+}
+
+.course-relations-title {
+  margin: 0 0 10px;
+  color: #334155;
+  font-size: 1em;
+  font-weight: 700;
+}
+
+.course-relation-group + .course-relation-group {
+  margin-top: 10px;
+}
+
+.course-relation-group strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.9em;
+}
+
+.course-relation-group ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.related-course-link {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.relation-strength {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 0.78em;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.relation-strength.recommended {
+  color: #475569;
+  background: #e2e8f0;
+}
+
+.relation-strength.strong {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.related-course-link:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Footer Styles */
+.app-footer {
+  margin-top: 60px; /* メインコンテンツからの上部余白 */
+  padding: 30px 20px; /* 上下左右のパディング */
+  background-color: #f8f9fa; /* 薄いグレーの背景色 */
+  color: #6c757d; /* テキストの色 */
+  text-align: center; /* テキストを中央揃え */
+  font-size: 0.875em; /* 本文より少し小さい文字サイズ (例: 14px) */
+  line-height: 1.6; /* 行の高さ */
+  border-top: 1px solid #e9ecef; /* 上部に控えめな境界線 */
+}
+
+.app-footer p {
+  margin: 0; /* 段落のデフォルトマージンをリセット */
+  padding: 2px 0; /* 各行の上下にわずかなパディング */
+}
+
+.app-footer a {
+  color: #1d4ed8;
+}
+
+.app-footer a:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Search Count Styles */
+.search-count {
+  font-size: 0.95em;
+  color: #666;
+  margin: -10px 0 15px 5px; /* 見出しとのバランス調整 */
+}
+
+.section-heading-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.section-heading-row h2 {
+  margin-bottom: 8px;
+}
+
+.course-list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.clear-filter-btn,
+.empty-reset-btn {
+  border: 1px solid #93c5fd;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.clear-filter-btn:hover,
+.empty-reset-btn:hover {
+  background: #dbeafe;
+}
+
+.mobile-section-jump {
+  display: none;
+  color: #1d4ed8;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.enrollment-empty-state,
+.course-empty-state {
+  list-style: none;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #64748b;
+  padding: 16px;
+  text-align: center;
+}
+
+.course-empty-state p {
+  margin: 0 0 10px;
+}
+
+.difficulty-badge {
+  background: #fff7ed;
+  color: #9a3412;
+  border-color: #fed7aa;
+}
+
+.requirement-progress {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.requirement-met {
+  color: #15803d;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.requirement-remaining {
+  color: #6b7280;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+.close-btn {
+  border: 0;
+  background: transparent;
+  padding: 4px 8px;
+  line-height: 1;
+}
+
+.class-item.added .current-state {
+  opacity: 1;
+}
+.data-status {
+  margin: 12px 0 16px;
+  padding: 12px 14px;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  line-height: 1.5;
+}
+
+.data-status.is-error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+  line-height: 1.5;
+}
+
+.storage-warning {
+  border-color: #fcd34d;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.badge {
+  display: inline-block;
+  padding: 1px 8px;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+  white-space: nowrap;
+}
+
+.badge.required {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+/* 上部操作エリアの固定表示 */
+.sticky-controls {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: white;
+  padding: 15px 0 20px 0;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 25px;
+  /* 背景を透過させないため、bodyの背景色に合わせた透過防止（または完全な白） */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* 使い方ボタン（右下固定） */
+#tutorial-btn {
+  position: fixed;
+  bottom: 25px;
+  right: 20px; /* 少し内側に調整 */
+  padding: 10px 18px; /* テキストに合わせてパディングを調整 */
+  border-radius: 25px; /* 角丸の長方形に */
+  background-color: #007bff; /* 青色 */
+  color: white;
+  border: none;
+  font-size: 18px; /* 文字サイズを調整 */
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  z-index: 3000; /* 他の要素より上に表示 */
+  transition:
+    transform 0.2s,
+    background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#tutorial-btn:hover {
+  transform: scale(1.1);
+  background-color: #0056b3;
+}

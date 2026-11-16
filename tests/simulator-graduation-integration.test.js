@@ -1,28 +1,37 @@
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import test from 'node:test';
-import simulatorRules from '../simulator-rules.js';
-import graduationEngine from '../graduation-requirements.js';
+const path = require('node:path');
+const hubSource = require('./helpers/hub-source.cjs');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const test = require('node:test');
+const simulatorRules = require('../simulator-rules.js');
+const graduationEngine = require('../graduation-requirements.js');
 
-const courses = JSON.parse(fs.readFileSync(new URL('../courses.json', import.meta.url), 'utf8'));
-const definition = JSON.parse(fs.readFileSync(new URL('../graduation-requirements.json', import.meta.url), 'utf8'));
+const courses = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../courses.json'), 'utf8'));
+const definition = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../graduation-requirements.json'), 'utf8'),
+);
 const courseIds = new Set(courses.map((course) => course.id));
 
 test('Simulator projection keeps unknown saved IDs visible but excludes them from analyzer input', () => {
   const placements = [
     { courseId: 'academic_literacy', year: 1, selectedQuarter: 1 },
     { courseId: 'unknown-legacy-course', year: 2, selectedQuarter: 1 },
-    { courseId: 'unknown-legacy-course', year: 2, selectedQuarter: 1 }
+    { courseId: 'unknown-legacy-course', year: 2, selectedQuarter: 1 },
   ];
   assert.deepEqual(simulatorRules.getKnownSimulatorCourseIds(placements, courseIds), ['academic_literacy']);
-  assert.deepEqual(simulatorRules.getUnknownSimulatorCourseIds(placements, courseIds), ['unknown-legacy-course']);
+  assert.deepEqual(simulatorRules.getUnknownSimulatorCourseIds(placements, courseIds), [
+    'unknown-legacy-course',
+  ]);
 });
 
 test('Simulator projection deduplicates completed and placed course IDs', () => {
   const ids = simulatorRules.buildGraduationProjectionCourseIds(
     ['academic_literacy'],
-    [{ courseId: 'academic_literacy', year: 1, selectedQuarter: 1 }, { courseId: 'it_literacy', year: 1, selectedQuarter: 1 }],
-    courseIds
+    [
+      { courseId: 'academic_literacy', year: 1, selectedQuarter: 1 },
+      { courseId: 'it_literacy', year: 1, selectedQuarter: 1 },
+    ],
+    courseIds,
   );
   assert.deepEqual(ids, ['academic_literacy', 'it_literacy']);
 });
@@ -41,7 +50,7 @@ test('Completed-only analysis and Simulator projection use the shared analyzer',
   const projectedIds = simulatorRules.buildGraduationProjectionCourseIds(
     ['academic_literacy'],
     [{ courseId: 'it_literacy', year: 1, selectedQuarter: 1 }],
-    courseIds
+    courseIds,
   );
   const projected = graduationEngine.analyzeGraduationRequirements(projectedIds, courses, definition);
   assert.equal(current.valid, true);
@@ -54,8 +63,11 @@ test('Completed-only analysis and Simulator projection use the shared analyzer',
 test('Unknown Simulator IDs never make an otherwise valid projection fail closed', () => {
   const projectedIds = simulatorRules.buildGraduationProjectionCourseIds(
     [],
-    [{ courseId: 'academic_literacy', year: 1, selectedQuarter: 1 }, { courseId: 'unknown-legacy-course', year: 2, selectedQuarter: 1 }],
-    courseIds
+    [
+      { courseId: 'academic_literacy', year: 1, selectedQuarter: 1 },
+      { courseId: 'unknown-legacy-course', year: 2, selectedQuarter: 1 },
+    ],
+    courseIds,
   );
   const result = graduationEngine.analyzeGraduationRequirements(projectedIds, courses, definition);
   assert.deepEqual(projectedIds, ['academic_literacy']);
@@ -63,7 +75,10 @@ test('Unknown Simulator IDs never make an otherwise valid projection fail closed
 });
 
 test('Social connection projection preserves actual credits and applies the shared cap', () => {
-  const socialIds = courses.filter((course) => course.tag === '社会接続').slice(0, 12).map((course) => course.id);
+  const socialIds = courses
+    .filter((course) => course.tag === '社会接続')
+    .slice(0, 12)
+    .map((course) => course.id);
   const result = graduationEngine.analyzeGraduationRequirements(socialIds, courses, definition);
   assert.equal(result.valid, true);
   assert.equal(result.socialConnection.actualCredits >= result.socialConnection.countedCredits, true);
@@ -87,14 +102,23 @@ test('Project practice is evaluated by the shared explicit course mapping', () =
 
 test('Simulator requirement details separate current and projected course IDs without unknowns', () => {
   const current = graduationEngine.buildRequirementDetails(['academic_literacy'], courses, definition);
-  const projected = graduationEngine.buildRequirementDetails(['academic_literacy', 'it_literacy'], courses, definition);
+  const projected = graduationEngine.buildRequirementDetails(
+    ['academic_literacy', 'it_literacy'],
+    courses,
+    definition,
+  );
   assert.equal(current.valid, true);
   assert.equal(projected.valid, true);
   assert.deepEqual(current.details.introduction.selectedCourseIds, ['academic_literacy']);
   assert.deepEqual(projected.details.introduction.selectedCourseIds, ['academic_literacy', 'it_literacy']);
-  assert.equal(new Set(projected.details.introduction.selectedCourseIds).size, projected.details.introduction.selectedCourseIds.length);
+  assert.equal(
+    new Set(projected.details.introduction.selectedCourseIds).size,
+    projected.details.introduction.selectedCourseIds.length,
+  );
   assert.ok(projected.details.foundation.groups.math.targetCourseIds.length > 0);
-  assert.ok(projected.details.worldUnderstanding.industryHistory.targetCourseIds.includes('it_industry_history'));
+  assert.ok(
+    projected.details.worldUnderstanding.industryHistory.targetCourseIds.includes('it_industry_history'),
+  );
   assert.deepEqual(projected.details.projectPractice.selectedCourseIds, []);
   assert.equal(projected.details.introduction.targetCourseIds.includes('unknown-legacy-course'), false);
 });
@@ -112,8 +136,8 @@ test('Invalid graduation definition disables projection without changing placeme
 });
 
 test('App uses the shared projection helper and separates current and four-year labels', () => {
-  const app = fs.readFileSync(new URL('../app.js', import.meta.url), 'utf8');
-  const index = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const app = hubSource.readHubSource();
+  const index = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
   assert.match(app, /buildGraduationProjectionCourseIds/);
   assert.match(app, /getUnknownSimulatorCourseIds/);
   assert.match(app, /plannedLabel: '4年計画完了時'/);

@@ -13,7 +13,7 @@ test('curriculum fit uses both viewport dimensions and can fit below manual zoom
     viewportHeight: 447,
     contentWidth: 2400,
     contentHeight: 2388,
-    padding: 28
+    padding: 28,
   });
   assert.ok(fit.scale < 0.25);
   assert.ok(fit.scale > 0);
@@ -24,38 +24,70 @@ test('curriculum fit uses both viewport dimensions and can fit below manual zoom
 });
 
 test('curriculum fit centers desktop and mobile canvases', () => {
-  const desktop = quality.calculateCurriculumFit({ viewportWidth: 1280, viewportHeight: 650, contentWidth: 2400, contentHeight: 2388 });
-  const mobile = quality.calculateCurriculumFit({ viewportWidth: 375, viewportHeight: 440, contentWidth: 2400, contentHeight: 2388 });
+  const desktop = quality.calculateCurriculumFit({
+    viewportWidth: 1280,
+    viewportHeight: 650,
+    contentWidth: 2400,
+    contentHeight: 2388,
+  });
+  const mobile = quality.calculateCurriculumFit({
+    viewportWidth: 375,
+    viewportHeight: 440,
+    contentWidth: 2400,
+    contentHeight: 2388,
+  });
   assert.ok(desktop.scale > mobile.scale);
   assert.ok(Math.abs(desktop.panX - (1280 - 2400 * desktop.scale) / 2) < 0.05);
   assert.ok(Math.abs(mobile.panY - (440 - 2388 * mobile.scale) / 2) < 0.05);
 });
 
 test('curriculum fit rejects invalid dimensions without throwing', () => {
-  assert.deepEqual(quality.calculateCurriculumFit({ viewportWidth: 0, viewportHeight: 400, contentWidth: 100, contentHeight: 100 }), {
-    scale: 1, panX: 0, panY: 0, availableWidth: 0, availableHeight: 0
-  });
+  assert.deepEqual(
+    quality.calculateCurriculumFit({
+      viewportWidth: 0,
+      viewportHeight: 400,
+      contentWidth: 100,
+      contentHeight: 100,
+    }),
+    {
+      scale: 1,
+      panX: 0,
+      panY: 0,
+      availableWidth: 0,
+      availableHeight: 0,
+    },
+  );
 });
 
 test('mobile curriculum toolbar keeps search compact and controls available', () => {
   const css = read('style.css');
-  assert.match(css, /body\.curriculum-tree-mode \.curriculum-tree-toolbar \{ flex-direction: row; align-items: center; flex-wrap: wrap; \}/);
-  assert.match(css, /body\.curriculum-tree-mode \.curriculum-tree-toolbar input \{[^}]*height: 42px;[^}]*min-height: 40px;[^}]*max-height: 48px;/s);
-  assert.match(css, /body\.curriculum-tree-mode \.curriculum-tree-toolbar > label:not\(\.curriculum-search-label\) \{[^}]*min-width: 0;/s);
+  assert.match(
+    css,
+    /body\.curriculum-tree-mode \.curriculum-tree-toolbar \{\s*flex-direction: row;\s*align-items: center;\s*flex-wrap: wrap;\s*\}/,
+  );
+  assert.match(
+    css,
+    /body\.curriculum-tree-mode \.curriculum-tree-toolbar input \{[^}]*height: 42px;[^}]*min-height: 40px;[^}]*max-height: 48px;/s,
+  );
+  assert.match(
+    css,
+    /body\.curriculum-tree-mode \.curriculum-tree-toolbar > label:not\(\.curriculum-search-label\) \{[^}]*min-width: 0;/s,
+  );
   assert.match(css, /curriculum-tree-controls[^}]*overflow-x: auto/s);
 });
 
 test('fit button delegates to dimension-aware helper and preview remains gated', () => {
-  const app = read('app.js');
+  const app = require('./helpers/hub-source.cjs').readHubSource();
   const index = read('index.html');
-  assert.match(app, /qualityUtils\.calculateCurriculumFit\(/);
+  assert.match(app, /(?:context\.)?qualityUtils\.calculateCurriculumFit\(/);
   assert.match(app, /get\('curriculumPreview'\) === '1'/);
   assert.match(index, /id="curriculum-zoom-fit"/);
 });
 
 test('root-publish deny rules keep development material out of Netlify assets', () => {
   const redirects = read('_redirects');
-  for (const rule of ['/docs/*', '/tests/*', '/tmp/*', '/*.pdf', '/**/*.pdf']) assert.match(redirects, new RegExp(rule.replace('*', '\\*')));
+  for (const rule of ['/docs/*', '/tests/*', '/tmp/*', '/*.pdf', '/**/*.pdf'])
+    assert.match(redirects, new RegExp(rule.replace('*', '\\*')));
 });
 
 test('phase 12 data baselines remain intact', () => {

@@ -10,7 +10,7 @@
   const api = factory();
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.ZenQualityUtils = api;
-}(typeof globalThis !== 'undefined' ? globalThis : this, () => {
+})(typeof globalThis !== 'undefined' ? globalThis : this, () => {
   const CURRENT_STORAGE_SCHEMA_VERSION = 1;
 
   const normalizeIdArray = (value) => {
@@ -18,9 +18,12 @@
     const ids = [];
     const seen = new Set();
     for (const item of value) {
-      const candidate = typeof item === 'string'
-        ? item
-        : (item && typeof item === 'object' && typeof item.id === 'string' ? item.id : null);
+      const candidate =
+        typeof item === 'string'
+          ? item
+          : item && typeof item === 'object' && typeof item.id === 'string'
+            ? item.id
+            : null;
       if (candidate === null || !candidate.trim()) return { valid: false, ids: [] };
       const id = candidate.trim();
       if (!seen.has(id)) {
@@ -38,18 +41,14 @@
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
         const normalized = normalizeIdArray(parsed);
-        return normalized.valid
-          ? { status: 'legacy', ids: normalized.ids }
-          : { status: 'invalid', ids: [] };
+        return normalized.valid ? { status: 'legacy', ids: normalized.ids } : { status: 'invalid', ids: [] };
       }
       if (parsed && typeof parsed === 'object' && Number.isInteger(parsed.schemaVersion)) {
         if (parsed.schemaVersion > CURRENT_STORAGE_SCHEMA_VERSION) {
           return { status: 'future', ids: [] };
         }
         const normalized = normalizeIdArray(parsed.ids);
-        return normalized.valid
-          ? { status: 'valid', ids: normalized.ids }
-          : { status: 'invalid', ids: [] };
+        return normalized.valid ? { status: 'valid', ids: normalized.ids } : { status: 'invalid', ids: [] };
       }
       return { status: 'invalid', ids: [] };
     } catch (error) {
@@ -78,7 +77,9 @@
       const completed = parseIdList(completedRaw);
       const schema = readSchemaVersion(storage, keys.schemaVersion);
       const statuses = [registered.status, completed.status, schema.status];
-      const writable = !statuses.some((status) => ['corrupt', 'invalid', 'future', 'unavailable'].includes(status));
+      const writable = !statuses.some((status) =>
+        ['corrupt', 'invalid', 'future', 'unavailable'].includes(status),
+      );
       return { registered, completed, schema, writable };
     } catch (error) {
       return {
@@ -86,7 +87,7 @@
         completed: { status: 'unavailable', ids: [] },
         schema: { status: 'unavailable', version: null },
         writable: false,
-        error
+        error,
       };
     }
   };
@@ -110,7 +111,7 @@
       return {
         saved: false,
         rollbackSucceeded: true,
-        error: new Error('保存データの形式またはスキーマを確認できないため上書きしません')
+        error: new Error('保存データの形式またはスキーマを確認できないため上書きしません'),
       };
     }
     const registered = normalizeIdArray(Array.from(registeredIds || []));
@@ -122,7 +123,7 @@
     const next = {
       [keys.registered]: JSON.stringify(registered.ids),
       [keys.completed]: JSON.stringify(completed.ids),
-      [keys.schemaVersion]: String(CURRENT_STORAGE_SCHEMA_VERSION)
+      [keys.schemaVersion]: String(CURRENT_STORAGE_SCHEMA_VERSION),
     };
     const previous = {};
     try {
@@ -143,14 +144,23 @@
         saved: false,
         rollbackSucceeded: restored.succeeded,
         rollbackErrors: restored.errors,
-        error
+        error,
       };
     }
   };
 
-  const escapeHTML = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[character]));
+  const escapeHTML = (value) =>
+    String(value ?? '').replace(
+      /[&<>"']/g,
+      (character) =>
+        ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+        })[character],
+    );
 
   const sanitizeExternalUrl = (value) => {
     if (typeof value !== 'string') return null;
@@ -168,12 +178,26 @@
   // is intentionally allowed below the ordinary 25% manual-zoom floor so the
   // complete map remains discoverable without changing the user's normal zoom
   // controls.
-  const calculateCurriculumFit = ({ viewportWidth, viewportHeight, contentWidth, contentHeight, padding = 28, maxScale = 1, minScale = 0.05 }) => {
+  const calculateCurriculumFit = ({
+    viewportWidth,
+    viewportHeight,
+    contentWidth,
+    contentHeight,
+    padding = 28,
+    maxScale = 1,
+    minScale = 0.05,
+  }) => {
     const width = Number(viewportWidth);
     const height = Number(viewportHeight);
     const contentW = Number(contentWidth);
     const contentH = Number(contentHeight);
-    if (![width, height, contentW, contentH].every(Number.isFinite) || width <= 0 || height <= 0 || contentW <= 0 || contentH <= 0) {
+    if (
+      ![width, height, contentW, contentH].every(Number.isFinite) ||
+      width <= 0 ||
+      height <= 0 ||
+      contentW <= 0 ||
+      contentH <= 0
+    ) {
       return { scale: 1, panX: 0, panY: 0, availableWidth: 0, availableHeight: 0 };
     }
     const availableWidth = Math.max(1, width - Math.max(0, Number(padding) || 0));
@@ -185,7 +209,7 @@
       panX: Number(((width - contentW * scale) / 2).toFixed(2)),
       panY: Number(((height - contentH * scale) / 2).toFixed(2)),
       availableWidth,
-      availableHeight
+      availableHeight,
     };
   };
 
@@ -197,6 +221,6 @@
     saveEnrollmentState,
     escapeHTML,
     sanitizeExternalUrl,
-    calculateCurriculumFit
+    calculateCurriculumFit,
   };
-}));
+});

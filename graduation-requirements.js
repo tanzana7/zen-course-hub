@@ -12,7 +12,7 @@
     'globalStudiesRequirement',
     'digitalIndustryHistoryRequirement',
     'graduationRequirement',
-    'projectPracticeRequirement'
+    'projectPracticeRequirement',
   ];
 
   const isPlainObject = (value) => Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -35,7 +35,11 @@
   };
 
   const validateRequirementsDefinition = (definition) => {
-    if (!isPlainObject(definition) || definition.schemaVersion !== 1 || !isNonEmptyString(definition.version)) {
+    if (
+      !isPlainObject(definition) ||
+      definition.schemaVersion !== 1 ||
+      !isNonEmptyString(definition.version)
+    ) {
       return invalid('卒業要件定義のschemaVersionまたはversionが不正です。');
     }
 
@@ -53,7 +57,7 @@
       ['industryHistory', 'targetCredits'],
       ['socialConnection', 'capCredits'],
       ['projectPractice', 'targetCredits'],
-      ['foundation', 'multilingualIT', 'targetCredits']
+      ['foundation', 'multilingualIT', 'targetCredits'],
     ];
     for (const path of numericPaths) {
       let current = requirements;
@@ -65,7 +69,7 @@
       ['introduction', 'courseIds'],
       ['foundation', 'multilingualIT', 'courseIds'],
       ['industryHistory', 'courseIds'],
-      ['projectPractice', 'courseIds']
+      ['projectPractice', 'courseIds'],
     ];
     for (const path of idArrayPaths) {
       let current = requirements;
@@ -83,17 +87,27 @@
     if (groupKeys.some((value) => !isNonEmptyString(value)) || new Set(groupKeys).size !== groupKeys.length) {
       return invalid('基礎分野のkeyが不正または重複しています。');
     }
-    if (groupValues.some((value) => !isNonEmptyString(value)) || new Set(groupValues).size !== groupValues.length) {
+    if (
+      groupValues.some((value) => !isNonEmptyString(value)) ||
+      new Set(groupValues).size !== groupValues.length
+    ) {
       return invalid('基礎分野のmetadataValueが不正または重複しています。');
     }
-    if (foundationGroups.some((group) => !isNonEmptyString(group.label) || !isPositiveFiniteNumber(group.targetCredits))) {
+    if (
+      foundationGroups.some(
+        (group) => !isNonEmptyString(group.label) || !isPositiveFiniteNumber(group.targetCredits),
+      )
+    ) {
       return invalid('基礎分野のlabelまたはtargetCreditsが不正です。');
     }
 
     if (!isNonEmptyString(requirements.advanced.metadataFlag)) {
       return invalid('advanced.metadataFlagがありません。');
     }
-    if (!isNonEmptyString(requirements.industryHistory.metadataFlag) || requirements.industryHistory.within !== 'worldUnderstanding') {
+    if (
+      !isNonEmptyString(requirements.industryHistory.metadataFlag) ||
+      requirements.industryHistory.within !== 'worldUnderstanding'
+    ) {
       return invalid('industryHistoryのmetadataFlagまたはwithinが不正です。');
     }
     for (const field of ['literacy', 'multilingualInformation', 'worldUnderstanding']) {
@@ -102,9 +116,12 @@
       }
       const foundationValues = requirements[field].foundationMetadataValues;
       // 基礎科目からの重複充当はこの対応表に依存する。空や重複は設定ミスとして判定を止める。
-      if (!Array.isArray(foundationValues) || foundationValues.length === 0 ||
-          foundationValues.some((value) => !isNonEmptyString(value)) ||
-          new Set(foundationValues).size !== foundationValues.length) {
+      if (
+        !Array.isArray(foundationValues) ||
+        foundationValues.length === 0 ||
+        foundationValues.some((value) => !isNonEmptyString(value)) ||
+        new Set(foundationValues).size !== foundationValues.length
+      ) {
         return invalid(`${field}.foundationMetadataValuesが不正です。`);
       }
     }
@@ -116,9 +133,12 @@
     for (const field of ['totalCredits']) {
       for (const arrayName of ['nonCountingCategories', 'nonCountingTags']) {
         const values = requirements[field][arrayName];
-        if (!Array.isArray(values) || values.length === 0 ||
-            values.some((value) => !isNonEmptyString(value) || value.trim() !== value) ||
-            new Set(values).size !== values.length) {
+        if (
+          !Array.isArray(values) ||
+          values.length === 0 ||
+          values.some((value) => !isNonEmptyString(value) || value.trim() !== value) ||
+          new Set(values).size !== values.length
+        ) {
           return invalid(`${field}.${arrayName}が不正です。`);
         }
       }
@@ -164,7 +184,7 @@
       ...definition.requirements.introduction.courseIds,
       ...definition.requirements.foundation.multilingualIT.courseIds,
       ...definition.requirements.industryHistory.courseIds,
-      ...definition.requirements.projectPractice.courseIds
+      ...definition.requirements.projectPractice.courseIds,
     ];
     const missingDefinitionIds = [...new Set(definitionIds)].filter((id) => !courseIds.has(id));
     if (missingDefinitionIds.length) {
@@ -179,7 +199,10 @@
   // analyzer, but return IDs instead of duplicating any graduation thresholds.
   const buildRequirementDetails = (courseIds, courses, definition) => {
     const mappingResult = validateRequirementsAgainstCourses(definition, courses);
-    if (!mappingResult.valid) return invalid('科目データを確認できないため、卒業要件の詳細を表示できません。', [mappingResult.message]);
+    if (!mappingResult.valid)
+      return invalid('科目データを確認できないため、卒業要件の詳細を表示できません。', [
+        mappingResult.message,
+      ]);
     if (!Array.isArray(courseIds) || courseIds.some((id) => !isNonEmptyString(id))) {
       return invalid('選択科目IDが不正なため、卒業要件の詳細を表示できません。');
     }
@@ -187,25 +210,34 @@
     const uniqueIds = [...new Set(courseIds)];
     const courseMap = new Map(courses.map((course) => [course.id, course]));
     const unknownIds = uniqueIds.filter((id) => !courseMap.has(id));
-    if (unknownIds.length) return invalid('科目データを確認できないため、卒業要件の詳細を表示できません。', [`未知の科目ID: ${unknownIds.join(', ')}`]);
+    if (unknownIds.length)
+      return invalid('科目データを確認できないため、卒業要件の詳細を表示できません。', [
+        `未知の科目ID: ${unknownIds.join(', ')}`,
+      ]);
 
     const req = definition.requirements;
-    const isNonCounting = (course) => req.totalCredits.nonCountingCategories.includes(course.category) ||
+    const isNonCounting = (course) =>
+      req.totalCredits.nonCountingCategories.includes(course.category) ||
       req.totalCredits.nonCountingTags.includes(course.tag);
     const countable = courses.filter((course) => !isNonCounting(course));
     const selectedSet = new Set(uniqueIds);
     const byIds = (ids) => countable.filter((course) => ids.includes(course.id));
-    const byFlagOrFoundation = (metadataFlag, foundationValues) => countable.filter((course) =>
-      course[metadataFlag] === true || foundationValues.includes(course.foundationRequirement)
-    );
+    const byFlagOrFoundation = (metadataFlag, foundationValues) =>
+      countable.filter(
+        (course) => course[metadataFlag] === true || foundationValues.includes(course.foundationRequirement),
+      );
     const detail = (targetCourses) => ({
       targetCourseIds: targetCourses.map((course) => course.id),
-      selectedCourseIds: targetCourses.filter((course) => selectedSet.has(course.id)).map((course) => course.id)
+      selectedCourseIds: targetCourses
+        .filter((course) => selectedSet.has(course.id))
+        .map((course) => course.id),
     });
-    const foundationGroups = Object.fromEntries(req.foundation.groups.map((group) => [
-      group.key,
-      detail(countable.filter((course) => course.foundationRequirement === group.metadataValue))
-    ]));
+    const foundationGroups = Object.fromEntries(
+      req.foundation.groups.map((group) => [
+        group.key,
+        detail(countable.filter((course) => course.foundationRequirement === group.metadataValue)),
+      ]),
+    );
 
     return {
       valid: true,
@@ -213,20 +245,36 @@
         totalCredits: detail(countable),
         introduction: detail(byIds(req.introduction.courseIds)),
         foundation: {
-          ...detail(countable.filter((course) => req.foundation.groups.some((group) => course.foundationRequirement === group.metadataValue))),
+          ...detail(
+            countable.filter((course) =>
+              req.foundation.groups.some((group) => course.foundationRequirement === group.metadataValue),
+            ),
+          ),
           groups: foundationGroups,
-          multilingualIT: detail(byIds(req.foundation.multilingualIT.courseIds))
+          multilingualIT: detail(byIds(req.foundation.multilingualIT.courseIds)),
         },
         advanced: detail(countable.filter((course) => course[req.advanced.metadataFlag] === true)),
-        literacy: detail(byFlagOrFoundation(req.literacy.metadataFlag, req.literacy.foundationMetadataValues)),
-        multilingualInformation: detail(byFlagOrFoundation(req.multilingualInformation.metadataFlag, req.multilingualInformation.foundationMetadataValues)),
+        literacy: detail(
+          byFlagOrFoundation(req.literacy.metadataFlag, req.literacy.foundationMetadataValues),
+        ),
+        multilingualInformation: detail(
+          byFlagOrFoundation(
+            req.multilingualInformation.metadataFlag,
+            req.multilingualInformation.foundationMetadataValues,
+          ),
+        ),
         worldUnderstanding: {
-          ...detail(byFlagOrFoundation(req.worldUnderstanding.metadataFlag, req.worldUnderstanding.foundationMetadataValues)),
-          industryHistory: detail(byIds(req.industryHistory.courseIds))
+          ...detail(
+            byFlagOrFoundation(
+              req.worldUnderstanding.metadataFlag,
+              req.worldUnderstanding.foundationMetadataValues,
+            ),
+          ),
+          industryHistory: detail(byIds(req.industryHistory.courseIds)),
         },
         socialConnection: detail(countable.filter((course) => course.tag === req.socialConnection.tag)),
-        projectPractice: detail(byIds(req.projectPractice.courseIds))
-      }
+        projectPractice: detail(byIds(req.projectPractice.courseIds)),
+      },
     };
   };
 
@@ -234,7 +282,8 @@
     // 呼び出し元に事前検証を要求しない。将来Simulatorから直接使っても、
     // 定義が参照する未登録IDを見逃して卒業達成を返さないための入口検証。
     const mappingResult = validateRequirementsAgainstCourses(definition, courses);
-    if (!mappingResult.valid) return invalid('科目データを確認できないため、卒業要件を判定できません。', [mappingResult.message]);
+    if (!mappingResult.valid)
+      return invalid('科目データを確認できないため、卒業要件を判定できません。', [mappingResult.message]);
     if (!Array.isArray(courseIds) || courseIds.some((id) => !isNonEmptyString(id))) {
       return invalid('選択科目IDが不正なため、卒業要件を判定できません。');
     }
@@ -242,11 +291,15 @@
     const courseMap = new Map(courses.map((course) => [course.id, course]));
     const uniqueIds = [...new Set(courseIds)];
     const unknownIds = uniqueIds.filter((id) => !courseMap.has(id));
-    if (unknownIds.length) return invalid('科目データを確認できないため、卒業要件を判定できません。', [`未知の科目ID: ${unknownIds.join(', ')}`]);
+    if (unknownIds.length)
+      return invalid('科目データを確認できないため、卒業要件を判定できません。', [
+        `未知の科目ID: ${unknownIds.join(', ')}`,
+      ]);
 
     const selected = uniqueIds.map((id) => courseMap.get(id));
     const req = definition.requirements;
-    const isNonCounting = (course) => req.totalCredits.nonCountingCategories.includes(course.category) ||
+    const isNonCounting = (course) =>
+      req.totalCredits.nonCountingCategories.includes(course.category) ||
       req.totalCredits.nonCountingTags.includes(course.tag);
     const countable = selected.filter((course) => !isNonCounting(course));
     const actualTotalCredits = sum(selected);
@@ -256,25 +309,48 @@
     const nonSocialCredits = sum(countable.filter((course) => course.tag !== req.socialConnection.tag));
     const countedTotalCredits = nonSocialCredits + socialCountedCredits;
     const byIds = (ids) => countable.filter((course) => ids.includes(course.id));
-    const byFlagOrFoundation = (metadataFlag, foundationValues) => countable.filter((course) =>
-      course[metadataFlag] === true || foundationValues.includes(course.foundationRequirement)
-    );
+    const byFlagOrFoundation = (metadataFlag, foundationValues) =>
+      countable.filter(
+        (course) => course[metadataFlag] === true || foundationValues.includes(course.foundationRequirement),
+      );
     const meets = (credits, target) => credits >= target;
 
     const introductionCredits = sum(byIds(req.introduction.courseIds));
     const foundationGroups = req.foundation.groups.map((group) => {
       const credits = sum(countable.filter((course) => course.foundationRequirement === group.metadataValue));
-      return { key: group.key, label: group.label, credits, targetCredits: group.targetCredits, satisfied: meets(credits, group.targetCredits) };
+      return {
+        key: group.key,
+        label: group.label,
+        credits,
+        targetCredits: group.targetCredits,
+        satisfied: meets(credits, group.targetCredits),
+      };
     });
-    const foundationCredits = sum(countable.filter((course) =>
-      req.foundation.groups.some((group) => course.foundationRequirement === group.metadataValue)
-    ));
+    const foundationCredits = sum(
+      countable.filter((course) =>
+        req.foundation.groups.some((group) => course.foundationRequirement === group.metadataValue),
+      ),
+    );
     const multilingualITCredits = sum(byIds(req.foundation.multilingualIT.courseIds));
     const advancedCredits = sum(countable.filter((course) => course[req.advanced.metadataFlag] === true));
-    const literacyCredits = sum(byFlagOrFoundation(req.literacy.metadataFlag, req.literacy.foundationMetadataValues));
-    const multilingualInformationCredits = sum(byFlagOrFoundation(req.multilingualInformation.metadataFlag, req.multilingualInformation.foundationMetadataValues));
-    const worldUnderstandingCredits = sum(byFlagOrFoundation(req.worldUnderstanding.metadataFlag, req.worldUnderstanding.foundationMetadataValues));
-    const industryHistoryCredits = sum(countable.filter((course) => req.industryHistory.courseIds.includes(course.id)));
+    const literacyCredits = sum(
+      byFlagOrFoundation(req.literacy.metadataFlag, req.literacy.foundationMetadataValues),
+    );
+    const multilingualInformationCredits = sum(
+      byFlagOrFoundation(
+        req.multilingualInformation.metadataFlag,
+        req.multilingualInformation.foundationMetadataValues,
+      ),
+    );
+    const worldUnderstandingCredits = sum(
+      byFlagOrFoundation(
+        req.worldUnderstanding.metadataFlag,
+        req.worldUnderstanding.foundationMetadataValues,
+      ),
+    );
+    const industryHistoryCredits = sum(
+      countable.filter((course) => req.industryHistory.courseIds.includes(course.id)),
+    );
     const projectCredits = sum(byIds(req.projectPractice.courseIds));
 
     const result = {
@@ -288,31 +364,63 @@
         satisfied: meets(countedTotalCredits, req.totalCredits.targetCredits),
         socialActualCredits,
         socialCountedCredits,
-        socialCapCredits: req.socialConnection.capCredits
+        socialCapCredits: req.socialConnection.capCredits,
       },
-      introduction: { credits: introductionCredits, targetCredits: req.introduction.targetCredits, satisfied: meets(introductionCredits, req.introduction.targetCredits) },
+      introduction: {
+        credits: introductionCredits,
+        targetCredits: req.introduction.targetCredits,
+        satisfied: meets(introductionCredits, req.introduction.targetCredits),
+      },
       foundation: {
         credits: foundationCredits,
         targetCredits: req.foundation.targetCredits,
-        satisfied: meets(foundationCredits, req.foundation.targetCredits) && foundationGroups.every((group) => group.satisfied),
+        satisfied:
+          meets(foundationCredits, req.foundation.targetCredits) &&
+          foundationGroups.every((group) => group.satisfied),
         groups: foundationGroups,
         multilingualIT: {
           credits: multilingualITCredits,
           targetCredits: req.foundation.multilingualIT.targetCredits,
-          satisfied: meets(multilingualITCredits, req.foundation.multilingualIT.targetCredits)
-        }
+          satisfied: meets(multilingualITCredits, req.foundation.multilingualIT.targetCredits),
+        },
       },
-      advanced: { credits: advancedCredits, targetCredits: req.advanced.targetCredits, satisfied: meets(advancedCredits, req.advanced.targetCredits) },
-      literacy: { credits: literacyCredits, targetCredits: req.literacy.targetCredits, satisfied: meets(literacyCredits, req.literacy.targetCredits) },
-      multilingualInformation: { credits: multilingualInformationCredits, targetCredits: req.multilingualInformation.targetCredits, satisfied: meets(multilingualInformationCredits, req.multilingualInformation.targetCredits) },
+      advanced: {
+        credits: advancedCredits,
+        targetCredits: req.advanced.targetCredits,
+        satisfied: meets(advancedCredits, req.advanced.targetCredits),
+      },
+      literacy: {
+        credits: literacyCredits,
+        targetCredits: req.literacy.targetCredits,
+        satisfied: meets(literacyCredits, req.literacy.targetCredits),
+      },
+      multilingualInformation: {
+        credits: multilingualInformationCredits,
+        targetCredits: req.multilingualInformation.targetCredits,
+        satisfied: meets(multilingualInformationCredits, req.multilingualInformation.targetCredits),
+      },
       worldUnderstanding: {
         credits: worldUnderstandingCredits,
         targetCredits: req.worldUnderstanding.targetCredits,
-        satisfied: meets(worldUnderstandingCredits, req.worldUnderstanding.targetCredits) && meets(industryHistoryCredits, req.industryHistory.targetCredits),
-        industryHistory: { credits: industryHistoryCredits, targetCredits: req.industryHistory.targetCredits, satisfied: meets(industryHistoryCredits, req.industryHistory.targetCredits) }
+        satisfied:
+          meets(worldUnderstandingCredits, req.worldUnderstanding.targetCredits) &&
+          meets(industryHistoryCredits, req.industryHistory.targetCredits),
+        industryHistory: {
+          credits: industryHistoryCredits,
+          targetCredits: req.industryHistory.targetCredits,
+          satisfied: meets(industryHistoryCredits, req.industryHistory.targetCredits),
+        },
       },
-      socialConnection: { actualCredits: socialActualCredits, countedCredits: socialCountedCredits, capCredits: req.socialConnection.capCredits },
-      projectPractice: { credits: projectCredits, targetCredits: req.projectPractice.targetCredits, satisfied: meets(projectCredits, req.projectPractice.targetCredits) }
+      socialConnection: {
+        actualCredits: socialActualCredits,
+        countedCredits: socialCountedCredits,
+        capCredits: req.socialConnection.capCredits,
+      },
+      projectPractice: {
+        credits: projectCredits,
+        targetCredits: req.projectPractice.targetCredits,
+        satisfied: meets(projectCredits, req.projectPractice.targetCredits),
+      },
     };
     result.satisfied = [
       result.totalCredits.satisfied,
@@ -323,12 +431,18 @@
       result.literacy.satisfied,
       result.multilingualInformation.satisfied,
       result.worldUnderstanding.satisfied,
-      result.projectPractice.satisfied
+      result.projectPractice.satisfied,
     ].every(Boolean);
     return result;
   };
 
-  const api = { validateRequirementsDefinition, validateCourses, validateRequirementsAgainstCourses, analyzeGraduationRequirements, buildRequirementDetails };
+  const api = {
+    validateRequirementsDefinition,
+    validateCourses,
+    validateRequirementsAgainstCourses,
+    analyzeGraduationRequirements,
+    buildRequirementDetails,
+  };
   root.GraduationRequirementsEngine = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof globalThis !== 'undefined' ? globalThis : window);

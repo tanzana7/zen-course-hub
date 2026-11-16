@@ -23,11 +23,14 @@ test('phase 4 records the PDF rendering and visual inspection contract', () => {
     highResolution: {
       renderDpi: 150,
       regions: 16,
-      method: 'direct PDF regional render, visual inspection'
-    }
+      method: 'direct PDF regional render, visual inspection',
+    },
   });
   assert.deepEqual(definition.canvas, { width: 2400, height: 2388 });
-  assert.deepEqual(definition.legend.creditColors.map((entry) => entry.credits), [1, 2, 4]);
+  assert.deepEqual(
+    definition.legend.creditColors.map((entry) => entry.credits),
+    [1, 2, 4],
+  );
 });
 
 test('phase 4 placements are unique, normalized, and mapped to existing courses', () => {
@@ -38,8 +41,10 @@ test('phase 4 placements are unique, normalized, and mapped to existing courses'
     seen.add(placement.courseId);
     assert.ok(courseIds.has(placement.courseId), `unknown course: ${placement.courseId}`);
     for (const key of ['x', 'y', 'width', 'height']) {
-      assert.ok(Number.isFinite(placement[key]) && placement[key] >= 0 && placement[key] <= 1,
-        `${placement.courseId}.${key} must be normalized`);
+      assert.ok(
+        Number.isFinite(placement[key]) && placement[key] >= 0 && placement[key] <= 1,
+        `${placement.courseId}.${key} must be normalized`,
+      );
     }
     assert.equal(placement.confidence, 'confirmed');
     assert.match(placement.verificationMethod, /^visual-tile-(72|150)dpi$/);
@@ -52,7 +57,7 @@ test('phase 4 keeps PDF-only subjects explicit instead of inventing IDs', () => 
 });
 
 test('phase 4 implementation consumes placement confidence and the PDF legend', () => {
-  const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+  const app = require('./helpers/hub-source.cjs').readHubSource();
   const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
   assert.match(app, /coursePlacements/);

@@ -1,0 +1,15 @@
+{
+  "viewports": [
+    {
+      "width": 1280,
+      "result": "PASS"
+    },
+    {
+      "width": 390,
+      "result": "PASS"
+    }
+  ],
+  "exceptions": [],
+  "failedRequests": [],
+  "allCoursesReachable": 0
+}

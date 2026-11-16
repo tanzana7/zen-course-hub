@@ -1,0 +1,366 @@
+/* 既存のカスケード順を維持する公式配置の最終調整。 */
+.curriculum-tree-workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+.curriculum-tree-workspace:has(.curriculum-course-detail:not([hidden])) {
+  grid-template-columns: minmax(0, 1fr) 300px;
+}
+.curriculum-graph-scroll {
+  position: relative;
+  height: min(76vh, 920px);
+  max-height: none;
+  overflow: hidden;
+  touch-action: none;
+  background: #eef2f7;
+  cursor: grab;
+}
+.curriculum-graph-scroll.is-panning {
+  cursor: grabbing;
+  user-select: none;
+}
+.curriculum-graph-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.curriculum-graph {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+}
+.curriculum-graph::before {
+  content: '公式図を参考にした非公式プレビュー';
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  z-index: 5;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+}
+.curriculum-official-band {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(30, 41, 59, 0.24);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+  opacity: 0.9;
+}
+.curriculum-official-band span {
+  text-shadow: 0 1px 2px rgba(15, 23, 42, 0.25);
+}
+.curriculum-official-band.introduction,
+.curriculum-official-band.project {
+  color: #5f3700;
+}
+.curriculum-official-band.foundation,
+.curriculum-official-band.advanced {
+  opacity: 0.1;
+}
+.curriculum-lane[data-official-group='foundation'] {
+  background: rgba(37, 84, 173, 0.08);
+}
+.curriculum-lane[data-official-group='multilingual'] {
+  background: rgba(244, 63, 94, 0.08);
+}
+.curriculum-lane[data-official-group='world'] {
+  background: rgba(20, 184, 166, 0.08);
+}
+.curriculum-lane[data-official-group='free'] {
+  background: rgba(126, 87, 153, 0.08);
+}
+.curriculum-node {
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.1);
+}
+.curriculum-edge.is-reference {
+  stroke-dasharray: 4 4;
+  opacity: 0.28;
+}
+body.curriculum-tree-explorer-mode {
+  overflow: hidden;
+}
+body.curriculum-tree-explorer-mode .curriculum-tree-view {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  overflow: auto;
+  padding: 16px 20px 20px;
+  background: #eef2f7;
+}
+body.curriculum-tree-explorer-mode .curriculum-tree-note {
+  display: none;
+}
+body.curriculum-tree-explorer-mode .curriculum-graph-scroll {
+  height: calc(100vh - 190px);
+}
+@media (max-width: 640px) {
+  .curriculum-graph-scroll {
+    height: 68vh;
+    min-height: 420px;
+  }
+  body.curriculum-tree-explorer-mode .curriculum-tree-view {
+    padding: 8px;
+  }
+  body.curriculum-tree-explorer-mode .curriculum-graph-scroll {
+    height: calc(100vh - 148px);
+  }
+}
+
+/* 埋め込みマップの探索パネル。基底のマップスタイルより後に適用する。 */
+body.curriculum-tree-mode {
+  overflow: hidden;
+}
+body.curriculum-tree-mode .curriculum-tree-view {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  gap: 6px;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+    max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  background: #eef2f7;
+}
+body.curriculum-tree-mode .curriculum-tree-heading {
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 8px;
+  margin: 0;
+}
+body.curriculum-tree-mode .curriculum-tree-heading h2 {
+  font-size: 1.05rem;
+}
+body.curriculum-tree-mode .curriculum-tree-note {
+  display: none;
+}
+body.curriculum-tree-mode .curriculum-tree-close {
+  padding: 5px 9px;
+  font-size: 0.82rem;
+}
+body.curriculum-tree-mode .curriculum-structure-bar {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 5px 8px;
+  gap: 5px;
+  font-size: 0.72rem;
+}
+body.curriculum-tree-mode .curriculum-track-badge {
+  padding: 2px 6px;
+}
+body.curriculum-tree-mode .curriculum-tree-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+body.curriculum-tree-mode .curriculum-tree-toolbar input {
+  flex: 1 1 260px;
+  min-width: 120px;
+  min-height: 32px;
+}
+body.curriculum-tree-mode .curriculum-tree-toolbar label:not(.curriculum-search-label) {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+}
+body.curriculum-tree-mode .curriculum-tree-toolbar select {
+  min-height: 32px;
+  padding: 4px 7px;
+}
+body.curriculum-tree-mode .curriculum-tree-count {
+  margin-left: 0;
+  font-size: 0.75rem;
+}
+body.curriculum-tree-mode .curriculum-tree-status {
+  flex: 0 0 auto;
+  min-height: 16px;
+  font-size: 0.75rem;
+}
+body.curriculum-tree-mode .curriculum-tree-controls {
+  flex: 0 0 auto;
+  margin: 0;
+}
+body.curriculum-tree-mode .curriculum-tree-controls span {
+  display: none;
+}
+body.curriculum-tree-mode .curriculum-tree-workspace {
+  position: relative;
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+}
+body.curriculum-tree-mode .curriculum-graph-scroll {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  border-radius: 8px;
+}
+body.curriculum-tree-mode .curriculum-course-detail {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+  width: min(340px, calc(100% - 16px));
+  max-height: calc(100% - 16px);
+}
+body.curriculum-tree-mode .right-column {
+  position: fixed;
+  top: max(8px, env(safe-area-inset-top));
+  right: 0;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  z-index: 4500;
+  display: block;
+  box-sizing: border-box;
+  width: min(360px, 92vw);
+  max-height: none;
+  padding: 12px;
+  overflow: auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px 0 0 12px;
+  background: #fff;
+  box-shadow: -8px 0 28px rgba(15, 23, 42, 0.18);
+  transform: translateX(102%);
+  transition: transform 0.18s ease;
+}
+body.curriculum-tree-mode.curriculum-enrollment-open .right-column {
+  transform: translateX(0);
+}
+body.curriculum-tree-mode .right-column .section-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+body.curriculum-tree-mode .right-column .section-heading-row h2 {
+  margin: 0 auto 0 0;
+  font-size: 1rem;
+}
+body.curriculum-tree-mode .right-column .mobile-section-jump,
+body.curriculum-tree-mode .right-column .curriculum-mobile-enrollment-toggle {
+  display: none;
+}
+body.curriculum-tree-mode .curriculum-enrollment-content[hidden] {
+  display: none;
+}
+@media (max-width: 640px) {
+  body.curriculum-tree-mode .curriculum-tree-view {
+    gap: 4px;
+    padding-inline: 6px;
+  }
+  body.curriculum-tree-mode .curriculum-structure-bar {
+    overflow: hidden;
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+  body.curriculum-tree-mode .curriculum-map-legend {
+    white-space: normal;
+  }
+  body.curriculum-tree-mode .curriculum-tree-toolbar {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  body.curriculum-tree-mode .curriculum-tree-toolbar .curriculum-search-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  body.curriculum-tree-mode .curriculum-tree-toolbar input {
+    flex: 1 1 100%;
+    flex-basis: 100%;
+    order: -1;
+    width: 100%;
+    height: 42px;
+    min-height: 40px;
+    max-height: 48px;
+  }
+  body.curriculum-tree-mode .curriculum-tree-toolbar > label:not(.curriculum-search-label) {
+    flex: 1 1 calc(50% - 6px);
+    min-width: 0;
+  }
+  body.curriculum-tree-mode .curriculum-tree-toolbar > label:not(.curriculum-search-label) select {
+    min-width: 0;
+    width: 100%;
+  }
+  body.curriculum-tree-mode .curriculum-tree-controls {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  body.curriculum-tree-mode .curriculum-tree-controls {
+    gap: 4px;
+    margin-bottom: 0;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
+  }
+  body.curriculum-tree-mode .curriculum-tree-controls button {
+    flex: 0 0 auto;
+    min-height: 40px;
+    min-width: 40px;
+    padding: 6px 8px;
+  }
+  body.curriculum-tree-mode .curriculum-tree-controls output {
+    min-width: 42px;
+  }
+  body.curriculum-tree-mode .right-column {
+    top: max(6px, env(safe-area-inset-top));
+    width: min(360px, 94vw);
+    padding: 10px;
+  }
+}
+
+/* The legacy mobile layout makes the enrollment column static with an
+   !important transform.  In the explorer it must remain a closed drawer so
+   the map keeps the full viewport; these final rules deliberately win only
+   while the curriculum tree mode is active. */
+body.curriculum-tree-mode .right-column {
+  position: fixed !important;
+  top: max(8px, env(safe-area-inset-top)) !important;
+  right: 0 !important;
+  bottom: max(8px, env(safe-area-inset-bottom)) !important;
+  left: auto !important;
+  width: min(360px, 92vw) !important;
+  max-width: 92vw !important;
+  flex: none !important;
+  transform: translateX(102%) !important;
+  visibility: hidden;
+  pointer-events: none;
+}
+body.curriculum-tree-mode.curriculum-enrollment-open .right-column {
+  transform: translateX(0) !important;
+  visibility: visible;
+  pointer-events: auto;
+}
+@media (max-width: 640px) {
+  body.curriculum-tree-mode .right-column {
+    width: min(360px, 94vw) !important;
+    max-width: 94vw !important;
+    top: max(6px, env(safe-area-inset-top)) !important;
+  }
+}
+
+/* Keep filtered cards legible while SELECTED relation mode provides context. */
+.curriculum-node.is-out-of-focus.is-dimmed {
+  opacity: 0.78;
+}

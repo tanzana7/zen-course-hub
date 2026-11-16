@@ -5,7 +5,7 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+const app = require('./helpers/hub-source.cjs').readHubSource();
 const style = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
 const courses = JSON.parse(fs.readFileSync(path.join(root, 'courses.json'), 'utf8'));
 
@@ -16,7 +16,14 @@ test('curriculum redesign keeps the public navigation hidden and exposes a local
 });
 
 test('curriculum redesign exposes stage, zoom, search, and registration controls', () => {
-  for (const id of ['curriculum-stage-axis', 'curriculum-zoom-in', 'curriculum-zoom-out', 'curriculum-zoom-fit', 'curriculum-tree-search', 'curriculum-drop-zone']) {
+  for (const id of [
+    'curriculum-stage-axis',
+    'curriculum-zoom-in',
+    'curriculum-zoom-out',
+    'curriculum-zoom-fit',
+    'curriculum-tree-search',
+    'curriculum-drop-zone',
+  ]) {
     assert.match(index, new RegExp(`id="${id}"`));
   }
   assert.match(app, /curriculum-enrollment-action/);
@@ -32,7 +39,7 @@ test('curriculum redesign exposes stage, zoom, search, and registration controls
 
 test('curriculum redesign uses the existing 275 course catalog without inventing IDs', () => {
   assert.equal(courses.length, 275);
-  assert.equal(new Set(courses.map(course => course.id)).size, 275);
+  assert.equal(new Set(courses.map((course) => course.id)).size, 275);
   assert.match(app, /getCurriculumStage/);
   assert.match(app, /getCurriculumTrack/);
 });

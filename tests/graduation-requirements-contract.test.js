@@ -1,9 +1,10 @@
-import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import test from 'node:test';
-import engine from '../graduation-requirements.js';
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const test = require('node:test');
+const engine = require('../graduation-requirements.js');
 
-const readJson = (name) => JSON.parse(fs.readFileSync(new URL(`../${name}`, import.meta.url), 'utf8'));
+const readJson = (name) => JSON.parse(fs.readFileSync(path.resolve(__dirname, `../${name}`), 'utf8'));
 const definition = readJson('graduation-requirements.json');
 const courses = readJson('courses.json');
 const requirements = definition.requirements;
@@ -30,18 +31,26 @@ test('基礎5分野は公式の各2単位要件である', () => {
     { label: '数理', key: 'math', metadataValue: '数理', targetCredits: 2 },
     { label: '情報', key: 'information', metadataValue: '情報', targetCredits: 2 },
     { label: '文化・思想', key: 'cultureThought', metadataValue: '文化思想', targetCredits: 2 },
-    { label: '社会・ネットワーク', key: 'societyNetwork', metadataValue: '社会ネットワーク', targetCredits: 2 },
-    { label: '経済・マーケット', key: 'economyMarket', metadataValue: '経済マーケット', targetCredits: 2 }
+    {
+      label: '社会・ネットワーク',
+      key: 'societyNetwork',
+      metadataValue: '社会ネットワーク',
+      targetCredits: 2,
+    },
+    { label: '経済・マーケット', key: 'economyMarket', metadataValue: '経済マーケット', targetCredits: 2 },
   ];
 
   const actualGroups = requirements.foundation.groups
     .map(({ label, key, metadataValue, targetCredits }) => ({ label, key, metadataValue, targetCredits }))
     .sort((left, right) => left.key.localeCompare(right.key));
-  assert.deepEqual(actualGroups, [...expectedGroups].sort((left, right) => left.key.localeCompare(right.key)));
+  assert.deepEqual(
+    actualGroups,
+    [...expectedGroups].sort((left, right) => left.key.localeCompare(right.key)),
+  );
   for (const group of expectedGroups) {
     assert.ok(
       courses.some((course) => course.foundationRequirement === group.metadataValue),
-      `${group.label} metadataValue resolves to explicit courses.json foundationRequirement metadata`
+      `${group.label} metadataValue resolves to explicit courses.json foundationRequirement metadata`,
     );
   }
 });
@@ -56,7 +65,7 @@ test('多言語ITコミュニケーションは正確な指定ID・名称・単�
     return { id: course.id, name: course.subject, credits: course.credits };
   });
   assert.deepEqual(resolvedCourses, [
-    { id: 'multilingual_it_comm', name: '多言語ITコミュニケーション', credits: 2 }
+    { id: 'multilingual_it_comm', name: '多言語ITコミュニケーション', credits: 2 },
   ]);
 });
 
@@ -73,12 +82,12 @@ test('産業史2単位は世界理解26単位のsub-requirementである', () =>
     credits: 24,
     category: '展開',
     tag: '世界理解',
-    globalStudiesRequirement: true
+    globalStudiesRequirement: true,
   };
   const analysis = engine.analyzeGraduationRequirements(
     [otherWorldCredits.id, industryCourse.id],
     [...courses, otherWorldCredits],
-    definition
+    definition,
   );
 
   assert.equal(analysis.valid, true);
@@ -97,7 +106,7 @@ test('産業史対象4件はcourses.jsonの正式な4科目へ解決する', () 
     { id: 'it_industry_history', subject: 'IT産業史', credits: 2 },
     { id: 'manga_industry_history', subject: 'マンガ産業史', credits: 2 },
     { id: 'anime_industry_history', subject: 'アニメ産業史', credits: 2 },
-    { id: 'japanese_game_industry_history', subject: '日本のゲーム産業史', credits: 2 }
+    { id: 'japanese_game_industry_history', subject: '日本のゲーム産業史', credits: 2 },
   ]);
 });
 
@@ -117,12 +126,16 @@ test('総単位から除外する公式カテゴリとタグを固定する', ()
 test('総単位の除外配列は空・重複・空白値をdefinitionとして拒否する', () => {
   for (const [arrayName, invalidValues] of [
     ['nonCountingCategories', [[], ['自由', '自由'], ['  自由'], ['']]],
-    ['nonCountingTags', [[], ['自由科目', '自由科目'], [' 自由科目 '], ['']]]
+    ['nonCountingTags', [[], ['自由科目', '自由科目'], [' 自由科目 '], ['']]],
   ]) {
     for (const values of invalidValues) {
       const invalidDefinition = cloneDefinition();
       invalidDefinition.requirements.totalCredits[arrayName] = values;
-      assert.equal(engine.validateRequirementsDefinition(invalidDefinition).valid, false, `${arrayName}: ${JSON.stringify(values)}`);
+      assert.equal(
+        engine.validateRequirementsDefinition(invalidDefinition).valid,
+        false,
+        `${arrayName}: ${JSON.stringify(values)}`,
+      );
     }
   }
 });

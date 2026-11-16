@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 
 const index = fs.readFileSync('index.html', 'utf8');
-const app = fs.readFileSync('app.js', 'utf8');
+const app = require('./helpers/hub-source.cjs').readHubSource();
 
 test('primary views share one navigation group and the simulator has no floating toolbar entry', () => {
   const navigation = index.match(/<nav class="primary-view-navigation"[\s\S]*?<\/nav>/)?.[0] || '';

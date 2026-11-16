@@ -5,7 +5,7 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const app = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+const app = require('./helpers/hub-source.cjs').readHubSource();
 const style = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
 const definition = JSON.parse(fs.readFileSync(path.join(root, 'curriculum-tree-layout.json'), 'utf8'));
 
@@ -20,7 +20,12 @@ test('phase 3 stores an official-map coordinate definition without shipping the 
 });
 
 test('phase 3 exposes stable pan, zoom, fit, fullscreen, and touch behaviours', () => {
-  for (const id of ['curriculum-zoom-fit', 'curriculum-zoom-reset', 'curriculum-fullscreen', 'curriculum-graph-viewport']) {
+  for (const id of [
+    'curriculum-zoom-fit',
+    'curriculum-zoom-reset',
+    'curriculum-fullscreen',
+    'curriculum-graph-viewport',
+  ]) {
     assert.match(index, new RegExp(`id="${id}"`));
   }
   assert.match(app, /curriculumState\.panX/);
