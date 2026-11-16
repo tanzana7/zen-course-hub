@@ -532,22 +532,32 @@ a {
   z-index: 40;
   font-size: 14px;
 }
-#map-drop-target {
+.map-drop-target {
   position: fixed;
   right: 16px;
-  top: 84px;
   width: 280px;
   height: 150px;
   display: grid;
   place-items: center;
-  background: #e1f5ee;
-  border: 3px dashed #0b8e75;
   border-radius: 16px;
   z-index: 25;
   font-weight: 700;
 }
+#map-drop-target {
+  top: 84px;
+  background: #e1f5ee;
+  border: 3px dashed #0b8e75;
+}
 #map-drop-target.is-over {
   background: #b4e8d5;
+}
+#map-drop-completed {
+  top: 246px;
+  background: #e8ecf8;
+  border: 3px dashed #5362ac;
+}
+#map-drop-completed.is-over {
+  background: #c9d1f2;
 }
 .unavailable {
   margin: 48px auto;
@@ -583,6 +593,12 @@ a {
     right: 10px;
     padding: 8px 12px;
     font-size: 12px;
+  }
+  #map-drop-target {
+    top: 108px;
+  }
+  #map-drop-completed {
+    top: 270px;
   }
   .map-menu {
     top: 64px;

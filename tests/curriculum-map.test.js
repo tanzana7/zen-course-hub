@@ -133,3 +133,25 @@ test('standalone map exposes separate planned and completed enrollment actions',
   assert.match(source, /utils\.saveEnrollmentState\(storage, keys, nextRegistered, nextCompleted\)/);
   assert.doesNotMatch(source, /fourYearSimulatorPlanV1/);
 });
+
+test('map drag offers both planned and completed drop zones', () => {
+  const html = fs.readFileSync('curriculum.html', 'utf8').replace(/\s+/g, ' ');
+  const css = fs.readFileSync('curriculum-map.css', 'utf8');
+  const source = fs.readFileSync('curriculum-map.js', 'utf8');
+  // Both zones exist with distinct targets and labels.
+  assert.match(
+    html,
+    /<div id="map-drop-target" class="map-drop-target" hidden role="region" aria-label="履修予定に追加" data-enrollment-target="registered" > 履修予定に追加 <\/div>/,
+  );
+  assert.match(
+    html,
+    /<div id="map-drop-completed" class="map-drop-target" hidden role="region" aria-label="履修済みに追加" data-enrollment-target="completed" > 履修済みに追加 <\/div>/,
+  );
+  assert.match(css, /#map-drop-target[\s\S]*?#map-drop-completed/);
+  assert.match(css, /#map-drop-completed[\s\S]*?#5362ac/);
+  // Drag lifecycle shows and hides every zone, and each zone's drop follows
+  // its own enrollment target through the existing toggle.
+  assert.match(source, /querySelectorAll\('\[data-enrollment-target\]'\)/);
+  assert.match(source, /setDropTargetsHidden\(false\)/);
+  assert.match(source, /changeEnrollment\(id, dropTarget\.dataset\.enrollmentTarget\)/);
+});

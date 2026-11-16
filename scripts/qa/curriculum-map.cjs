@@ -93,6 +93,17 @@ async function run() {
       result.opening = opening;
       evidence.viewports.push(result);
       await capture(`initial-${width}.png`);
+      // Both drop zones must be fully visible and free of toolbar, location
+      // label, and zoom-control overlaps at every width.
+      const dropGeometry = await evaluate(
+        `(() => {const zones=['map-drop-target','map-drop-completed'].map(id=>document.getElementById(id));zones.forEach(z=>z.hidden=false);const rects=zones.map(z=>z.getBoundingClientRect().toJSON());const others=['.map-toolbar','#map-location','.map-zoom'].map(sel=>document.querySelector(sel).getBoundingClientRect().toJSON());const overlap=(a,b)=>a.left<b.right&&b.left<a.right&&a.top<b.bottom&&b.top<a.bottom;zones.forEach(z=>z.hidden=true);return {conflicts:others.map(o=>rects.some(r=>overlap(r,o))),inside:rects.every(r=>r.left>=0&&r.top>=0&&r.right<=innerWidth&&r.bottom<=innerHeight)};})()`,
+      );
+      assert.deepEqual(
+        dropGeometry.conflicts,
+        [false, false, false],
+        `drop zones must not overlap fixed UI: ${JSON.stringify(dropGeometry.conflicts)}`,
+      );
+      assert.equal(dropGeometry.inside, true, 'drop zones stay inside the viewport');
       // Year shortcut buttons were removed from the menu; the home link lives
       // in the toolbar and year navigation happens through the field select.
       await click('#map-menu-toggle');
@@ -313,65 +324,103 @@ async function run() {
     assert.equal(evidence.exceptions.length, 0);
     await send('Page.reload');
     await wait(`document.querySelectorAll('.map-course').length === 275`);
-    // Native Chrome drag, not a DOM-only simulated drop. The target appears
-    // during dragstart and disappears after a successful drop.
-    await evaluate(
-      `document.getElementById('map-search').value='データサイエンス概論';document.getElementById('map-search-form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}))`,
-    );
-    await pause(150);
-    const dragStart = await evaluate(
-      `(() => { const r=document.querySelector('[data-course-id="data_science_intro"]').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`,
-    );
-    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...dragStart });
-    await send('Input.dispatchMouseEvent', {
-      type: 'mousePressed',
-      button: 'left',
-      clickCount: 1,
-      ...dragStart,
-    });
-    for (let step = 1; step <= 6; step++) {
+    // Native Chrome drag, not a DOM-only simulated drop. Both drop zones appear
+    // during dragstart and disappear after a successful drop.
+    const nativeDragTo = async (courseId, courseName, targetId) => {
+      await evaluate(
+        `document.getElementById('map-search').value=${JSON.stringify(courseName)};document.getElementById('map-search-form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}))`,
+      );
+      await pause(150);
+      const from = await evaluate(
+        `(() => { const r=document.querySelector('[data-course-id="${courseId}"]').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`,
+      );
+      await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...from });
       await send('Input.dispatchMouseEvent', {
-        type: 'mouseMoved',
+        type: 'mousePressed',
         button: 'left',
-        buttons: 1,
-        x: dragStart.x + step * 8,
-        y: dragStart.y + step * 8,
+        clickCount: 1,
+        ...from,
       });
-      await pause(40);
-    }
-    await wait(`document.getElementById('map-drop-target').hidden === false`);
-    const dragEnd = await evaluate(
-      `(() => {const r=document.getElementById('map-drop-target').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`,
-    );
-    for (let step = 1; step <= 8; step++) {
-      const portion = step / 8;
+      for (let step = 1; step <= 6; step++) {
+        await send('Input.dispatchMouseEvent', {
+          type: 'mouseMoved',
+          button: 'left',
+          buttons: 1,
+          x: from.x + step * 8,
+          y: from.y + step * 8,
+        });
+        await pause(40);
+      }
+      await wait(
+        `document.getElementById('map-drop-target').hidden === false && document.getElementById('map-drop-completed').hidden === false`,
+      );
+      const to = await evaluate(
+        `(() => {const r=document.getElementById('${targetId}').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`,
+      );
+      for (let step = 1; step <= 8; step++) {
+        const portion = step / 8;
+        await send('Input.dispatchMouseEvent', {
+          type: 'mouseMoved',
+          button: 'left',
+          buttons: 1,
+          x: from.x + (to.x - from.x) * portion,
+          y: from.y + (to.y - from.y) * portion,
+        });
+        await pause(35);
+      }
       await send('Input.dispatchMouseEvent', {
-        type: 'mouseMoved',
+        type: 'mouseReleased',
         button: 'left',
-        buttons: 1,
-        x: dragStart.x + (dragEnd.x - dragStart.x) * portion,
-        y: dragStart.y + (dragEnd.y - dragStart.y) * portion,
+        clickCount: 1,
+        ...to,
       });
-      await pause(35);
-    }
-    await send('Input.dispatchMouseEvent', {
-      type: 'mouseReleased',
-      button: 'left',
-      clickCount: 1,
-      ...dragEnd,
-    });
+      try {
+        await wait(
+          `document.getElementById('map-drop-target').hidden === true && document.getElementById('map-drop-completed').hidden === true`,
+        );
+      } catch (error) {
+        console.error(
+          'Drag state:',
+          await evaluate(
+            `({registeredHidden:document.getElementById('map-drop-target').hidden,completedHidden:document.getElementById('map-drop-completed').hidden,targetAtPoint:document.elementFromPoint(${to.x},${to.y})?.id,stored:localStorage.getItem('myClasses'),storedCompleted:localStorage.getItem('completedClasses'),status:document.getElementById('map-status').textContent})`,
+          ),
+        );
+        throw error;
+      }
+      await pause(120);
+    };
+    // Planned drop keeps working as before.
+    await nativeDragTo('data_science_intro', 'データサイエンス概論', 'map-drop-target');
     try {
       await wait(`JSON.parse(localStorage.getItem('myClasses')).includes('data_science_intro')`);
     } catch (error) {
       console.error(
         'Drag state:',
         await evaluate(
-          `({targetHidden:document.getElementById('map-drop-target').hidden,targetAtPoint:document.elementFromPoint(${dragEnd.x},${dragEnd.y})?.id,stored:localStorage.getItem('myClasses'),status:document.getElementById('map-status').textContent})`,
+          `({targetHidden:document.getElementById('map-drop-target').hidden,targetAtPoint:document.elementFromPoint(1000,160)?.id,stored:localStorage.getItem('myClasses'),status:document.getElementById('map-status').textContent})`,
         ),
       );
       throw error;
     }
     assert.equal(await evaluate(`document.getElementById('map-drawer').hidden`), true);
+    // Dropping on the completed zone moves the course out of planned into
+    // completed (mutual exclusion through the existing toggle).
+    await nativeDragTo('data_science_intro', 'データサイエンス概論', 'map-drop-completed');
+    await wait(`JSON.parse(localStorage.getItem('completedClasses')).includes('data_science_intro')`);
+    assert.deepEqual(JSON.parse((await storage()).myClasses), ['unknown_saved_course']);
+    await send('Page.reload');
+    await wait(`document.querySelector('[data-course-id="data_science_intro"].is-completed')`);
+    assert.ok(
+      await evaluate(
+        `document.querySelector('[data-course-id="data_science_intro"]').textContent.includes('履修済み ✓')`,
+      ),
+    );
+    assert.deepEqual(JSON.parse((await storage()).completedClasses), ['it_literacy', 'data_science_intro']);
+    assert.deepEqual(JSON.parse((await storage()).myClasses), ['unknown_saved_course']);
+    // A completed course dropped back on the planned zone returns to planned.
+    await nativeDragTo('data_science_intro', 'データサイエンス概論', 'map-drop-target');
+    await wait(`JSON.parse(localStorage.getItem('myClasses')).includes('data_science_intro')`);
+    assert.deepEqual(JSON.parse((await storage()).completedClasses), ['it_literacy']);
     evidence.nativeDragRegistration = 'PASS';
     await evaluate(`localStorage.clear()`); // This origin exists only inside the disposable QA profile.
     assert.deepEqual(await storage(), {});

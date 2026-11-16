@@ -104,7 +104,26 @@
         </header>
         <div id="map-drawer-content"></div>
       </aside>
-      <div id="map-drop-target" hidden role="region" aria-label="履修予定に追加">履修予定に追加</div>
+      <div
+        id="map-drop-target"
+        class="map-drop-target"
+        hidden
+        role="region"
+        aria-label="履修予定に追加"
+        data-enrollment-target="registered"
+      >
+        履修予定に追加
+      </div>
+      <div
+        id="map-drop-completed"
+        class="map-drop-target"
+        hidden
+        role="region"
+        aria-label="履修済みに追加"
+        data-enrollment-target="completed"
+      >
+        履修済みに追加
+      </div>
     </main>
     <section id="map-unavailable" class="unavailable">
       <h1>カリキュラムマップ</h1>

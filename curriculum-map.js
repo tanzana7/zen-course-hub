@@ -507,7 +507,13 @@
       const node = event.target.closest('[data-course-id]');
       if (node && Date.now() > suppressClickUntil && !dragging) renderDetail(node.dataset.courseId);
     });
-    const dropTarget = doc.getElementById('map-drop-target');
+    const dropTargets = [...doc.querySelectorAll('[data-enrollment-target]')];
+    const setDropTargetsHidden = (hidden) => {
+      for (const dropTarget of dropTargets) {
+        dropTarget.hidden = hidden;
+        if (hidden) dropTarget.classList.remove('is-over');
+      }
+    };
     host.addEventListener('dragstart', (event) => {
       const node = event.target.closest('[data-course-id]');
       if (!node || !event.dataTransfer) return;
@@ -515,29 +521,33 @@
       event.dataTransfer.setData('application/x-zen-course-id', node.dataset.courseId);
       event.dataTransfer.setData('text/plain', node.dataset.courseId);
       event.dataTransfer.effectAllowed = 'copy';
-      dropTarget.hidden = false;
+      setDropTargetsHidden(false);
     });
     host.addEventListener('dragend', () => {
-      dropTarget.hidden = true;
+      setDropTargetsHidden(true);
       dragging = false;
       suppressClickUntil = Date.now() + 250;
     });
-    dropTarget.addEventListener('dragover', (event) => {
-      event.preventDefault();
-      event.dataTransfer.dropEffect = 'copy';
-      dropTarget.classList.add('is-over');
-    });
-    dropTarget.addEventListener('dragleave', () => dropTarget.classList.remove('is-over'));
-    dropTarget.addEventListener('drop', (event) => {
-      event.preventDefault();
-      const id =
-        event.dataTransfer.getData('application/x-zen-course-id') || event.dataTransfer.getData('text/plain');
-      if (catalog.has(id)) changeEnrollment(id, 'registered');
-      dropTarget.hidden = true;
-      dropTarget.classList.remove('is-over');
-      dragging = false;
-      suppressClickUntil = Date.now() + 250;
-    });
+    for (const dropTarget of dropTargets) {
+      dropTarget.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+        dropTarget.classList.add('is-over');
+      });
+      dropTarget.addEventListener('dragleave', () => dropTarget.classList.remove('is-over'));
+      dropTarget.addEventListener('drop', (event) => {
+        event.preventDefault();
+        const id =
+          event.dataTransfer.getData('application/x-zen-course-id') ||
+          event.dataTransfer.getData('text/plain');
+        // The meaning of a drop follows the existing changeEnrollment toggle:
+        // dropping an already-completed course on its zone removes it there.
+        if (catalog.has(id)) changeEnrollment(id, dropTarget.dataset.enrollmentTarget);
+        setDropTargetsHidden(true);
+        dragging = false;
+        suppressClickUntil = Date.now() + 250;
+      });
+    }
 
     // Capture touch gestures on cards as well as the background. A moved touch
     // suppresses its click; a stationary tap still opens the course drawer.
