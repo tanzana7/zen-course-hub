@@ -130,12 +130,6 @@
       const centerY = (size().height / 2 - camera.y) / camera.scale;
       return layout.years.find((year) => centerY >= year.y && centerY < year.y + year.height)?.year || 1;
     };
-    const currentField = () => {
-      const centerX = (size().width / 2 - camera.x) / camera.scale;
-      return (
-        layout.fields.find((field) => centerX >= field.x && centerX < field.x + field.width)?.field || '情報'
-      );
-    };
     const regionCamera = (year, field) => ({
       scale: 1,
       // On desktop center the selected field so its location label matches
@@ -718,21 +712,6 @@
       relationMode = event.target.value;
       drawRelations();
     });
-    doc.querySelectorAll('[data-map-year]').forEach((button) =>
-      button.addEventListener('click', () => {
-        const year = Number(button.dataset.mapYear);
-        const current = currentField();
-        const count = (field) =>
-          layout.positions.filter((box) => box.region === `year-${year}` && box.field === field).length;
-        const available = layout.fields.find((field) => field.field === current && count(field.field) >= 3);
-        // A year jump should land on a meaningful cluster, not a nearly empty
-        // field merely because the camera happened to be there before.
-        const fallback = [...layout.fields].sort((a, b) => count(b.field) - count(a.field))[0];
-        focusRegion(year, (available || fallback).field);
-        doc.getElementById('map-menu').hidden = true;
-        doc.getElementById('map-menu-toggle').setAttribute('aria-expanded', 'false');
-      }),
-    );
     const search = doc.getElementById('map-search');
     const results = doc.getElementById('map-search-results');
     const matches = () =>

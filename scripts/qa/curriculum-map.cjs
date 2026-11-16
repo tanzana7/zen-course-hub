@@ -30,7 +30,13 @@ async function run() {
     );
     assert.equal(await evaluate(`document.getElementById('map-zoom-value').value`), '100%');
     await capture('preview-1440.png');
-    await click('#map-menu-toggle');
+    // The home link is a toolbar icon now; it must work with the menu closed.
+    assert.equal(await evaluate(`document.getElementById('map-menu').hidden`), true);
+    assert.ok(
+      await evaluate(
+        `(() => {const el=document.getElementById('map-back');const r=el.getBoundingClientRect();return r.width>0&&r.height>0&&el.textContent.includes('⌂')&&el.getAttribute('aria-label')==='ホームに戻る';})()`,
+      ),
+    );
     await click('#map-back');
     await wait(
       `location.pathname === '/index.html' && document.getElementById('curriculum-tree-nav')?.hidden === false`,
@@ -87,16 +93,20 @@ async function run() {
       result.opening = opening;
       evidence.viewports.push(result);
       await capture(`initial-${width}.png`);
-      for (const year of [1, 2, 3, 4]) {
-        await click('#map-menu-toggle');
-        await click(`[data-map-year="${year}"]`);
-        const reached = await evaluate(
-          `({label:document.getElementById('map-location').textContent,visible:[...document.querySelectorAll('.map-course')].some(card=>card.dataset.year==='${year}'&&(()=>{const r=card.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.top>=80&&r.bottom<=innerHeight-60})())})`,
-        );
-        assert.ok(reached.label.startsWith(`${year}年次`), `year ${year} region heading must be visible`);
-        assert.equal(reached.visible, true, `year ${year} needs a complete visible card`);
-      }
-      await capture(`year-4-${width}.png`);
+      // Year shortcut buttons were removed from the menu; the home link lives
+      // in the toolbar and year navigation happens through the field select.
+      await click('#map-menu-toggle');
+      const menuSpec = await evaluate(
+        `(() => {const back=document.querySelector('header.map-toolbar #map-back');return {dataMapYear:document.querySelectorAll('[data-map-year]').length,yearActions:document.querySelectorAll('.year-actions').length,homeIcon:back?.textContent.trim(),homeLabel:back?.getAttribute('aria-label'),homeInMenu:!!document.querySelector('#map-menu #map-back'),feedbackLink:!!document.querySelector('#map-menu a[href="feedback.html"]')};})()`,
+      );
+      assert.equal(menuSpec.dataMapYear, 0);
+      assert.equal(menuSpec.yearActions, 0);
+      assert.equal(menuSpec.homeIcon, '⌂');
+      assert.equal(menuSpec.homeLabel, 'ホームに戻る');
+      assert.equal(menuSpec.homeInMenu, false);
+      assert.equal(menuSpec.feedbackLink, true);
+      evidence.menuSpec = 'PASS';
+      await capture(`menu-${width}.png`);
       await click('#map-menu-toggle');
       await evaluate(
         `document.getElementById('map-field').value='文化・思想';document.getElementById('map-field').dispatchEvent(new Event('change',{bubbles:true}))`,
@@ -158,6 +168,20 @@ async function run() {
       evidence.allCoursesReachable += checks.length;
       // A real touch pan and pinch are checked at phone width.
       if (width === 390) {
+        const toolbarLayout = await evaluate(
+          `['map-menu-toggle','map-back','map-search-form','map-enrollment-toggle'].map(id=>{const r=document.getElementById(id).getBoundingClientRect();return {id,x:r.x,right:r.right};})`,
+        );
+        for (let i = 1; i < toolbarLayout.length; i++) {
+          assert.ok(
+            toolbarLayout[i].x >= toolbarLayout[i - 1].right - 0.5,
+            `toolbar item ${toolbarLayout[i].id} overlaps ${toolbarLayout[i - 1].id}`,
+          );
+        }
+        assert.ok(
+          toolbarLayout[0].x >= 0 && toolbarLayout.at(-1).right <= width,
+          'toolbar items stay inside the viewport at phone width',
+        );
+        evidence.toolbarLayout = 'PASS';
         const beforeTouch = (await summary()).transform;
         await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 150, y: 420 }] });
         await send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 210, y: 500 }] });

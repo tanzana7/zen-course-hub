@@ -66,7 +66,18 @@ test('navigation opens the standalone map and retains list mode transitions', ()
   assert.match(app, /(?:context\.)?syncPrimaryViewNavigation\(enabled \? 'tree' : 'list'\)/);
   assert.match(app, /course-list-nav'\)\?\.addEventListener\('click', \(\) => setMode\(false\)/);
   assert.match(app, /window.location.assign\(`curriculum.html/);
-  assert.match(read('curriculum.html'), /id="map-back" href="index.html"/);
+  const map = read('curriculum.html');
+  const toolbar = map.match(/<header class="map-toolbar">([\s\S]*?)<\/header>/)?.[1] || '';
+  // The home link is a permanent toolbar icon, not a menu entry.
+  assert.match(
+    toolbar,
+    /<a\s+id="map-back"\s+class="icon-button icon-link"\s+href="index.html"\s+aria-label="ホームに戻る"\s+title="ホームに戻る"\s*>\s*⌂\s*<\/a\s*>/,
+  );
+  assert.doesNotMatch(map, /<nav id="map-menu"[\s\S]*?<a id="map-back"/);
+  // Year shortcut buttons were removed; year navigation stays on the field select.
+  assert.doesNotMatch(map, /year-actions|data-map-year/);
+  assert.doesNotMatch(read('curriculum-map.js'), /data-map-year/);
+  assert.match(read('curriculum-map.js'), /focusRegion/);
 });
 
 test('release flag does not alter enrollment storage keys', () => {

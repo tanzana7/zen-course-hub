@@ -59,6 +59,22 @@ a {
   padding: 7px;
   font-size: 22px;
 }
+.icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 7px;
+  border: 1px solid #d1dcdf;
+  border-radius: 12px;
+  background: white;
+  color: #16323a;
+  font-weight: 650;
+  text-decoration: none;
+}
+.icon-link:hover {
+  background: #edf8f5;
+}
 #map-app,
 #map-viewport {
   position: fixed;
@@ -287,7 +303,7 @@ a {
 #map-search-results {
   position: absolute;
   top: 54px;
-  left: 52px;
+  left: 104px;
   width: 330px;
   max-width: calc(100vw - 32px);
   max-height: min(50vh, 430px);
@@ -327,12 +343,6 @@ a {
 .map-menu > a {
   display: block;
   padding: 8px 0;
-}
-.year-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin: 16px 0;
 }
 .map-menu label {
   display: block;
