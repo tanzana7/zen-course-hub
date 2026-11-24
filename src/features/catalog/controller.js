@@ -40,6 +40,12 @@
 
   let relatedDetailReturnFocus = null;
 
+  // Full search/filter/sort always runs against all 275 courses; only the
+  // rendered slice is limited so the initial list stays scrollable quickly.
+  const COURSE_PAGE_SIZE = 50;
+  let visibleCourseCount = COURSE_PAGE_SIZE;
+  let lastListSignature = '';
+
   const renderRelationLinks = (relationItems) =>
     (relationItems || [])
       .map((relation) => {
@@ -259,6 +265,25 @@
 
     const sorted = context.sortCourses(filtered, context.state.difficultySort, context.state.difficultyMap);
 
+    // Keep the render window stable while the same filter set is re-rendered;
+    // any change of filters, search, sort, or data resets back to the first page.
+    const listSignature = JSON.stringify([
+      context.state.filterYear,
+      context.state.filterQuarter,
+      context.state.filterCategory,
+      context.state.filterRequirement,
+      context.state.filterIntro,
+      context.state.filterSearch,
+      context.state.difficultySort,
+      context.state.excludePixiv,
+      sorted.length,
+      sorted[0]?.id || '',
+    ]);
+    if (listSignature !== lastListSignature) {
+      visibleCourseCount = COURSE_PAGE_SIZE;
+      lastListSignature = listSignature;
+    }
+
     const hasActiveFilters = Boolean(
       context.state.filterSearch.trim() ||
       context.state.filterYear !== 'すべて表示' ||
@@ -305,7 +330,7 @@
       return;
     }
 
-    sorted.forEach((data) => {
+    sorted.slice(0, visibleCourseCount).forEach((data) => {
       const isRegistered = context.state.registeredClasses.has(data.id);
       const isCompleted = context.state.completedClasses.has(data.id);
       // UI上の背景色などは「どちらかに入っている」場合に適用
@@ -380,6 +405,21 @@
 
       context.predefinedList.appendChild(li);
     });
+
+    if (sorted.length > visibleCourseCount) {
+      const moreItem = document.createElement('li');
+      moreItem.className = 'course-more-item';
+      const moreButton = document.createElement('button');
+      moreButton.type = 'button';
+      moreButton.className = 'course-more-btn';
+      moreButton.textContent = `もっと見る（残り${sorted.length - visibleCourseCount}科目）`;
+      moreButton.addEventListener('click', () => {
+        visibleCourseCount += COURSE_PAGE_SIZE;
+        renderPredefinedList();
+      });
+      moreItem.appendChild(moreButton);
+      context.predefinedList.appendChild(moreItem);
+    }
   };
   return { clearCourseFilters, renderCourseDetailMarkup, renderPredefinedList };
 });

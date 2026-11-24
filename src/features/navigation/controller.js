@@ -138,7 +138,9 @@
     const categoryFilter = document.getElementById('category-filter');
     if (categoryFilter) {
       const fields = [
-        '分野',
+        // The "all" sentinel value stays '分野' (state contract); only its
+        // visible label is unified with the other filters.
+        ['分野', 'すべて表示'],
         '情報',
         '数理',
         '多言語情報理解',
@@ -149,7 +151,10 @@
         '社会接続',
         '自由科目',
       ];
-      categoryFilter.innerHTML = fields.map((f) => `<option value="${f}">${f}</option>`).join('');
+      categoryFilter.innerHTML = fields
+        .map((f) => (Array.isArray(f) ? f : [f, f]))
+        .map(([value, label]) => `<option value="${value}">${label}</option>`)
+        .join('');
     }
 
     // 各フィルタ要素が存在する場合のみイベントリスナーを設定（エラー落ち防止）

@@ -374,9 +374,63 @@ body.simulator-view-active > #analysis-modal {
   margin: 4px 0;
 }
 
+#simulator-plan-check-details li.simulator-check-info strong {
+  color: #475569;
+}
+
 #simulator-plan-check-details li strong {
   margin-right: 4px;
   color: #1e3a8a;
+}
+
+/* Palette cards carry a visible drag handle; the whole card stays draggable. */
+.sim-drag-handle {
+  flex-shrink: 0;
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  padding-right: 2px;
+  color: #94a3b8;
+  cursor: grab;
+  user-select: none;
+}
+.sim-course-picker-item.is-placed .sim-drag-handle {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.simulator-placement-note {
+  margin: 4px 0 10px;
+  color: #64748b;
+  font-size: 0.85em;
+}
+
+/* 卒業までの進捗バー（既存の卒業要件定義の総必要単位を使用）。 */
+.simulator-graduation-progress {
+  margin: 0 0 12px;
+}
+.simulator-graduation-progress-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+}
+.simulator-graduation-progress-head strong {
+  color: #1d4ed8;
+}
+.simulator-graduation-progress-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+.simulator-graduation-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #2563eb;
+  min-width: 0;
 }
 
 .simulator-picker,

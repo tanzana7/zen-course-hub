@@ -133,7 +133,38 @@
     summary.textContent = issueCount
       ? `⚠ 計画チェック：要修正 ${quarterIssues}・前提 ${strongCount}強/${recommendedCount}推奨`
       : '✓ 計画チェック';
+    // 総単位の不足と空き年次は既存データの数値だけを使った情報表示。捏造した
+    // 年次上限などの警告は追加しない。
+    const targetCredits = context.state.graduationDefinition?.requirements?.totalCredits?.targetCredits;
+    const planCredits = context.state.simulatorPlan.placements
+      .map((placement) => context.state.coursesMap.get(placement.courseId))
+      .filter(Boolean)
+      .reduce((sum, course) => sum + Number(course.credits || 0), 0);
+    const creditInfo =
+      Number.isFinite(targetCredits) && targetCredits > 0
+        ? [
+            {
+              type: 'info',
+              label: '単位の進捗',
+              message: `計画合計 ${planCredits}単位 / 卒業要件 ${targetCredits}単位 · あと ${Math.max(0, targetCredits - planCredits)}単位`,
+            },
+          ]
+        : [];
+    const emptyYears = [1, 2, 3, 4].filter(
+      (year) => !context.state.simulatorPlan.placements.some((placement) => placement.year === year),
+    );
+    const emptyYearInfo = emptyYears.length
+      ? [
+          {
+            type: 'info',
+            label: '年次の配置',
+            message: `${emptyYears.map((year) => `${year}年次`).join('・')}に配置がありません`,
+          },
+        ]
+      : [];
     const checkItems = [
+      ...creditInfo,
+      ...emptyYearInfo,
       ...placementIssues.map((issue) => ({ ...issue, strengthText: '要修正' })),
       ...prerequisiteWarnings.map((warning) => ({ ...warning, strengthText: warning.strengthLabel })),
     ];
@@ -141,9 +172,9 @@
       ? `<ul>${checkItems
           .map(
             (warning) => `
-          <li class="simulator-check-${context.escapeHTML(warning.type)}" data-sim-warning-course="${context.escapeHTML(warning.course.id)}">
-            <strong>${context.escapeHTML(warning.course.subject)}</strong>
-            <span>${context.escapeHTML(warning.message)}（${context.escapeHTML(warning.strengthText)}）</span>
+          <li class="simulator-check-${context.escapeHTML(warning.type)}"${warning.course ? ` data-sim-warning-course="${context.escapeHTML(warning.course.id)}"` : ''}>
+            <strong>${context.escapeHTML(warning.course ? warning.course.subject : warning.label)}</strong>
+            <span>${context.escapeHTML(warning.message)}${warning.course ? `（${context.escapeHTML(warning.strengthText)}）` : ''}</span>
           </li>
         `,
           )
@@ -312,6 +343,7 @@
         const placedClass = placement ? ' is-placed' : '';
         return `
         <article class="sim-course-picker-item${placedClass}" draggable="${placement ? 'false' : 'true'}" data-sim-drag-course="${context.escapeHTML(course.id)}">
+          <span class="sim-drag-handle" aria-hidden="true" title="${placement ? '配置済みの科目はグリッド上でドラッグして移動できます' : 'ドラッグで配置先へ移動できます'}">⠿</span>
           <div class="sim-course-picker-info">
             <button type="button" class="sim-course-detail-trigger" data-sim-detail-course="${context.escapeHTML(course.id)}">${context.escapeHTML(course.subject)}</button>
             <span>${context.escapeHTML(course.quarter || 'Q未定')} ｜ ${context.escapeHTML(String(course.credits || 0))}単位</span>

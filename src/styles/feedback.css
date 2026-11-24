@@ -20,6 +20,30 @@ body[data-page='feedback'] a {
   display: inline-block;
   padding: 8px 0;
 }
+body[data-page='feedback'] .app-title-row a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 18px;
+}
+body[data-page='feedback'] main {
+  padding: 0 20px;
+}
+body[data-page='feedback'] h2 {
+  margin: 8px 0 18px;
+  font-size: 24px;
+}
+.required-mark {
+  color: #b3261e;
+  font-weight: 700;
+  font-size: 0.85em;
+}
+.feedback-note {
+  color: #5f6b7a;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
 #exam-schedule {
   margin: 16px 0;
 }

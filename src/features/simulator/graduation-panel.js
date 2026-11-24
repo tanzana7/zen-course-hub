@@ -125,15 +125,41 @@
     }
 
     if (!currentAnalysis.valid || !projectedAnalysis.valid || !simulatorGraduationDetailState) {
+      const reason =
+        currentAnalysis.message ||
+        projectedAnalysis.message ||
+        '卒業要件データを確認できないため、計画表示はそのまま利用できます。';
       summary.innerHTML =
-        '<div class="simulator-graduation-unavailable" role="alert"><strong>卒業見込み：判定不能</strong><span>卒業要件データを確認できないため、計画表示はそのまま利用できます。</span></div>';
+        '<div class="simulator-graduation-unavailable" role="alert"><strong>卒業見込み：判定不能</strong><span>' +
+        context.escapeHTML(reason) +
+        '</span></div>';
       details.innerHTML = '';
       return;
     }
 
     const target = projectedAnalysis.totalCredits.targetCredits;
     const totalValue = (analysis) => `${analysis.totalCredits.countedCredits} / ${target}単位`;
+    // 卒業要件データの総必要単位を使った進捗バー。捏造数値は使わない。
+    const projectedCredits = projectedAnalysis.totalCredits.countedCredits;
+    const missingCredits = Math.max(0, target - projectedCredits);
+    const progressPct = Math.max(0, Math.min(100, (projectedCredits / target) * 100));
     summary.innerHTML = `
+      <div class="simulator-graduation-progress">
+        <div class="simulator-graduation-progress-head">
+          <span>4年計画完了時 ${projectedCredits} / ${target}単位</span>
+          <strong>${missingCredits > 0 ? `あと${missingCredits}単位` : '卒業要件単位を満たす見込み'}</strong>
+        </div>
+        <div
+          class="simulator-graduation-progress-bar"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="${target}"
+          aria-valuenow="${projectedCredits}"
+          aria-label="4年計画完了時の卒業要件総単位の進捗"
+        >
+          <div class="simulator-graduation-progress-fill" style="width: ${progressPct}%"></div>
+        </div>
+      </div>
       <div class="simulator-graduation-status-grid">
         <div class="simulator-graduation-status">
           <strong>現在の修得状況</strong>

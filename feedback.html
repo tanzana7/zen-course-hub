@@ -4,14 +4,26 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>ご意見・不具合報告 | ZEN履修登録Hub</title>
+    <meta
+      name="description"
+      content="ZEN履修登録Hubへのご意見・不具合報告フォーム。科目情報の誤りや試験日程の誤りを報告できます。"
+    />
     <link rel="stylesheet" href="style.css" />
     <script defer src="feedback.js"></script>
   </head>
   <body data-page="feedback">
+    <div class="sticky-controls">
+      <header class="app-title-row">
+        <h1>ZEN履修登録Hub</h1>
+        <a class="primary-view-button" href="index.html">ホーム</a>
+      </header>
+      <p class="app-description">
+        ZEN大学向けの非公式履修管理ツール。履修管理・卒業要件チェック・授業検索・難易度目安の確認ができます。
+      </p>
+    </div>
     <main>
       <section>
-        <a href="index.html">ホーム</a>
-        <h1>ご意見・不具合報告</h1>
+        <h2>ご意見・不具合報告</h2>
         <form name="feedback" method="POST" data-netlify="true" netlify-honeypot="bot-field">
           <input type="hidden" name="form-name" value="feedback" />
           <p hidden>
@@ -35,16 +47,36 @@
             <label>科目名<input name="courseName" maxlength="200" readonly /> </label>
           </p>
           <p>
-            <label>内容<textarea name="message" rows="8" maxlength="5000" required></textarea></label>
+            <label
+              >内容 <span class="required-mark" aria-hidden="true">*必須</span
+              ><textarea name="message" rows="8" maxlength="5000" required></textarea>
+            </label>
           </p>
           <p>
             <label>連絡先（任意）<input name="email" type="email" maxlength="254" /> </label>
           </p>
-          <p>送信するのはこのフォームの内容のみです。個人情報の記載は必要最小限にしてください。</p>
+          <p class="feedback-note">
+            送信するのはこのフォームの内容のみです。個人情報の記載は必要最小限にしてください。
+          </p>
           <p id="feedback-status" role="status"></p>
           <button type="submit">送信</button>
+          <p class="feedback-note">
+            送信内容はサイト改善の確認のためにのみ使用します。ご入力いただいた連絡先へのご返信は行いません。
+          </p>
         </form>
       </section>
     </main>
+
+    <footer class="app-footer">
+      <a href="index.html">ホームに戻る</a>
+      <p>ZEN Course Planner (Unofficial) は非公式の履修管理支援ツールです。</p>
+      <p>
+        卒業要件分析、単位計算、履修判定結果は参考情報であり、正確性や完全性を保証するものではありません。
+      </p>
+      <p>履修登録および卒業要件の最終確認は、大学の公式情報・学生要覧・シラバス等で行ってください。</p>
+      <p>当サイトでは利用状況の把握・改善のためGoogle Analyticsを使用しています。</p>
+      <p>本アプリの利用によって生じた損害について、開発者は一切の責任を負いません。</p>
+      <p>Version Beta 0.1</p>
+    </footer>
   </body>
 </html>
