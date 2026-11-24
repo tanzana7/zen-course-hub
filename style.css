@@ -238,6 +238,7 @@ body {
 /* アプリタイトル行 */
 .app-title-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -687,9 +688,63 @@ body.simulator-view-active > #analysis-modal {
   margin: 4px 0;
 }
 
+#simulator-plan-check-details li.simulator-check-info strong {
+  color: #475569;
+}
+
 #simulator-plan-check-details li strong {
   margin-right: 4px;
   color: #1e3a8a;
+}
+
+/* Palette cards carry a visible drag handle; the whole card stays draggable. */
+.sim-drag-handle {
+  flex-shrink: 0;
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  padding-right: 2px;
+  color: #94a3b8;
+  cursor: grab;
+  user-select: none;
+}
+.sim-course-picker-item.is-placed .sim-drag-handle {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.simulator-placement-note {
+  margin: 4px 0 10px;
+  color: #64748b;
+  font-size: 0.85em;
+}
+
+/* 卒業までの進捗バー（既存の卒業要件定義の総必要単位を使用）。 */
+.simulator-graduation-progress {
+  margin: 0 0 12px;
+}
+.simulator-graduation-progress-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+}
+.simulator-graduation-progress-head strong {
+  color: #1d4ed8;
+}
+.simulator-graduation-progress-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+.simulator-graduation-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #2563eb;
+  min-width: 0;
 }
 
 .simulator-picker,
@@ -1563,6 +1618,107 @@ body.simulator-view-active > #analysis-modal {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+/* 初回ロード中は未確定の「0件」や「総単位 —」を見せない。 */
+body.app-loading .top-credit-gauge .gauge-value,
+body.app-loading .top-credit-gauge .gauge-fill,
+body.app-loading #earned-credits,
+body.app-loading #registered-count,
+body.app-loading #registered-credits {
+  visibility: hidden;
+}
+
+/* データ到着までのカード型プレースホルダ。 */
+.course-skeleton .class-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e3e8ea;
+  border-radius: 8px;
+  padding: 14px;
+}
+.course-skeleton .class-info {
+  flex: 1;
+  min-width: 0;
+}
+.course-skeleton strong,
+.course-skeleton .class-meta,
+.course-skeleton .actions {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #eef1f3 25%, #f6f8f9 50%, #eef1f3 75%);
+  background-size: 200% 100%;
+  animation: course-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+.course-skeleton strong {
+  height: 18px;
+  width: 55%;
+  margin-bottom: 10px;
+}
+.course-skeleton .class-meta {
+  height: 14px;
+  width: 35%;
+}
+.course-skeleton .actions {
+  height: 40px;
+  width: 130px;
+  align-self: center;
+}
+@keyframes course-skeleton-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .course-skeleton strong,
+  .course-skeleton .class-meta,
+  .course-skeleton .actions {
+    animation: none;
+  }
+}
+
+.filter-note {
+  margin: 6px 0 0;
+  color: #5f6b7a;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+/* 削除の取り消し（元に戻す）トースト。 */
+.undo-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100vw - 32px);
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #163b38;
+  color: #fff;
+  z-index: 60;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  font-size: 14px;
+}
+.undo-toast button {
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: transparent;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+.undo-toast button:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .filter-container select {
@@ -4092,7 +4248,7 @@ body.curriculum-tree-mode .curriculum-enrollment-content {
   min-width: 0;
   min-height: 48px;
   padding: 10px 14px;
-  border: 2px solid transparent;
+  border: 2px solid #e2e8f0;
   border-radius: 10px;
   font: inherit;
   font-weight: 800;
@@ -4105,44 +4261,22 @@ body.curriculum-tree-mode .curriculum-enrollment-content {
     color 0.15s ease;
 }
 
-.primary-view-button.view-list {
-  border-color: #bfdbfe;
-  background: #eff6ff;
-  color: #1d4ed8;
-}
-
-.primary-view-button.view-tree {
-  border-color: #99f6e4;
-  background: #f0fdfa;
-  color: #0f766e;
-}
-
+/* One shared palette: resting state is neutral gray with dark text, only the
+   selected view fills with the app's blue primary color. */
+.primary-view-button.view-list,
+.primary-view-button.view-tree,
 .primary-view-button.view-simulator {
-  border-color: #c4b5fd;
-  background: #f5f3ff;
-  color: #6d28d9;
-  margin: 0;
+  background: #f8fafc;
+  color: #334155;
 }
 
-.primary-view-button.view-list[aria-pressed='true'] {
+.primary-view-button.view-list[aria-pressed='true'],
+.primary-view-button.view-tree[aria-pressed='true'],
+.primary-view-button.view-simulator[aria-pressed='true'] {
   border-color: #1d4ed8;
   background: #2563eb;
   color: #fff;
   box-shadow: 0 5px 12px rgba(37, 99, 235, 0.2);
-}
-
-.primary-view-button.view-tree[aria-pressed='true'] {
-  border-color: #0f766e;
-  background: #0d9488;
-  color: #fff;
-  box-shadow: 0 5px 12px rgba(13, 148, 136, 0.2);
-}
-
-.primary-view-button.view-simulator[aria-pressed='true'] {
-  border-color: #6d28d9;
-  background: #7c3aed;
-  color: #fff;
-  box-shadow: 0 5px 12px rgba(124, 58, 237, 0.25);
 }
 
 .primary-view-button:not([aria-pressed='true']):hover {
@@ -4193,6 +4327,32 @@ body.curriculum-tree-mode .curriculum-enrollment-content {
 
 body.curriculum-tree-mode .filter-actions {
   display: none;
+}
+
+/* Feedback is an independent header action, not a squeezed nav item. */
+.feedback-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-height: 40px;
+  padding: 8px 18px;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.feedback-pill:hover {
+  background: #dbeafe;
+}
+
+.feedback-pill:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
 }
 
 @media screen and (max-width: 768px) {
@@ -4612,6 +4772,30 @@ body[data-page='feedback'] textarea {
 body[data-page='feedback'] a {
   display: inline-block;
   padding: 8px 0;
+}
+body[data-page='feedback'] .app-title-row a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 18px;
+}
+body[data-page='feedback'] main {
+  padding: 0 20px;
+}
+body[data-page='feedback'] h2 {
+  margin: 8px 0 18px;
+  font-size: 24px;
+}
+.required-mark {
+  color: #b3261e;
+  font-weight: 700;
+  font-size: 0.85em;
+}
+.feedback-note {
+  color: #5f6b7a;
+  font-size: 0.85rem;
+  line-height: 1.6;
 }
 #exam-schedule {
   margin: 16px 0;

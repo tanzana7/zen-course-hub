@@ -56,8 +56,18 @@
           />
           <button class="icon-button" type="submit" aria-label="検索">⌕</button>
         </form>
+        <label class="map-year-jump">
+          <span class="map-year-jump-label">表示位置</span>
+          <select id="map-year-jump" aria-label="表示位置を年次へ移動">
+            <option value="">年次へ移動</option>
+            <option value="1">1年次</option>
+            <option value="2">2年次</option>
+            <option value="3">3年次</option>
+            <option value="4">4年次</option>
+          </select>
+        </label>
         <button id="map-enrollment-toggle" type="button" aria-controls="map-drawer" aria-expanded="false">
-          マイ履修 <span id="map-enrollment-count">0</span>
+          履修予定 <span id="map-enrollment-count">0</span>
         </button>
         <div id="map-search-results" hidden role="region" aria-label="検索結果"></div>
       </header>

@@ -31,10 +31,11 @@
     <link rel="stylesheet" href="style.css" />
     <script defer src="curriculum-config.js"></script>
   </head>
-  <body>
+  <body class="app-loading">
     <div class="sticky-controls">
       <header class="app-title-row">
         <h1>ZEN履修登録Hub</h1>
+        <a class="feedback-pill" href="feedback.html">ご意見・不具合報告</a>
         <div class="top-credit-gauge" title="卒業要件の総単位進捗">
           <span class="gauge-label">総単位</span>
           <span class="gauge-value"
@@ -82,7 +83,6 @@
           >
             <span>4年計画</span><span class="view-beta-badge" aria-hidden="true">β</span>
           </button>
-          <a href="feedback.html">ご意見・不具合報告</a>
         </nav>
         <div class="filter-actions">
           <button
@@ -144,7 +144,7 @@
               <label for="category-filter"
                 >分野
                 <select id="category-filter">
-                  <option value="すべて表示">すべて表示</option>
+                  <option value="分野">すべて表示</option>
                 </select>
               </label>
               <label for="requirement-filter"
@@ -160,6 +160,9 @@
               <input id="exclude-pixiv-filter" type="checkbox" />
               <span>pixiv関連科目を除外</span>
             </label>
+            <p class="filter-note" id="pixiv-filter-note">
+              pixiv提供のイラスト添付科目（20科目）を一覧から隠します。卒業要件の対象には影響しません。
+            </p>
           </div>
           <button id="clear-course-filters" class="clear-filter-btn" type="button" hidden>
             条件をすべて解除
@@ -204,7 +207,45 @@
             aria-live="polite"
             hidden
           ></p>
-          <ul id="predefined-classes-list"></ul>
+          <ul id="predefined-classes-list" aria-busy="true">
+            <!-- 読み込み中はカード型スケルトンを先行表示し、データ到着後に差し替える。 -->
+            <li class="course-skeleton" aria-hidden="true">
+              <div class="class-item">
+                <div class="class-info">
+                  <strong></strong>
+                  <div class="class-meta"></div>
+                </div>
+                <div class="actions"></div>
+              </div>
+            </li>
+            <li class="course-skeleton" aria-hidden="true">
+              <div class="class-item">
+                <div class="class-info">
+                  <strong></strong>
+                  <div class="class-meta"></div>
+                </div>
+                <div class="actions"></div>
+              </div>
+            </li>
+            <li class="course-skeleton" aria-hidden="true">
+              <div class="class-item">
+                <div class="class-info">
+                  <strong></strong>
+                  <div class="class-meta"></div>
+                </div>
+                <div class="actions"></div>
+              </div>
+            </li>
+            <li class="course-skeleton" aria-hidden="true">
+              <div class="class-item">
+                <div class="class-info">
+                  <strong></strong>
+                  <div class="class-meta"></div>
+                </div>
+                <div class="actions"></div>
+              </div>
+            </li>
+          </ul>
         </div>
 
         <section
@@ -464,7 +505,9 @@
 
           <aside class="simulator-scheduled-panel" aria-labelledby="sim-scheduled-title">
             <h2 id="sim-scheduled-title">科目一覧</h2>
-            <p class="simulator-note">科目をドラッグするか「配置」から配置先を選べます。</p>
+            <p class="simulator-note" id="simulator-drag-note">
+              未配置の科目は一覧カードからドラッグで配置できます。配置済みの科目はグリッド上でドラッグして移動できます。「配置」ボタンでも選べます。
+            </p>
             <div class="simulator-palette-tabs" role="tablist" aria-label="科目一覧の表示対象">
               <button
                 type="button"
@@ -601,6 +644,7 @@
             </button>
           </div>
           <p id="simulator-placement-course-info"></p>
+          <p class="simulator-placement-note">この科目の開講クォーターのみ選択できます。</p>
           <div id="simulator-placement-options" class="simulator-placement-options"></div>
         </dialog>
       </div>

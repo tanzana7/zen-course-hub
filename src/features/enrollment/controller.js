@@ -39,12 +39,59 @@
     context.storageWarning.hidden = false;
   };
 
+  /** 削除の取り消し。localStorageを含めて削除前の状態へ完全に戻す。 */
+  const restoreEnrollmentState = (registeredIds, completedIds) => {
+    const nextRegistered = new Set(registeredIds);
+    const nextCompleted = new Set(completedIds);
+    const result = saveState(nextRegistered, nextCompleted);
+    if (!result.saved) {
+      showStorageWarning('変更を元に戻せませんでした。再読み込みして確認してください。');
+      return;
+    }
+    context.state.registeredClasses = nextRegistered;
+    context.state.completedClasses = nextCompleted;
+    context.renderAll();
+  };
+
+  let undoToastTimer = null;
+  const hideUndoToast = () => {
+    clearTimeout(undoToastTimer);
+    undoToastTimer = null;
+    if (typeof document === 'undefined') return;
+    document.getElementById('app-undo-toast')?.remove();
+  };
+
+  const showUndoToast = (message, onUndo) => {
+    if (typeof document === 'undefined' || typeof document.createElement !== 'function') return;
+    hideUndoToast();
+    const toast = document.createElement('div');
+    toast.id = 'app-undo-toast';
+    toast.className = 'undo-toast';
+    toast.setAttribute('role', 'status');
+    const text = document.createElement('span');
+    text.textContent = message;
+    const undoButton = document.createElement('button');
+    undoButton.type = 'button';
+    undoButton.textContent = '元に戻す';
+    undoButton.addEventListener('click', () => {
+      hideUndoToast();
+      onUndo();
+    });
+    toast.append(text, undoButton);
+    document.body.append(toast);
+    undoButton.focus();
+    undoToastTimer = setTimeout(hideUndoToast, 5000);
+  };
+
   /**
    * 状態変更のコミット（追加・削除・移動をここで一括管理）
    * @param {string} id - 科目ID
    * @param {'REGISTER'|'COMPLETE'|'DELETE'} action - アクション
    */
   const commitStateChange = (id, action) => {
+    // 削除の取り消し用に、書き込み前の両リストのID配列を残す。
+    const previousRegistered = [...context.state.registeredClasses];
+    const previousCompleted = [...context.state.completedClasses];
     const next = context.enrollmentRules.transition(context.state, id, action);
     if (!next) return false;
     const { registeredClasses: nextRegistered, completedClasses: nextCompleted } = next;
@@ -60,6 +107,12 @@
     context.state.registeredClasses = nextRegistered;
     context.state.completedClasses = nextCompleted;
     context.renderAll();
+    if (action === 'DELETE') {
+      const course = context.state.coursesMap?.get(id);
+      showUndoToast(`${course?.subject || '科目'}を削除しました`, () =>
+        restoreEnrollmentState(previousRegistered, previousCompleted),
+      );
+    }
     return true;
   };
 

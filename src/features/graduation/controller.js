@@ -15,17 +15,24 @@
 
   const sumCredits = (classes) => classes.reduce((sum, cls) => sum + Number(cls.credits || 0), 0);
 
-  const invalidGraduationResult = (details = []) => ({
+  const invalidGraduationResult = (message = '科目データを確認できないため、卒業要件を判定できません。') => ({
     valid: false,
-    message: '科目データを確認できないため、卒業要件を判定できません。',
-    details,
+    message,
+    details: [],
   });
 
   const analyzeGraduation = (courseIds) => {
-    if (context.state.courseValidationError)
-      return invalidGraduationResult([context.state.courseValidationError]);
+    if (context.state.courseValidationError) {
+      // The real reason matters: a data validation failure is not solved by
+      // adding courses, so the guidance points at reloading instead.
+      return invalidGraduationResult(
+        `${context.state.courseValidationError} ページを再読み込みしても直らない場合は、しばらく待ってから再度ご確認ください。`,
+      );
+    }
     if (!context.state.graduationDefinition || !window.GraduationRequirementsEngine) {
-      return invalidGraduationResult(['卒業要件定義を読み込めませんでした。']);
+      return invalidGraduationResult(
+        '卒業要件データを読み込めませんでした。ページを再読み込みしても直らない場合は、しばらく待ってから再度ご確認ください。',
+      );
     }
     return window.GraduationRequirementsEngine.analyzeGraduationRequirements(
       courseIds,

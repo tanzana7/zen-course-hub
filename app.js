@@ -23,7 +23,9 @@ async function initializeHub() {
     buildRelationsMap,
     sortCourseData,
   } = window.ZenHubRepository.create({
-    fetch,
+    // A plain `fetch` reference loses its window binding and Chrome rejects it
+    // with "Illegal invocation", silently disabling every repository load.
+    fetch: (...args) => fetch(...args),
     engine: window.GraduationRequirementsEngine,
     get sanitizeExternalUrl() {
       return sanitizeExternalUrl;
@@ -352,6 +354,9 @@ async function initializeHub() {
       dataStatus.hidden = true;
       dataStatus.classList.remove('is-error');
     }
+    document.body.classList.remove('app-loading');
+    const listElement = document.getElementById('predefined-classes-list');
+    if (listElement) listElement.removeAttribute('aria-busy');
     renderAll();
     if (simulatorAvailable) renderSimulator();
   };
@@ -402,6 +407,9 @@ async function initializeHub() {
     });
   } catch (error) {
     console.error('データの読み込みに失敗しました:', error);
+    document.body.classList.remove('app-loading');
+    const listElement = document.getElementById('predefined-classes-list');
+    if (listElement) listElement.removeAttribute('aria-busy');
     renderGraduationGauge({ valid: false });
     if (dataStatus) {
       dataStatus.hidden = false;

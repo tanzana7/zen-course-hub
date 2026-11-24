@@ -90,6 +90,31 @@
           node.hidden = true;
         }, 4000);
     };
+    // Deletion gets the same undo affordance as the Hub list: a 5s toast that
+    // restores both lists exactly, including the saved localStorage values.
+    let undoToastTimer;
+    const hideUndoToast = () => {
+      clearTimeout(undoToastTimer);
+      undoToastTimer = undefined;
+      doc.getElementById('map-undo-toast')?.remove();
+    };
+    const showUndoToast = (message, onUndo) => {
+      hideUndoToast();
+      const toast = element('div', undefined, 'undo-toast');
+      toast.id = 'map-undo-toast';
+      toast.setAttribute('role', 'status');
+      const text = element('span', message);
+      const undoButton = element('button', '元に戻す', 'undo-toast-button');
+      undoButton.type = 'button';
+      undoButton.addEventListener('click', () => {
+        hideUndoToast();
+        onUndo();
+      });
+      toast.append(text, undoButton);
+      doc.body.append(toast);
+      undoButton.focus();
+      undoToastTimer = win.setTimeout(hideUndoToast, 5000);
+    };
     const applyCamera = () => {
       if (cameraFrame) return;
       cameraFrame = win.requestAnimationFrame(() => {
@@ -153,6 +178,29 @@
     };
     const previewQuery = !win.CurriculumAccess.publicEnabled ? '?curriculumPreview=1' : '';
     doc.getElementById('map-back').href = `index.html${previewQuery}`;
+    // Toolbar year jump: moves the camera to that year's area. This is a
+    // viewport jump only — it never changes filters, selections, or enrollment.
+    const currentField = () => {
+      const centerX = (size().width / 2 - camera.x) / camera.scale;
+      return (
+        layout.fields.find((field) => centerX >= field.x && centerX < field.x + field.width)?.field || '情報'
+      );
+    };
+    const yearJump = doc.getElementById('map-year-jump');
+    yearJump?.addEventListener('change', () => {
+      const year = Number(yearJump.value);
+      if (!year) return;
+      const count = (field) =>
+        layout.positions.filter((box) => box.region === `year-${year}` && box.field === field).length;
+      const available = layout.fields.find(
+        (field) => field.field === currentField() && count(field.field) >= 3,
+      );
+      // A year jump should land on a meaningful cluster, not a nearly empty
+      // field merely because the camera happened to be there before.
+      const fallback = [...layout.fields].sort((a, b) => count(b.field) - count(a.field))[0];
+      focusRegion(year, (available || fallback).field);
+      yearJump.value = '';
+    });
     world.style.width = `${layout.width}px`;
     world.style.height = `${layout.height}px`;
 
@@ -330,8 +378,10 @@
       // is intentionally not part of this transaction.
       if (!['registered', 'completed'].includes(target) || !catalog.has(id)) return false;
       const current = utils.readEnrollmentState(storage, keys);
-      const nextRegistered = new Set(current.registered.ids);
-      const nextCompleted = new Set(current.completed.ids);
+      const previousRegistered = [...current.registered.ids];
+      const previousCompleted = [...current.completed.ids];
+      const nextRegistered = new Set(previousRegistered);
+      const nextCompleted = new Set(previousCompleted);
       const active = target === 'registered' ? nextRegistered.has(id) : nextCompleted.has(id);
       if (target === 'registered') {
         if (active) nextRegistered.delete(id);
@@ -366,6 +416,30 @@
               ? '履修予定に追加しました'
               : '履修済みに追加しました',
         );
+      if (result.saved && active) {
+        const course = catalog.get(id);
+        showUndoToast(`${course?.subject || '科目'}を削除しました`, () => {
+          const restoreResult = utils.saveEnrollmentState(
+            storage,
+            keys,
+            new Set(previousRegistered),
+            new Set(previousCompleted),
+          );
+          if (!restoreResult.saved) {
+            status(
+              restoreResult.rollbackSucceeded
+                ? '変更を元に戻せませんでした。再度お試しください。'
+                : '保存状態を確認できません。ページを再読み込みしてください。',
+              true,
+            );
+            return;
+          }
+          enrollment = utils.readEnrollmentState(storage, keys);
+          updateNodes();
+          if (drawerMode === 'enrollment') renderEnrollment();
+          else if (drawerMode === 'detail') renderDetail(selectedId, false);
+        });
+      }
       return result.saved;
     };
     const appendEnrollmentGroup = (title, ids, target) => {
@@ -426,23 +500,24 @@
         if (value) metadata.append(element('dt', label), element('dd', value));
       }
       drawerContent.append(metadata);
+      // ホームの科目詳細と同じ評価方法（レポート・試験の配分）を表示する。
+      metadata.append(element('dt', '評価方法'), element('dd', course.evaluation || '情報なし'));
       const exam = element('section');
       win.ZenExam.appendDetail(exam, course);
       drawerContent.append(exam);
       const planned = enrollment.registered.ids.includes(id);
       const completed = enrollment.completed.ids.includes(id);
+      // 状態遷移はホームと同じトグル。表示名も状態に合わせて曖昧さをなくす。
+      const plannedLabel = planned ? '履修予定から削除' : completed ? '履修予定に戻す' : '履修予定に追加';
+      const completedLabel = completed ? '履修済みから削除' : planned ? '履修済みにする' : '履修済みに追加';
       const actions = element('div', undefined, 'enrollment-actions');
-      const plannedAction = element(
-        'button',
-        planned ? '履修予定から削除' : '履修予定に追加',
-        'enrollment-action enrollment-action-planned',
-      );
+      const plannedAction = element('button', plannedLabel, 'enrollment-action enrollment-action-planned');
       plannedAction.type = 'button';
       plannedAction.disabled = !enrollment.writable;
       plannedAction.addEventListener('click', () => changeEnrollment(id, 'registered'));
       const completedAction = element(
         'button',
-        completed ? '履修済みから削除' : '履修済みに追加',
+        completedLabel,
         'enrollment-action enrollment-action-completed',
       );
       completedAction.type = 'button';
