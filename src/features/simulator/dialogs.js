@@ -337,6 +337,9 @@
         return;
       }
       event.dataTransfer?.setData('text/plain', item.dataset.simDragCourse);
+      // Without effectAllowed the drag stays "uninitialized" and Chrome can
+      // refuse to deliver drop on the grid cells, so declare copy up front.
+      if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy';
       context.highlightSimulatorDropCells(item.dataset.simDragCourse);
     });
     paletteResults?.addEventListener('dragend', (event) => {
@@ -358,6 +361,9 @@
       if (!target) return;
       // Accept the drop event on invalid cells only to give feedback; shared validation still rejects it.
       event.preventDefault();
+      // dropEffect must match the drag's effectAllowed or Chrome treats the
+      // operation as no-drop and the drop event is never delivered.
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
       if (target.classList.contains('is-drop-allowed')) target.classList.add('is-drop-active');
     });
     yearGrid?.addEventListener('dragleave', (event) => {
@@ -383,6 +389,7 @@
       if (!item) return;
       item.dataset.simDragging = 'true';
       event.dataTransfer?.setData('text/plain', item.dataset.simDragCourse);
+      if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy';
       context.highlightSimulatorDropCells(item.dataset.simDragCourse);
     });
     yearGrid?.addEventListener('dragend', (event) => {
