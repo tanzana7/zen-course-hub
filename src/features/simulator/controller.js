@@ -300,9 +300,12 @@
     const selectedPlacement = placementFilter?.value || context.state.simulatorPlacementFilter;
 
     let matches = context.state.predefinedData.filter((course) => {
+      // マイ履修は履修予定と履修済みの合算（ID重複排除）。予定⇄済みの状態遷移でも
+      // 一覧から科目が消えないようにする。
       if (
         context.state.simulatorPaletteMode === 'scheduled' &&
-        !context.state.registeredClasses.has(course.id)
+        !context.state.registeredClasses.has(course.id) &&
+        !context.state.completedClasses.has(course.id)
       )
         return false;
       const isPlaced = Boolean(getSimulatorPlacement(course.id));
@@ -324,7 +327,7 @@
     if (!matches.length) {
       const message =
         context.state.simulatorPaletteMode === 'scheduled'
-          ? '履修予定の科目はありません。'
+          ? '履修予定・履修済みの科目はありません。'
           : '該当する科目がありません。';
       results.innerHTML = `<p class="simulator-empty">${message}</p>`;
       return;
@@ -341,11 +344,20 @@
           ? `難易度 ${difficulty.average.toFixed(2)} / 10.0`
           : '難易度 未登録';
         const placedClass = placement ? ' is-placed' : '';
+        const isRegistered = context.state.registeredClasses.has(course.id);
+        const isCompleted = context.state.completedClasses.has(course.id);
+        // 履修状態バッジは両状態が混ざるマイ履修タブでのみ出す。履修済みを優先
+        // 表示して同一科目の二重表示を防ぐ（一覧は科目ID単位で1件）。
+        const statusBadge =
+          context.state.simulatorPaletteMode === 'scheduled' && (isRegistered || isCompleted)
+            ? `<span class="sim-status-badge${isCompleted ? ' is-completed' : ' is-scheduled'}">${isCompleted ? '履修済み' : '履修予定'}</span>`
+            : '';
         return `
         <article class="sim-course-picker-item${placedClass}" draggable="${placement ? 'false' : 'true'}" data-sim-drag-course="${context.escapeHTML(course.id)}">
           <span class="sim-drag-handle" aria-hidden="true" title="${placement ? '配置済みの科目はグリッド上でドラッグして移動できます' : 'ドラッグで配置先へ移動できます'}">⠿</span>
           <div class="sim-course-picker-info">
             <button type="button" class="sim-course-detail-trigger" data-sim-detail-course="${context.escapeHTML(course.id)}">${context.escapeHTML(course.subject)}</button>
+            ${statusBadge}
             <span>${context.escapeHTML(course.quarter || 'Q未定')} ｜ ${context.escapeHTML(String(course.credits || 0))}単位</span>
             <small>${context.escapeHTML(difficultyText)} ｜ ${context.escapeHTML(placementText)}</small>
           </div>
@@ -584,9 +596,11 @@
     }
 
     if (!context.state.simulatorPaletteDefaulted) {
-      context.state.simulatorPaletteMode = [...context.state.registeredClasses].some((courseId) =>
-        context.state.coursesMap.has(courseId),
-      )
+      // 既定タブもマイ履修（予定と済みの合算）を見て決める。
+      context.state.simulatorPaletteMode = [
+        ...context.state.registeredClasses,
+        ...context.state.completedClasses,
+      ].some((courseId) => context.state.coursesMap.has(courseId))
         ? 'scheduled'
         : 'all';
       context.state.simulatorPaletteDefaulted = true;

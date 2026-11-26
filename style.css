@@ -927,6 +927,30 @@ body.simulator-view-active > #analysis-modal {
   font-size: 0.76em;
 }
 
+/* 履修状態バッジ（マイ履修タブ）。配色はホームの履修予定(#007bff)・履修済み(#28a745)系。 */
+.sim-course-picker-info .sim-status-badge {
+  align-self: flex-start;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.72em;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.sim-course-picker-info .sim-status-badge.is-completed {
+  border-color: #28a745;
+  background: #f0faf3;
+  color: #166534;
+}
+
+.sim-course-picker-info .sim-status-badge.is-scheduled {
+  border-color: #007bff;
+  background: #eef5ff;
+  color: #1d4ed8;
+}
+
 .sim-course-picker-info small {
   color: #475569;
   font-size: 0.74em;

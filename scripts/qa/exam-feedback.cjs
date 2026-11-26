@@ -5,15 +5,17 @@ const { createBrowserSession } = require('./lib/browser-session.cjs');
 const root = path.resolve(__dirname, '../..');
 const out = path.join(root, 'docs/qa/exam-feedback');
 const evidence = { viewports: [], exceptions: [], failedRequests: [], allCoursesReachable: 0 };
+// Windows reserves dynamic port ranges per boot; QA ports stay overridable.
+const qaPort = Number(process.env.ZEN_QA_EXAM_PORT) || 8088;
 async function run() {
-  const browser = await createBrowserSession({ root, out, port: 8088, evidence });
+  const browser = await createBrowserSession({ root, out, port: qaPort, evidence });
   const { send, evaluate, wait, nav, size, capture, click, pause } = browser;
 
   try {
     for (const width of [1280, 390]) {
       await size(width, 844);
       await nav(
-        'http://127.0.0.1:8088/index.html',
+        `http://127.0.0.1:${qaPort}/index.html`,
         'document.querySelectorAll(".predefined-item").length > 0',
       );
       await evaluate(
@@ -38,7 +40,7 @@ async function run() {
       );
       await capture('exam-' + width + '.png');
       await nav(
-        'http://127.0.0.1:8088/curriculum.html',
+        `http://127.0.0.1:${qaPort}/curriculum.html`,
         'document.querySelectorAll(".map-course").length===275',
       );
       await evaluate(
@@ -50,7 +52,7 @@ async function run() {
       assert.ok(await evaluate('document.querySelector("a[href*=feedback]")!==null'));
       await capture('map-exam-' + width + '.png');
       await nav(
-        'http://127.0.0.1:8088/feedback.html?courseId=digital_tools_usage&category=' +
+        `http://127.0.0.1:${qaPort}/feedback.html?courseId=digital_tools_usage&category=` +
           encodeURIComponent('試験日程の誤り'),
         'document.forms.feedback.elements.courseId.value === "digital_tools_usage"',
       );
