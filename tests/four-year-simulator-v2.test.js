@@ -33,16 +33,31 @@ test('simulator palette uses the requested labels and keeps myClasses separate f
     /id="sim-palette-scheduled"[^>]*data-sim-palette-mode="scheduled"[^>]*>\s*マイ履修\s*</,
   );
   assert.match(index, /id="sim-palette-all"[^>]*data-sim-palette-mode="all"[^>]*>\s*すべての教科\s*</);
+  // マイ履修（既定タブ・絞り込みとも）は履修予定と履修済みの合算を対象にする。
   assert.match(
     app,
-    /(?:context\.)?state\.registeredClasses\]\s*\.some\(\(courseId\) =>\s*(?:context\.)?state\.coursesMap\.has\(courseId\),?\s*\)/,
+    /\.\.\.(?:context\.)?state\.registeredClasses,\s*\.\.\.(?:context\.)?state\.completedClasses,\s*\]\.some\(\(courseId\) =>\s*(?:context\.)?state\.coursesMap\.has\(courseId\)\)/,
   );
   assert.match(
     app,
-    /(?:context\.)?state\.simulatorPaletteMode === 'scheduled' &&\s*!(?:context\.)?state\.registeredClasses\.has\(course\.id\)/,
+    /(?:context\.)?state\.simulatorPaletteMode === 'scheduled' &&\s*!(?:context\.)?state\.registeredClasses\.has\(course\.id\) &&\s*!(?:context\.)?state\.completedClasses\.has\(course\.id\)/,
   );
-  assert.match(app, /履修予定の科目はありません/);
+  assert.match(app, /履修予定・履修済みの科目はありません/);
   assert.match(app, /simulatorPaletteDefaulted/);
+});
+
+test('my-list palette shows an enrollment-state badge per card', () => {
+  // バッジはマイ履修タブのみ。履修済みを緑系・履修予定を青系で判別できる。
+  assert.match(
+    app,
+    /simulatorPaletteMode === 'scheduled' && \(isRegistered \|\| isCompleted\)\s*\?\s*`<span class="sim-status-badge\$\{isCompleted \? ' is-completed' : ' is-scheduled'\}">\$\{isCompleted \? '履修済み' : '履修予定'\}<\/span>`/,
+  );
+  const badge = style.match(/\.sim-course-picker-info \.sim-status-badge\.is-completed\s*\{[\s\S]*?\}/);
+  assert.ok(badge, 'completed badge style exists');
+  assert.match(badge[0], /#28a745/);
+  const scheduled = style.match(/\.sim-course-picker-info \.sim-status-badge\.is-scheduled\s*\{[\s\S]*?\}/);
+  assert.ok(scheduled, 'scheduled badge style exists');
+  assert.match(scheduled[0], /#007bff/);
 });
 
 test('simulator reuses the main difficulty sort helper after filtering', () => {

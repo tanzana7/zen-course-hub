@@ -5,8 +5,10 @@ const { createBrowserSession } = require('./lib/browser-session.cjs');
 const root = path.resolve(__dirname, '../..');
 const out = path.join(root, 'docs/qa/curriculum-map-fullscreen');
 const evidence = { viewports: [], exceptions: [], failedRequests: [], allCoursesReachable: 0 };
+// Windows reserves dynamic port ranges per boot; QA ports stay overridable.
+const qaPort = Number(process.env.ZEN_QA_MAP_PORT) || 8087;
 async function run() {
-  const browser = await createBrowserSession({ root, out, port: 8087, evidence });
+  const browser = await createBrowserSession({ root, out, port: qaPort, evidence });
   const { send, evaluate, wait, nav, size, capture, click, storage, pause } = browser;
   const summary = () =>
     evaluate(
@@ -16,12 +18,12 @@ async function run() {
     // OFF and local preview use the actual committed release setting.
     await size(1440, 900);
     await nav(
-      'http://foo.localhost:8087/off/curriculum.html?curriculumPreview=1',
+      `http://foo.localhost:${qaPort}/off/curriculum.html?curriculumPreview=1`,
       `document.getElementById('map-loading-message')?.textContent.includes('公開準備')`,
     );
     assert.equal(await evaluate(`document.getElementById('map-app').hidden`), true);
     await nav(
-      'http://127.0.0.1:8087/index.html?curriculumPreview=1',
+      `http://127.0.0.1:${qaPort}/index.html?curriculumPreview=1`,
       `document.getElementById('curriculum-tree-nav')?.hidden === false`,
     );
     await click('#curriculum-tree-nav');
@@ -44,7 +46,7 @@ async function run() {
     evidence.backToHub = 'PASS';
     // ON is tested on a host outside the localhost-only preview allowlist.
     await nav(
-      'http://foo.localhost:8087/public/curriculum.html',
+      `http://foo.localhost:${qaPort}/public/curriculum.html`,
       `document.querySelectorAll('.map-course').length === 275`,
     );
     await click('#map-menu-toggle');
@@ -75,7 +77,7 @@ async function run() {
     ]) {
       await size(width, height);
       await nav(
-        'http://foo.localhost:8087/public/curriculum.html',
+        `http://foo.localhost:${qaPort}/public/curriculum.html`,
         `document.querySelectorAll('.map-course').length === 275`,
       );
       const result = await summary();
@@ -267,7 +269,7 @@ async function run() {
     await send('Page.reload');
     await wait(`document.querySelector('[data-course-id="academic_literacy"].is-registered')`);
     await nav(
-      'http://foo.localhost:8087/public/index.html',
+      `http://foo.localhost:${qaPort}/public/index.html`,
       `document.getElementById('registered-count')?.textContent === '1'`,
     );
     assert.ok(
