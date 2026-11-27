@@ -225,8 +225,8 @@
     const socialRow = `
       <div class="graduation-requirement-row graduation-social-row"${interactiveRow('社会接続', 'socialConnection')}>
         <strong>社会接続</strong>
-        <span>${context.escapeHTML(completedLabel)}取得：${completedAnalysis.socialConnection.actualCredits}単位 / 算入：${completedAnalysis.socialConnection.countedCredits}単位</span>
-        <span>${context.escapeHTML(plannedLabel)}取得：${plannedAnalysis.socialConnection.actualCredits}単位 / 算入：${plannedAnalysis.socialConnection.countedCredits}単位（上限${plannedAnalysis.socialConnection.capCredits}単位）</span>
+        <span>${context.escapeHTML(completedLabel)} ${completedAnalysis.socialConnection.countedCredits} / ${completedAnalysis.socialConnection.capCredits}単位（取得 ${completedAnalysis.socialConnection.actualCredits}単位）</span>
+        <span>${context.escapeHTML(plannedLabel)} ${plannedAnalysis.socialConnection.countedCredits} / ${plannedAnalysis.socialConnection.capCredits}単位（取得 ${plannedAnalysis.socialConnection.actualCredits}単位）</span>
       </div>${
         !targetElement && homeGraduationDetailState
           ? `<details class="graduation-course-breakdown" data-home-graduation-key="socialConnection">
@@ -244,6 +244,7 @@
     analysisResultElement.innerHTML = `
       <div class="analysis-box graduation-analysis" aria-describedby="graduation-analysis-note">
         <p class="graduation-analysis-legend"><strong>${context.escapeHTML(completedLabel)}</strong>は${context.escapeHTML(completedDescription)}、<strong>${context.escapeHTML(plannedLabel)}</strong>は${context.escapeHTML(plannedDescription)}です。</p>
+        <p class="graduation-analysis-legend" id="graduation-analysis-note">修得済みは「今までに取得済みの科目だけでの判定」。予定込みは「このまま履修予定を取れば卒業できそうか」の見込み判定です。算入＝卒業要件に数えられる単位のことで、社会接続は上限までしか数えられません。</p>
         <div class="graduation-overall-status" aria-live="polite">
           ${context.escapeHTML(completedLabel)}：<strong>${completedAnalysis.satisfied ? '達成' : '未達'}</strong> ／
           ${context.escapeHTML(plannedLabel)}：<strong>${plannedAnalysis.satisfied ? '達成見込み' : '不足'}</strong>

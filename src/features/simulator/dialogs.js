@@ -164,7 +164,7 @@
         ${course.tag ? `<div><dt>分野</dt><dd>${context.escapeHTML(course.tag)}</dd></div>` : ''}
         ${course.method ? `<div><dt>授業方法</dt><dd>${context.escapeHTML(course.method)}</dd></div>` : ''}
         ${course.teacher ? `<div><dt>担当</dt><dd>${context.escapeHTML(course.teacher)}</dd></div>` : ''}
-        ${difficulty ? `<div><dt>難易度</dt><dd>${difficulty.average.toFixed(2)} / 10.0（${difficulty.votes}票）<br><a href="${context.escapeHTML(difficulty.sourceUrl)}" target="_blank" rel="noopener noreferrer">${context.escapeHTML(difficulty.sourceLabel)}</a></dd></div>` : ''}
+        ${difficulty ? `<div><dt>難易度</dt><dd>${difficulty.average.toFixed(1)} / 10.0（${difficulty.votes}票）<br><a href="${context.escapeHTML(difficulty.sourceUrl)}" target="_blank" rel="noopener noreferrer">${context.escapeHTML(difficulty.sourceLabel)}</a></dd></div>` : ''}
       </dl>
       ${window.ZenExam.detail(course)}
       ${course.description ? `<section class="simulator-course-detail-description"><h3>概要</h3><p>${context.escapeHTML(course.description)}</p></section>` : ''}

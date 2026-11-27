@@ -70,15 +70,25 @@
     }
   }
 
+  function updateSummaryCount(totalRows) {
+    const summary = root.document.querySelector('#exam-schedule > summary');
+    if (!summary) return;
+    // 閉じた状態でも中身の件数が分かるように、対象の日程件数を見出しに添える。
+    summary.textContent = totalRows > 0 ? `試験日程（${totalRows}件）` : '試験日程';
+  }
+
   function renderEnrollment(ids = enrolledIds) {
     enrolledIds = [...new Set(ids)];
     const host = root.document.getElementById('exam-list');
     if (!host) return;
     if (failed) {
       host.textContent = MESSAGES.error;
+      updateSummaryCount(0);
       return;
     }
     const query = root.document.getElementById('exam-search')?.value || '';
+    // 見出しの件数は検索で絞る前の実件数。検索は一覧だけに効く。
+    updateSummaryCount(getEnrollmentRows(catalog, enrolledIds, '').length);
     const rows = getEnrollmentRows(catalog, enrolledIds, query);
     host.replaceChildren();
     if (!rows.length) {
@@ -95,7 +105,12 @@
         fragment.append(heading);
       }
       const line = host.ownerDocument.createElement('p');
-      line.textContent = `${row.period}限 ${row.courseName}${row.collision ? MESSAGES.collision : ''}`;
+      line.textContent = `${row.period}限 ${row.courseName}`;
+      if (row.collision) {
+        // 同じ日付・時限に2科目以上があることの機械的な表示。日程の意味づけはしない。
+        line.classList.add('exam-collision');
+        line.textContent += MESSAGES.collision;
+      }
       fragment.append(line);
     }
     host.append(fragment);

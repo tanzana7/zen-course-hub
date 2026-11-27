@@ -185,17 +185,12 @@
 
   const initialCamera = (layout, viewport) => {
     const firstYear = layout.years[0];
-    const centralField = layout.fields.find((field) => field.field === '文化・思想');
-    const centralCard = layout.positions
-      .filter((box) => box.region === 'year-1' && box.field === centralField?.field)
+    // マップの起点（1年次側の先頭＝左端の列）が見える位置で始める。
+    const startField = layout.fields[0];
+    const startCard = layout.positions
+      .filter((box) => box.region === 'year-1' && box.field === startField?.field)
       .sort((a, b) => a.x - b.x || a.y - b.y)[0];
-    const centralStart = layout.positions
-      .filter((box) => box.region === 'year-1' && box.field === '多言語')
-      .sort((a, b) => a.x - b.x || a.y - b.y)[0];
-    const firstVisibleX =
-      viewport.width < 600
-        ? centralCard?.x || layout.width / 2
-        : centralStart?.x || centralCard?.x || layout.width / 2;
+    const firstVisibleX = startCard?.x || layout.width / 2;
     const target = { x: firstVisibleX + viewport.width / 2, y: firstYear.y + 350 };
     return { scale: 1, x: viewport.width / 2 - target.x, y: viewport.height / 2 - target.y };
   };

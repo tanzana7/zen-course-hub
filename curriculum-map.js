@@ -489,11 +489,14 @@
       if (open) openDrawer('detail', '科目詳細');
       drawerContent.replaceChildren(element('h3', course.subject));
       const metadata = element('dl');
+      // course.tag は分野（情報・数理…）と必修区分を表す値（必修・卒業プロジェクト）が
+      // 同じ列に並ぶ。値に合わせてラベルを分ける（データは変えない）。
+      const tagLabel = course.tag === '必修' || course.tag === '卒業プロジェクト' ? '区分' : '分野';
       for (const [label, value] of [
         ['学年', course.year],
         ['開講Q', course.quarter],
         ['単位', `${course.credits}単位`],
-        ['分野', course.tag],
+        [tagLabel, course.tag],
         ['教員', course.teacher],
         ['形式', course.method],
       ]) {
