@@ -56,3 +56,27 @@ body[data-page='feedback'] h2 {
   padding: 8px 0;
   font-weight: bold;
 }
+/* 同じ日付・時限に複数科目がある行の警告表示。 */
+#exam-list .exam-collision {
+  color: #b45309;
+  font-weight: 600;
+}
+
+/* 送信ボタンを他の主要ボタン（卒業要件分析など）と同じスタイルに揃える。 */
+body[data-page='feedback'] button[type='submit'] {
+  display: inline-block;
+  padding: 12px 18px;
+  background-color: #1d4ed8;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 900;
+}
+body[data-page='feedback'] button[type='submit']:hover {
+  background-color: #1e40af;
+}
+body[data-page='feedback'] button[type='submit']:focus-visible {
+  outline: 2px solid #1d4ed8;
+  outline-offset: 2px;
+}

@@ -58,7 +58,7 @@ test('every course in all four years can be centered at readable 100 percent', (
   }
 });
 
-test('initial camera starts at the central upper curriculum area at 100 percent', () => {
+test('initial camera starts at the leftmost field of the first year at 100 percent', () => {
   const layout = map.buildLayout(definition, courses);
   for (const viewport of [
     { width: 1440, height: 900 },
@@ -68,8 +68,9 @@ test('initial camera starts at the central upper curriculum area at 100 percent'
     const centerX = (viewport.width / 2 - camera.x) / camera.scale;
     const centerY = (viewport.height / 2 - camera.y) / camera.scale;
     assert.equal(camera.scale, 1);
-    const centralField = layout.fields.find((field) => field.field === '文化・思想');
-    assert.ok(centerX >= centralField.x && centerX < centralField.x + centralField.width);
+    // マップの起点（1年次側の先頭＝左端の列）が中央に来る。左端は切り取られない。
+    const startField = layout.fields[0];
+    assert.ok(centerX >= startField.x && centerX < startField.x + startField.width);
     assert.ok(centerY >= layout.years[0].y && centerY < layout.years[0].y + layout.years[0].height);
     assert.ok(
       layout.positions.some(

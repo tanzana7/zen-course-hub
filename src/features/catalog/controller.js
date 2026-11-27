@@ -8,6 +8,19 @@
   if (root) root.ZenHubCatalog = api;
 })(typeof window !== 'undefined' ? window : globalThis, function create(context) {
   'use strict';
+  // 絞り込みバッジは「ページ読み込み時の状態からユーザーが変更した条件」だけを
+  // 数える。復元された除外設定（pixiv除外など）は初期状態に含めるため、初期表示
+  // ではカウントされない。絞り込み自体の挙動は変えない。基準は起動時に1回だけ
+  // 取る（renderPredefinedList の中で取ると毎回更新されて常に0になる）。
+  const filterBaseline = {
+    filterYear: context.state.filterYear,
+    filterQuarter: context.state.filterQuarter,
+    filterCategory: context.state.filterCategory,
+    filterRequirement: context.state.filterRequirement,
+    excludePixiv: context.state.excludePixiv,
+    difficultySort: context.state.difficultySort,
+  };
+
   const clearCourseFilters = () => {
     context.state.filterYear = 'すべて表示';
     context.state.filterQuarter = 'すべて表示';
@@ -72,8 +85,7 @@
       ? `
       <section class="difficulty-section" aria-label="授業難易度">
         <h5 class="difficulty-title">📊 授業難易度</h5>
-        <p><strong>難易度目安：</strong>${difficulty.average.toFixed(2)} / 10.0</p>
-        <p><strong>投票数：</strong>${difficulty.votes}票</p>
+        <p><strong>難易度目安：</strong>${difficulty.average.toFixed(1)} / 10.0${Number.isFinite(difficulty.votes) ? `（${difficulty.votes}票）` : ''}</p>
         <p class="difficulty-source-row">
           <strong>出典：</strong><a href="${context.escapeHTML(difficulty.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="difficulty-source">${context.escapeHTML(difficulty.sourceLabel)}</a>
         </p>
@@ -296,12 +308,12 @@
     );
 
     const activeConditionCount = [
-      context.state.filterYear !== 'すべて表示',
-      context.state.filterQuarter !== 'すべて表示',
-      context.state.filterCategory !== '分野',
-      context.state.filterRequirement !== 'すべて表示',
-      context.state.excludePixiv,
-      context.state.difficultySort !== 'default',
+      context.state.filterYear !== filterBaseline.filterYear,
+      context.state.filterQuarter !== filterBaseline.filterQuarter,
+      context.state.filterCategory !== filterBaseline.filterCategory,
+      context.state.filterRequirement !== filterBaseline.filterRequirement,
+      context.state.excludePixiv !== filterBaseline.excludePixiv,
+      context.state.difficultySort !== filterBaseline.difficultySort,
     ].filter(Boolean).length;
 
     const activeCountElement = document.getElementById('filter-active-count');
@@ -373,7 +385,7 @@
                       .join('')
                   : ''
               }
-              ${difficulty ? `<span class="badge difficulty-badge">難易度 ${difficulty.average.toFixed(1)}</span>` : ''}
+              ${difficulty ? `<span class="badge difficulty-badge">難易度 ${difficulty.average.toFixed(1)}${Number.isFinite(difficulty.votes) ? `（${difficulty.votes}票）` : ''}</span>` : ''}
             </div>
           </div>
           <div class="actions">

@@ -304,9 +304,15 @@
             node.dataset.collisionSize = String(position.collisionSize);
           }
           node.title =
-            position.officialConfidence === 'confirmed'
-              ? '公式PDFで配置を確認済み'
-              : '公式PDF上の位置未確認（暫定配置）';
+            position.collisionSize > 1
+              ? `同じ位置に複数の科目が表示されています（${position.collisionIndex + 1}/${position.collisionSize}件目）· ${
+                  position.officialConfidence === 'confirmed'
+                    ? '公式PDFで配置を確認済み'
+                    : '公式PDF上の位置未確認（暫定配置）'
+                }`
+              : position.officialConfidence === 'confirmed'
+                ? '公式PDFで配置を確認済み'
+                : '公式PDF上の位置未確認（暫定配置）';
           node.draggable = true;
           node.tabIndex = 0;
           node.setAttribute('role', 'button');

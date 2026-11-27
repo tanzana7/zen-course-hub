@@ -157,8 +157,8 @@
       ? [
           {
             type: 'info',
-            label: '年次の配置',
-            message: `${emptyYears.map((year) => `${year}年次`).join('・')}に配置がありません`,
+            label: '未配置の年次',
+            message: emptyYears.map((year) => `${year}年次`).join('・'),
           },
         ]
       : [];
@@ -341,7 +341,7 @@
           ? `✓ ${formatSimulatorPlacement(course, placement)}に配置済み`
           : '未配置';
         const difficultyText = difficulty
-          ? `難易度 ${difficulty.average.toFixed(2)} / 10.0`
+          ? `難易度 ${difficulty.average.toFixed(1)} / 10.0`
           : '難易度 未登録';
         const placedClass = placement ? ' is-placed' : '';
         const isRegistered = context.state.registeredClasses.has(course.id);
@@ -580,18 +580,33 @@
 
     const categoryFilter = document.getElementById('sim-course-category-filter');
     if (categoryFilter) {
+      // course.tag は分野（情報・数理…）と必修区分を表す値（必修・卒業プロジェクト）が
+      // 同じ列に並ぶ。フィルターの挙動は変えずに、別の軸であることを optgroup で示す。
       const categories = [
         ...new Set(context.state.predefinedData.map((course) => course.tag).filter(Boolean)),
       ].sort((a, b) => a.localeCompare(b, 'ja'));
+      const groupTags = ['必修', '卒業プロジェクト'];
+      const fieldTags = categories.filter((category) => !groupTags.includes(category));
       const currentCategory = categoryFilter.value;
       categoryFilter.innerHTML =
         '<option value="すべて表示">分野</option>' +
-        categories
-          .map(
-            (category) =>
-              `<option value="${context.escapeHTML(category)}">${context.escapeHTML(category)}</option>`,
-          )
-          .join('');
+        (categories.some((category) => groupTags.includes(category))
+          ? `<optgroup label="必修区分など">${categories
+              .filter((category) => groupTags.includes(category))
+              .map(
+                (category) =>
+                  `<option value="${context.escapeHTML(category)}">${context.escapeHTML(category)}</option>`,
+              )
+              .join('')}</optgroup>`
+          : '') +
+        (fieldTags.length
+          ? `<optgroup label="分野">${fieldTags
+              .map(
+                (category) =>
+                  `<option value="${context.escapeHTML(category)}">${context.escapeHTML(category)}</option>`,
+              )
+              .join('')}</optgroup>`
+          : '');
       categoryFilter.value = categories.includes(currentCategory) ? currentCategory : 'すべて表示';
     }
 

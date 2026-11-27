@@ -10,12 +10,25 @@
   gap: 10px;
 }
 
-/* 初回ロード中は未確定の「0件」や「総単位 —」を見せない。 */
+/* 初回ロード中は未確定の数値を空白や「0」と見せず、読み込み中表示（…）にする。 */
 body.app-loading .top-credit-gauge .gauge-value,
-body.app-loading .top-credit-gauge .gauge-fill,
 body.app-loading #earned-credits,
 body.app-loading #registered-count,
 body.app-loading #registered-credits {
+  visibility: visible;
+  color: transparent;
+}
+
+body.app-loading .top-credit-gauge .gauge-value::before,
+body.app-loading #earned-credits::before,
+body.app-loading #registered-count::before,
+body.app-loading #registered-credits::before {
+  content: '…';
+  color: #64748b;
+}
+
+/* 進捗バーの中身だけは確定まで非表示のまま。 */
+body.app-loading .top-credit-gauge .gauge-fill {
   visibility: hidden;
 }
 

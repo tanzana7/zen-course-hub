@@ -455,9 +455,7 @@ body.curriculum-tree-explorer-mode #curriculum-tree-close {
   padding-left: 12px;
 }
 
-.graduation-social-row {
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1.4fr);
-}
+/* 社会接続行は他の要件行と同じ3列グリッドを使う（内容も同じ X / Y単位 書式に揃えた）。 */
 
 .graduation-analysis-error {
   color: #9b1c1c;

@@ -9,7 +9,7 @@
     notice: '日程は変更される可能性があります。',
     error: '試験日程を読み込めません。再読み込みしてください。',
     empty: '該当する試験日程はありません。',
-    collision: ' — 同じ日時に複数科目の候補があります',
+    collision: ' ⚠ 重なっている科目があります',
   });
 
   function createCatalog(data) {

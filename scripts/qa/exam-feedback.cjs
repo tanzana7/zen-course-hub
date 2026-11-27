@@ -24,7 +24,11 @@ async function run() {
       await send('Page.reload');
       await wait('document.querySelectorAll(".predefined-item").length > 0');
       await evaluate('document.getElementById("exam-schedule").open=true');
-      assert.ok(await evaluate('document.getElementById("exam-list").textContent.includes("同じ日時")'));
+      assert.ok(
+        await evaluate(
+          'document.getElementById("exam-list").textContent.includes("重なっている科目があります")',
+        ),
+      );
       await evaluate('document.getElementById("exam-search").scrollIntoView({block:"center"})');
       await capture('schedule-' + width + '.png');
       await click('#exam-search');

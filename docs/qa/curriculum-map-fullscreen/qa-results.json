@@ -16,11 +16,11 @@
       "scrollWidth": 1440,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-2146px, -652px) scale(1)",
+      "transform": "translate(-82px, -652px) scale(1)",
       "opening": {
-        "label": "1年次 · 文化・思想",
+        "label": "1年次 · 情報",
         "leftClipped": 0,
-        "visible": 11
+        "visible": 15
       }
     },
     {
@@ -39,11 +39,11 @@
       "scrollWidth": 1280,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-2146px, -702px) scale(1)",
+      "transform": "translate(-82px, -702px) scale(1)",
       "opening": {
-        "label": "1年次 · 文化・思想",
+        "label": "1年次 · 情報",
         "leftClipped": 0,
-        "visible": 11
+        "visible": 12
       }
     },
     {
@@ -62,9 +62,32 @@
       "scrollWidth": 390,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-2478px, -680px) scale(1)",
+      "transform": "translate(-82px, -680px) scale(1)",
       "opening": {
-        "label": "1年次 · 文化・思想",
+        "label": "1年次 · 情報",
+        "leftClipped": 0,
+        "visible": 3
+      }
+    },
+    {
+      "width": 375,
+      "height": 812,
+      "viewport": {
+        "x": 0,
+        "y": 0,
+        "width": 375,
+        "height": 812,
+        "top": 0,
+        "right": 375,
+        "bottom": 812,
+        "left": 0
+      },
+      "scrollWidth": 375,
+      "scale": "100%",
+      "drawerHidden": true,
+      "transform": "translate(-82px, -696px) scale(1)",
+      "opening": {
+        "label": "1年次 · 情報",
         "leftClipped": 0,
         "visible": 3
       }
@@ -72,7 +95,7 @@
   ],
   "exceptions": [],
   "failedRequests": [],
-  "allCoursesReachable": 825,
+  "allCoursesReachable": 1100,
   "backToHub": "PASS",
   "advisoryRelations": 335,
   "menuSpec": "PASS",
