@@ -37,6 +37,30 @@ test('duplicate slots in one course never cause a cross-course warning', () => {
   assert.ok(getEnrollmentRows(catalog, ['a']).every((row) => !row.collision));
 });
 
+test('completed courses stay listed but never trigger collision warnings', () => {
+  const catalog = createCatalog({
+    matched: [
+      record('a', 'Alpha', [slot('2027-02-16', 4), slot('2027-02-19', 6)]),
+      record('b', 'Beta', [slot('2027-02-16', 4)]),
+    ],
+  });
+  // 予定同士の重なりは警告される。
+  assert.ok(getEnrollmentRows(catalog, ['a', 'b']).some((row) => row.collision));
+  // a を履修済みにすると、予定・済みをまたぐ重なりは警告対象外（a の行にも付かない）。
+  const rows = getEnrollmentRows(catalog, ['a', 'b'], '', ['a']);
+  assert.ok(rows.every((row) => !row.collision));
+  // 履修済みの行は completed 付きで列挙が残る。
+  assert.deepEqual(
+    rows.filter((row) => row.completed).map((row) => row.courseId),
+    ['a', 'a'],
+  );
+  // 予定同士の警告の数え方は変わらない（第4引数なしと同じ）。
+  assert.deepEqual(
+    getEnrollmentRows(catalog, ['a', 'b']).filter((row) => row.collision).length,
+    getEnrollmentRows(catalog, ['a', 'b'], '', []).filter((row) => row.collision).length,
+  );
+});
+
 test('invalid catalog identities and periods fail without returning partial results', () => {
   assert.throws(() => createCatalog(null), TypeError);
   assert.throws(() => createCatalog({ matched: [record('a', 'Alpha', [slot('2027-02-16', 0)])] }), TypeError);

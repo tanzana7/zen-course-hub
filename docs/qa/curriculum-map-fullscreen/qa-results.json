@@ -16,11 +16,11 @@
       "scrollWidth": 1440,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-82px, -652px) scale(1)",
+      "transform": "translate(-82px, 64px) scale(1)",
       "opening": {
-        "label": "1年次 · 情報",
+        "label": "導入科目",
         "leftClipped": 0,
-        "visible": 15
+        "visible": 7
       }
     },
     {
@@ -39,11 +39,11 @@
       "scrollWidth": 1280,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-82px, -702px) scale(1)",
+      "transform": "translate(-82px, 64px) scale(1)",
       "opening": {
-        "label": "1年次 · 情報",
+        "label": "導入科目",
         "leftClipped": 0,
-        "visible": 12
+        "visible": 5
       }
     },
     {
@@ -62,9 +62,9 @@
       "scrollWidth": 390,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-82px, -680px) scale(1)",
+      "transform": "translate(-82px, 64px) scale(1)",
       "opening": {
-        "label": "1年次 · 情報",
+        "label": "導入科目",
         "leftClipped": 0,
         "visible": 3
       }
@@ -85,11 +85,11 @@
       "scrollWidth": 375,
       "scale": "100%",
       "drawerHidden": true,
-      "transform": "translate(-82px, -696px) scale(1)",
+      "transform": "translate(-82px, 64px) scale(1)",
       "opening": {
-        "label": "1年次 · 情報",
+        "label": "導入科目",
         "leftClipped": 0,
-        "visible": 3
+        "visible": 2
       }
     }
   ],

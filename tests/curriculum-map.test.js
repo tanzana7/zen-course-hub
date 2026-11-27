@@ -58,28 +58,29 @@ test('every course in all four years can be centered at readable 100 percent', (
   }
 });
 
-test('initial camera starts at the leftmost field of the first year at 100 percent', () => {
+test('initial camera starts at the leftmost field with the top band visible at 100 percent', () => {
   const layout = map.buildLayout(definition, courses);
   for (const viewport of [
     { width: 1440, height: 900 },
     { width: 390, height: 844 },
+    { width: 1280, height: 800 },
   ]) {
     const camera = map.initialCamera(layout, viewport);
     const centerX = (viewport.width / 2 - camera.x) / camera.scale;
-    const centerY = (viewport.height / 2 - camera.y) / camera.scale;
     assert.equal(camera.scale, 1);
     // マップの起点（1年次側の先頭＝左端の列）が中央に来る。左端は切り取られない。
     const startField = layout.fields[0];
     assert.ok(centerX >= startField.x && centerX < startField.x + startField.width);
-    assert.ok(centerY >= layout.years[0].y && centerY < layout.years[0].y + layout.years[0].height);
+    // 縦はマップ上端（AP帯・導入科目帯の上端）が画面上端から64px（ツールバーの下）に
+    // 来る。最上段の帯と左上の操作ボタンが切れない。
+    assert.equal(camera.y, 64);
     assert.ok(
       layout.positions.some(
         (box) =>
-          box.region === 'year-1' &&
           box.x <= centerX + viewport.width / 2 &&
           box.x + box.width >= centerX - viewport.width / 2 &&
-          box.y <= centerY + viewport.height / 2 &&
-          box.y + box.height >= centerY - viewport.height / 2,
+          box.y <= viewport.height &&
+          box.y + box.height >= 64,
       ),
     );
   }

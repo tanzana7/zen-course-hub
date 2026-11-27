@@ -409,6 +409,13 @@ body.simulator-view-active > #analysis-modal {
 .simulator-graduation-progress {
   margin: 0 0 12px;
 }
+/* 進捗値が配置済み科目のみの合計である旨の注記。 */
+.simulator-graduation-progress-note {
+  display: block;
+  color: #64748b;
+  font-size: 0.78em;
+  margin-top: 2px;
+}
 .simulator-graduation-progress-head {
   display: flex;
   align-items: baseline;
@@ -1290,9 +1297,18 @@ body.simulator-view-active > #analysis-modal {
 }
 
 .close-btn {
-  position: absolute;
-  top: 10px;
-  right: 15px;
+  /* モーダル内容が長く内部スクロールしても×を画面内に留める。
+     float＋sticky で通常フローに置きつつ右端に寄せる（absoluteは内容に
+     埋もれて画面外に出るため）。 */
+  position: sticky;
+  top: 0;
+  float: right;
+  display: block;
+  width: max-content;
+  border: 0;
+  background: transparent;
+  padding: 4px 8px;
+  line-height: 1;
   font-size: 28px;
   cursor: pointer;
   color: #888;

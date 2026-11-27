@@ -191,8 +191,11 @@
       .filter((box) => box.region === 'year-1' && box.field === startField?.field)
       .sort((a, b) => a.x - b.x || a.y - b.y)[0];
     const firstVisibleX = startCard?.x || layout.width / 2;
+    // 縦はマップ上端（AP帯・導入科目帯）が切れない位置で始める。ツールバーの下端は
+    // 約63pxなので、ワールド上端を画面上端から64pxに置く。
+    const topOffset = 64;
     const target = { x: firstVisibleX + viewport.width / 2, y: firstYear.y + 350 };
-    return { scale: 1, x: viewport.width / 2 - target.x, y: viewport.height / 2 - target.y };
+    return { scale: 1, x: viewport.width / 2 - target.x, y: topOffset };
   };
 
   const fitMap = (layout, viewport) => {

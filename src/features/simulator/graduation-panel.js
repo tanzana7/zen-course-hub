@@ -149,6 +149,7 @@
           <span>4年計画完了時 ${projectedCredits} / ${target}単位</span>
           <strong>${missingCredits > 0 ? `あと${missingCredits}単位` : '卒業要件単位を満たす見込み'}</strong>
         </div>
+        <small class="simulator-graduation-progress-note">現在の修得済み＋シミュレーターに配置した科目のみの合計です。未配置の科目は「計画チェック」の未配置の科目行を確認してください。</small>
         <div
           class="simulator-graduation-progress-bar"
           role="progressbar"

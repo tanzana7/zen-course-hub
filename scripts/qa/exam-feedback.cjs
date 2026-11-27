@@ -19,16 +19,30 @@ async function run() {
         'document.querySelectorAll(".predefined-item").length > 0',
       );
       await evaluate(
-        'localStorage.setItem("myClasses",JSON.stringify(["digital_tools_usage","economics_intro"]));localStorage.setItem("completedClasses",JSON.stringify(["data_science_intro"]))',
+        'localStorage.setItem("myClasses",JSON.stringify(["digital_tools_usage","economics_intro","data_science_intro"]));localStorage.removeItem("completedClasses")',
       );
       await send('Page.reload');
       await wait('document.querySelectorAll(".predefined-item").length > 0');
       await evaluate('document.getElementById("exam-schedule").open=true');
+      // 履修予定同士の重なり（経済入門とデータサイエンス概論の同一時限）は警告される。
       assert.ok(
         await evaluate(
           'document.getElementById("exam-list").textContent.includes("重なっている科目があります")',
         ),
       );
+      // 履修済みにした科目との重なりは警告対象外で、行には履修済みバッジが出る。
+      await evaluate(
+        'localStorage.setItem("completedClasses",JSON.stringify(["economics_intro"]));localStorage.setItem("myClasses",JSON.stringify(["digital_tools_usage","data_science_intro"]))',
+      );
+      await send('Page.reload');
+      await wait('document.querySelectorAll(".predefined-item").length > 0');
+      await evaluate('document.getElementById("exam-schedule").open=true');
+      assert.ok(
+        !(await evaluate(
+          'document.getElementById("exam-list").textContent.includes("重なっている科目があります")',
+        )),
+      );
+      assert.ok(await evaluate('document.getElementById("exam-list").textContent.includes("履修済み")'));
       await evaluate('document.getElementById("exam-search").scrollIntoView({block:"center"})');
       await capture('schedule-' + width + '.png');
       await click('#exam-search');
