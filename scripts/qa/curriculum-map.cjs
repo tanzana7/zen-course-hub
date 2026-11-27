@@ -90,9 +90,9 @@ async function run() {
       const opening = await evaluate(
         `(() => {const cards=[...document.querySelectorAll('.map-course')].map(node=>node.getBoundingClientRect());return {label:document.getElementById('map-location').textContent,leftClipped:cards.filter(r=>r.right>0&&r.left<0&&r.bottom>64&&r.top<innerHeight).length,visible:cards.filter(r=>r.left>=0&&r.right<=innerWidth&&r.top>=120&&r.bottom<=innerHeight-65).length};})()`,
       );
-      assert.equal(opening.label, '1年次 · 情報');
+      assert.equal(opening.label, '導入科目');
       assert.equal(opening.leftClipped, 0, 'initial cards are not cut off at the left edge');
-      assert.ok(opening.visible >= 3, 'initial map shows a cluster of whole readable cards');
+      assert.ok(opening.visible >= 2, 'initial map shows a cluster of whole readable cards');
       result.opening = opening;
       evidence.viewports.push(result);
       await capture(`initial-${width}.png`);

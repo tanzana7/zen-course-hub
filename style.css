@@ -310,6 +310,10 @@ body {
   width: 90%;
   max-width: 600px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  /* 内容が長い場合はモーダル内部でスクロールし、上端（×ボタン）を画面外に出さない。 */
+  max-height: calc(100% - 48px);
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .simulator-launch-btn {
@@ -722,6 +726,13 @@ body.simulator-view-active > #analysis-modal {
 /* 卒業までの進捗バー（既存の卒業要件定義の総必要単位を使用）。 */
 .simulator-graduation-progress {
   margin: 0 0 12px;
+}
+/* 進捗値が配置済み科目のみの合計である旨の注記。 */
+.simulator-graduation-progress-note {
+  display: block;
+  color: #64748b;
+  font-size: 0.78em;
+  margin-top: 2px;
 }
 .simulator-graduation-progress-head {
   display: flex;
@@ -1604,9 +1615,18 @@ body.simulator-view-active > #analysis-modal {
 }
 
 .close-btn {
-  position: absolute;
-  top: 10px;
-  right: 15px;
+  /* モーダル内容が長く内部スクロールしても×を画面内に留める。
+     float＋sticky で通常フローに置きつつ右端に寄せる（absoluteは内容に
+     埋もれて画面外に出るため）。 */
+  position: sticky;
+  top: 0;
+  float: right;
+  display: block;
+  width: max-content;
+  border: 0;
+  background: transparent;
+  padding: 4px 8px;
+  line-height: 1;
   font-size: 28px;
   cursor: pointer;
   color: #888;
@@ -2599,7 +2619,14 @@ body.curriculum-tree-explorer-mode #curriculum-tree-close {
   padding-left: 12px;
 }
 
-/* 社会接続行は他の要件行と同じ3列グリッドを使う（内容も同じ X / Y単位 書式に揃えた）。 */
+/* 社会接続行は他の要件行と同じ3列グリッド＋requirement-progress構造を使う。
+   卒業要件データには社会接続単独の達成判定がないため、バッジ位置は「―」を
+   表示し、取得単位は列内の注記（small）に収める。 */
+.social-actual-note {
+  color: #64748b;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
 
 .graduation-analysis-error {
   color: #9b1c1c;
@@ -4815,6 +4842,15 @@ body[data-page='feedback'] .app-title-row a {
   min-height: 40px;
   padding: 8px 18px;
 }
+/* .primary-view-button の flex:1 1 0 がヘッダー内で伸びて幅広の帯になるのを防ぐ
+   （ホームの feedback-pill と同じ、内容幅のボタンにする）。 */
+body[data-page='feedback'] .app-title-row .primary-view-button {
+  flex: 0 0 auto;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #334155;
+}
 body[data-page='feedback'] main {
   padding: 0 20px;
 }
@@ -4848,6 +4884,18 @@ body[data-page='feedback'] h2 {
 #exam-list .exam-collision {
   color: #b45309;
   font-weight: 600;
+}
+/* 履修済み科目の日程行につける区別バッジ。 */
+#exam-list .exam-completed-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #e2f0e4;
+  color: #28a745;
+  font-size: 0.78em;
+  font-weight: 600;
+  vertical-align: baseline;
 }
 
 /* 送信ボタンを他の主要ボタン（卒業要件分析など）と同じスタイルに揃える。 */

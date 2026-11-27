@@ -5,6 +5,7 @@
   let catalog = new Map();
   let failed = false;
   let enrolledIds = [];
+  let completedIds = [];
 
   const ready = fetch('exam-schedule-catalog.json')
     .then((response) => {
@@ -77,8 +78,9 @@
     summary.textContent = totalRows > 0 ? `試験日程（${totalRows}件）` : '試験日程';
   }
 
-  function renderEnrollment(ids = enrolledIds) {
+  function renderEnrollment(ids = enrolledIds, completed = completedIds) {
     enrolledIds = [...new Set(ids)];
+    completedIds = [...new Set(completed)];
     const host = root.document.getElementById('exam-list');
     if (!host) return;
     if (failed) {
@@ -87,9 +89,11 @@
       return;
     }
     const query = root.document.getElementById('exam-search')?.value || '';
-    // 見出しの件数は検索で絞る前の実件数。検索は一覧だけに効く。
-    updateSummaryCount(getEnrollmentRows(catalog, enrolledIds, '').length);
-    const rows = getEnrollmentRows(catalog, enrolledIds, query);
+    // 一覧は履修予定・履修済み両方（重複排除）。見出しの件数は検索で絞る前の実件数。
+    const listIds = [...new Set([...enrolledIds, ...completedIds])];
+    updateSummaryCount(getEnrollmentRows(catalog, listIds, '').length);
+    // 重なり警告は履修予定同士のみ。履修済みの行はバッジで区別して列挙は残す。
+    const rows = getEnrollmentRows(catalog, listIds, query, completedIds);
     host.replaceChildren();
     if (!rows.length) {
       host.textContent = MESSAGES.empty;
@@ -106,8 +110,15 @@
       }
       const line = host.ownerDocument.createElement('p');
       line.textContent = `${row.period}限 ${row.courseName}`;
+      if (row.completed) {
+        const badge = host.ownerDocument.createElement('span');
+        badge.className = 'exam-completed-badge';
+        badge.textContent = '履修済み';
+        line.append(badge);
+      }
       if (row.collision) {
-        // 同じ日付・時限に2科目以上があることの機械的な表示。日程の意味づけはしない。
+        // 履修予定同士が同じ日付・時限に重なっていることの機械的な表示。
+        // 日程の意味づけはしない。
         line.classList.add('exam-collision');
         line.textContent += MESSAGES.collision;
       }

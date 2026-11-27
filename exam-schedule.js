@@ -39,24 +39,33 @@
     return catalog;
   }
 
-  function getEnrollmentRows(catalog, enrolledIds, query = '') {
+  function getEnrollmentRows(catalog, enrolledIds, query = '', completedIds = []) {
+    const completed = new Set(completedIds);
     const rows = [];
-    const groups = new Map();
+    // 重なりの判定対象は履修予定同士のみ。履修済みの日程は参考表示のため、
+    // 予定との重なり・履修済み同士の重なりは警告に含めない。
+    const plannedGroups = new Map();
     // Count distinct courses before search so filtering cannot hide a real conflict.
     // Source columns are candidates; no official role or duration is inferred.
     for (const id of new Set(enrolledIds)) {
       const course = catalog.get(id);
       if (!course) continue;
+      const isCompleted = completed.has(id);
       for (const slot of course.examSlots) {
         const key = `${slot.date}:${slot.period}`;
-        if (!groups.has(key)) groups.set(key, new Set());
-        groups.get(key).add(id);
-        rows.push({ ...slot, courseId: id, courseName: course.courseName, key });
+        if (!isCompleted) {
+          if (!plannedGroups.has(key)) plannedGroups.set(key, new Set());
+          plannedGroups.get(key).add(id);
+        }
+        rows.push({ ...slot, courseId: id, courseName: course.courseName, key, completed: isCompleted });
       }
     }
     return rows
       .filter((row) => row.courseName.includes(query.trim()))
-      .map(({ key, ...row }) => ({ ...row, collision: groups.get(key).size > 1 }))
+      .map(({ key, ...row }) => ({
+        ...row,
+        collision: !row.completed && plannedGroups.get(key).size > 1,
+      }))
       .sort(
         (a, b) =>
           a.date.localeCompare(b.date) ||

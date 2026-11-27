@@ -308,4 +308,8 @@ body {
   width: 90%;
   max-width: 600px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  /* 内容が長い場合はモーダル内部でスクロールし、上端（×ボタン）を画面外に出さない。 */
+  max-height: calc(100% - 48px);
+  overflow-y: auto;
+  box-sizing: border-box;
 }

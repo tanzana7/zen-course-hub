@@ -187,7 +187,10 @@
   };
 
   const renderList = () => {
-    window.ZenExam?.renderEnrollment([...context.state.registeredClasses, ...context.state.completedClasses]);
+    window.ZenExam?.renderEnrollment(
+      [...context.state.registeredClasses],
+      [...context.state.completedClasses],
+    );
     context.list.innerHTML = '';
     context.completedList.innerHTML = '';
 

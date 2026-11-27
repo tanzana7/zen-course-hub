@@ -221,6 +221,9 @@ async function initializeHub() {
 
   const filterPreferences = loadFilterPreferences();
   state.excludePixiv = filterPreferences.excludePixiv;
+  // 保存済みの絞り込み条件（学年・開講Q・分野・必修区分・導入・並べ替え）を復元する。
+  // 復元値は loadFilterPreferences 側で検証済みで、存在しない場合は既定値のまま。
+  Object.assign(state, filterPreferences.filters);
 
   const { updateStorageWarning, commitStateChange, cleanupState, renderList } =
     window.ZenHubEnrollment.create({

@@ -27,6 +27,15 @@ body[data-page='feedback'] .app-title-row a {
   min-height: 40px;
   padding: 8px 18px;
 }
+/* .primary-view-button の flex:1 1 0 がヘッダー内で伸びて幅広の帯になるのを防ぐ
+   （ホームの feedback-pill と同じ、内容幅のボタンにする）。 */
+body[data-page='feedback'] .app-title-row .primary-view-button {
+  flex: 0 0 auto;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #334155;
+}
 body[data-page='feedback'] main {
   padding: 0 20px;
 }
@@ -60,6 +69,18 @@ body[data-page='feedback'] h2 {
 #exam-list .exam-collision {
   color: #b45309;
   font-weight: 600;
+}
+/* 履修済み科目の日程行につける区別バッジ。 */
+#exam-list .exam-completed-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #e2f0e4;
+  color: #28a745;
+  font-size: 0.78em;
+  font-weight: 600;
+  vertical-align: baseline;
 }
 
 /* 送信ボタンを他の主要ボタン（卒業要件分析など）と同じスタイルに揃える。 */

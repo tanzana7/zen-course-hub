@@ -56,6 +56,7 @@
     const selectSort = (value) => {
       if (!context.COURSE_SORT_OPTIONS.some((option) => option.value === value)) return;
       context.state.difficultySort = value;
+      saveFilterPreferences();
       syncSelectedState();
       context.renderPredefinedList();
       context.renderSimulatorCourseResults();
@@ -108,24 +109,61 @@
     syncSelectedState();
   };
 
+  // 保存対象の絞り込み条件。既存キー（excludePixiv）はそのまま、条件は filters
+  // オブジェクトに分離して保存する（旧形式 {excludePixiv} のみのデータもそのまま読める）。
+  const FILTER_KEYS = [
+    'filterYear',
+    'filterQuarter',
+    'filterCategory',
+    'filterRequirement',
+    'filterIntro',
+    'difficultySort',
+  ];
+  const DEFAULT_FILTERS = Object.freeze({
+    filterYear: 'すべて表示',
+    filterQuarter: 'すべて表示',
+    filterCategory: '分野',
+    filterRequirement: 'すべて表示',
+    filterIntro: 'すべて表示',
+    difficultySort: 'default',
+  });
+
   const loadFilterPreferences = () => {
     try {
       const raw = localStorage.getItem(context.STORAGE_KEYS.FILTER_PREFERENCES);
-      if (!raw) return { excludePixiv: false };
+      if (!raw) return { excludePixiv: false, filters: { ...DEFAULT_FILTERS } };
       const parsed = JSON.parse(raw);
-      return { excludePixiv: parsed?.excludePixiv === true };
+      const filters = { ...DEFAULT_FILTERS };
+      const saved = parsed?.filters;
+      if (saved && typeof saved === 'object') {
+        for (const key of FILTER_KEYS) {
+          if (typeof saved[key] === 'string' && saved[key]) filters[key] = saved[key];
+        }
+      }
+      return { excludePixiv: parsed?.excludePixiv === true, filters };
     } catch (error) {
       console.warn('授業検索設定の復元に失敗しました。初期値を使用します。', error);
-      return { excludePixiv: false };
+      return { excludePixiv: false, filters: { ...DEFAULT_FILTERS } };
     }
   };
 
-  const saveFilterPreferences = (preferences) => {
+  const saveFilterPreferences = (preferences = {}) => {
     try {
+      // excludePixiv は呼び出し側が明示した値を優先。絞り込み条件は常に現在の
+      // state 全体を保存する（解除操作では既に state が既定値に戻った後なので
+      // 保存側もクリアされる）。
       localStorage.setItem(
         context.STORAGE_KEYS.FILTER_PREFERENCES,
         JSON.stringify({
-          excludePixiv: preferences.excludePixiv === true,
+          excludePixiv: (preferences.excludePixiv ?? context.state.excludePixiv) === true,
+          filters: {
+            filterYear: context.state.filterYear,
+            filterQuarter: context.state.filterQuarter,
+            filterCategory: context.state.filterCategory,
+            filterRequirement: context.state.filterRequirement,
+            filterIntro: context.state.filterIntro,
+            difficultySort: context.state.difficultySort,
+          },
         }),
       );
     } catch (error) {
@@ -158,10 +196,26 @@
     }
 
     // 各フィルタ要素が存在する場合のみイベントリスナーを設定（エラー落ち防止）
+    // 復元された条件をUIに反映する（stateはapp.jsで復元済み）。
+    const syncFilterControls = () => {
+      const values = {
+        'year-filter': context.state.filterYear,
+        'quarter-filter': context.state.filterQuarter,
+        'category-filter': context.state.filterCategory,
+        'requirement-filter': context.state.filterRequirement,
+        'intro-filter': context.state.filterIntro,
+      };
+      Object.entries(values).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) element.value = value;
+      });
+    };
+
     const yearF = document.getElementById('year-filter');
     if (yearF)
       yearF.addEventListener('change', (e) => {
         context.state.filterYear = e.target.value;
+        saveFilterPreferences();
         context.renderPredefinedList();
       });
 
@@ -169,12 +223,14 @@
     if (quarterF)
       quarterF.addEventListener('change', (e) => {
         context.state.filterQuarter = e.target.value;
+        saveFilterPreferences();
         context.renderPredefinedList();
       });
 
     if (categoryFilter)
       categoryFilter.addEventListener('change', (e) => {
         context.state.filterCategory = e.target.value;
+        saveFilterPreferences();
         context.renderPredefinedList();
       });
 
@@ -182,6 +238,7 @@
     if (reqF)
       reqF.addEventListener('change', (e) => {
         context.state.filterRequirement = e.target.value;
+        saveFilterPreferences();
         context.renderPredefinedList();
       });
 
@@ -189,8 +246,11 @@
     if (introF)
       introF.addEventListener('change', (e) => {
         context.state.filterIntro = e.target.value;
+        saveFilterPreferences();
         context.renderPredefinedList();
       });
+
+    syncFilterControls();
 
     const searchB = document.getElementById('search-bar');
     if (searchB)

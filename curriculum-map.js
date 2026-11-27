@@ -489,18 +489,22 @@
       if (open) openDrawer('detail', '科目詳細');
       drawerContent.replaceChildren(element('h3', course.subject));
       const metadata = element('dl');
-      // course.tag は分野（情報・数理…）と必修区分を表す値（必修・卒業プロジェクト）が
-      // 同じ列に並ぶ。値に合わせてラベルを分ける（データは変えない）。
-      const tagLabel = course.tag === '必修' || course.tag === '卒業プロジェクト' ? '区分' : '分野';
+      // 分野・区分・レベルの行は科目によらず常に同じ並びで表示する。値は既存データのみ
+      // （分野=course.tag の分野値、区分=course.category、レベル=配置データの区分列で
+      //  カード側の表記と同じもの）。値がない場合は行を消さず「―」で示す。
+      const isFieldTag = (tag) => Boolean(tag) && tag !== '必修' && tag !== '卒業プロジェクト';
+      const stageRow = definition.coursePlacements.find((placement) => placement.courseId === id)?.category;
       for (const [label, value] of [
         ['学年', course.year],
         ['開講Q', course.quarter],
-        ['単位', `${course.credits}単位`],
-        [tagLabel, course.tag],
+        ['単位', course.credits != null ? `${course.credits}単位` : '―'],
+        ['分野', isFieldTag(course.tag) ? course.tag : '―'],
+        ['区分', course.category || '―'],
+        ['レベル', stageRow || '―'],
         ['教員', course.teacher],
         ['形式', course.method],
       ]) {
-        if (value) metadata.append(element('dt', label), element('dd', value));
+        metadata.append(element('dt', label), element('dd', value || '―'));
       }
       drawerContent.append(metadata);
       // ホームの科目詳細と同じ評価方法（レポート・試験の配分）を表示する。
@@ -531,9 +535,13 @@
       if (course.description) drawerContent.append(element('p', course.description));
       const rating = difficulty[id];
       if (rating && typeof rating.average === 'number') {
+        // ホーム・シミュレーターと同じ小数第1位＋票数併記に統一する。
         drawerContent.append(
           element('h4', '履修難易度'),
-          element('p', `${rating.average} / 10 · ${rating.votes}票`),
+          element(
+            'p',
+            `${rating.average.toFixed(1)} / 10.0${Number.isFinite(rating.votes) ? `（${rating.votes}票）` : ''}`,
+          ),
         );
         const url = utils.sanitizeExternalUrl(rating.sourceUrl);
         if (url) {

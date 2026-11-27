@@ -162,9 +162,30 @@
           },
         ]
       : [];
+    // マイ履修（履修予定・履修済み）に入っていてまだ配置していない科目。
+    // 「4年計画完了時」の単位が配置済み科目のみの合計である理由を示す情報行。
+    const placedCourseIds = new Set(
+      context.state.simulatorPlan.placements.map((placement) => placement.courseId),
+    );
+    const unplacedCourses = [
+      ...new Set([...context.state.registeredClasses, ...context.state.completedClasses]),
+    ]
+      .filter((courseId) => !placedCourseIds.has(courseId))
+      .map((courseId) => context.state.coursesMap.get(courseId))
+      .filter(Boolean);
+    const unplacedCourseInfo = unplacedCourses.length
+      ? [
+          {
+            type: 'info',
+            label: '未配置の科目',
+            message: `${unplacedCourses.map((course) => course.subject).join('、')}（${unplacedCourses.length}科目）`,
+          },
+        ]
+      : [];
     const checkItems = [
       ...creditInfo,
       ...emptyYearInfo,
+      ...unplacedCourseInfo,
       ...placementIssues.map((issue) => ({ ...issue, strengthText: '要修正' })),
       ...prerequisiteWarnings.map((warning) => ({ ...warning, strengthText: warning.strengthLabel })),
     ];
@@ -341,7 +362,7 @@
           ? `✓ ${formatSimulatorPlacement(course, placement)}に配置済み`
           : '未配置';
         const difficultyText = difficulty
-          ? `難易度 ${difficulty.average.toFixed(1)} / 10.0`
+          ? `難易度 ${difficulty.average.toFixed(1)} / 10.0${Number.isFinite(difficulty.votes) ? `（${difficulty.votes}票）` : ''}`
           : '難易度 未登録';
         const placedClass = placement ? ' is-placed' : '';
         const isRegistered = context.state.registeredClasses.has(course.id);
@@ -353,7 +374,7 @@
             ? `<span class="sim-status-badge${isCompleted ? ' is-completed' : ' is-scheduled'}">${isCompleted ? '履修済み' : '履修予定'}</span>`
             : '';
         return `
-        <article class="sim-course-picker-item${placedClass}" draggable="${placement ? 'false' : 'true'}" data-sim-drag-course="${context.escapeHTML(course.id)}">
+        <article class="sim-course-picker-item${placedClass}" draggable="${placement ? 'false' : 'true'}" data-sim-drag-course="${context.escapeHTML(course.id)}" title="${placement ? '配置済みの科目はグリッド上でドラッグして移動できます' : 'カードを掴んでドラッグすると配置できます'}">
           <span class="sim-drag-handle" aria-hidden="true" title="${placement ? '配置済みの科目はグリッド上でドラッグして移動できます' : 'ドラッグで配置先へ移動できます'}">⠿</span>
           <div class="sim-course-picker-info">
             <button type="button" class="sim-course-detail-trigger" data-sim-detail-course="${context.escapeHTML(course.id)}">${context.escapeHTML(course.subject)}</button>

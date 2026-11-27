@@ -225,8 +225,8 @@
     const socialRow = `
       <div class="graduation-requirement-row graduation-social-row"${interactiveRow('社会接続', 'socialConnection')}>
         <strong>社会接続</strong>
-        <span>${context.escapeHTML(completedLabel)} ${completedAnalysis.socialConnection.countedCredits} / ${completedAnalysis.socialConnection.capCredits}単位（取得 ${completedAnalysis.socialConnection.actualCredits}単位）</span>
-        <span>${context.escapeHTML(plannedLabel)} ${plannedAnalysis.socialConnection.countedCredits} / ${plannedAnalysis.socialConnection.capCredits}単位（取得 ${plannedAnalysis.socialConnection.actualCredits}単位）</span>
+        <span>${context.escapeHTML(completedLabel)} <span class="requirement-progress"><span class="requirement-ratio">${completedAnalysis.socialConnection.countedCredits} / ${completedAnalysis.socialConnection.capCredits}単位</span><small class="social-actual-note">（取得 ${completedAnalysis.socialConnection.actualCredits}単位）</small><span class="requirement-remaining" title="社会接続は単独の達成判定を持たず、総卒業算入単位に算入されます">―</span></span></span>
+        <span>${context.escapeHTML(plannedLabel)} <span class="requirement-progress"><span class="requirement-ratio">${plannedAnalysis.socialConnection.countedCredits} / ${plannedAnalysis.socialConnection.capCredits}単位</span><small class="social-actual-note">（取得 ${plannedAnalysis.socialConnection.actualCredits}単位）</small><span class="requirement-remaining" title="社会接続は単独の達成判定を持たず、総卒業算入単位に算入されます">―</span></span></span>
       </div>${
         !targetElement && homeGraduationDetailState
           ? `<details class="graduation-course-breakdown" data-home-graduation-key="socialConnection">

@@ -455,7 +455,14 @@ body.curriculum-tree-explorer-mode #curriculum-tree-close {
   padding-left: 12px;
 }
 
-/* 社会接続行は他の要件行と同じ3列グリッドを使う（内容も同じ X / Y単位 書式に揃えた）。 */
+/* 社会接続行は他の要件行と同じ3列グリッド＋requirement-progress構造を使う。
+   卒業要件データには社会接続単独の達成判定がないため、バッジ位置は「―」を
+   表示し、取得単位は列内の注記（small）に収める。 */
+.social-actual-note {
+  color: #64748b;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
 
 .graduation-analysis-error {
   color: #9b1c1c;
