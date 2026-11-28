@@ -32,13 +32,17 @@ body {
   /* 固定ヘッダー（sticky-controls）の実高さはJSが測ってCSS変数に入れる。
      その高さより下に貼り付けることで、マイ履修の上部がヘッダーに隠れない。 */
   top: calc(var(--sticky-controls-height, 330px) + 20px);
-  max-height: calc(
-    100vh - var(--sticky-controls-height, 330px) - 40px
-  ); /* 画面からはみ出さないよう高さを制限 */
+  /* この要素は content-box なので max-height は padding を含まない。
+     下の padding-bottom 96px のうち元の 20px 分を除く 76px 分と、ページ最上部で
+     sticky 前の自然位置が貼り付き位置より下になる分（約24px）をさらに引き、
+     内容の最終行が右下の「使い方」ボタン（下端から約25px＋高さ約44px）
+     の下に回り込んで隠れないようにする。 */
+  max-height: calc(100vh - var(--sticky-controls-height, 330px) - 144px);
   overflow-y: auto; /* 科目が増えた場合にリスト内スクロールを可能にする */
-  /* 枠のような見た目にする */
+  /* 下端は右下の「使い方」ボタンの下に内容が回り込めるよう余白を確保。 */
   background-color: #fff;
   padding: 20px;
+  padding-bottom: 96px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }

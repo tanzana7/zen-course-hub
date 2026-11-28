@@ -398,6 +398,11 @@ body.simulator-view-active > #analysis-modal {
   margin-top: 10px;
 }
 
+.simulator-plan-check-empty {
+  margin: 0;
+  color: #64748b;
+}
+
 #simulator-plan-check-details p {
   margin: 0;
   color: #64748b;

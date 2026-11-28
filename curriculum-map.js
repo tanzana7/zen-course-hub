@@ -385,11 +385,25 @@
         const a = positions.get(relation.prerequisiteId),
           b = positions.get(relation.successorId);
         if (!a || !b) continue;
+        // 後継カードの中心まで線を引くと、終端（矢印）が不透明なカードの裏に
+        // 隠れる。後継カードの外周の少し手前で止めて矢印を見えるようにする。
+        const acx = a.x + a.width / 2;
+        const acy = a.y + a.height / 2;
+        const bcx = b.x + b.width / 2;
+        const bcy = b.y + b.height / 2;
+        const dx = bcx - acx;
+        const dy = bcy - acy;
+        const length = Math.hypot(dx, dy) || 1;
+        const ux = dx / length;
+        const uy = dy / length;
+        const pad = 10;
+        const tx = ux ? (b.width / 2 + pad) / Math.abs(ux) : Infinity;
+        const ty = uy ? (b.height / 2 + pad) / Math.abs(uy) : Infinity;
+        const trim = Math.min(Math.min(tx, ty), length);
+        const endX = bcx - ux * trim;
+        const endY = bcy - uy * trim;
         const line = doc.createElementNS('http://www.w3.org/2000/svg', 'path');
-        line.setAttribute(
-          'd',
-          `M${a.x + a.width / 2},${a.y + a.height / 2} L${b.x + b.width / 2},${b.y + b.height / 2}`,
-        );
+        line.setAttribute('d', `M${acx},${acy} L${endX},${endY}`);
         line.setAttribute('stroke', relation.strength === 'strongly_recommended' ? '#b17b21' : '#427e85');
         line.setAttribute('stroke-width', '3');
         line.setAttribute('stroke-dasharray', '8 6');

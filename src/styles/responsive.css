@@ -199,7 +199,10 @@
   .right-column {
     max-height: none;
     overflow-y: visible;
+    /* 下端は右下の「使い方」ボタンの下に内容が回り込めるよう余白を確保
+       （body の下余白 80px と合わせて文末がボタンに隠れないようにする）。 */
     padding: 16px;
+    padding-bottom: 96px;
   }
 
   #predefined-classes-list,
