@@ -64,7 +64,9 @@
     let lastFocus = null;
     let relations = [];
     let difficulty = {};
-    let relationMode = 'off';
+    // 参考関係線の初期値は「選択科目のみ」。科目を選ぶとその前提・後継だけが現れる。
+    // 全体表示（all）とOFFはメニューから従来どおり選べる。
+    let relationMode = 'selected';
     let statusTimer;
     let cameraFrame;
     let camera = { scale: 1, x: 0, y: 0 };
@@ -551,6 +553,10 @@
           link.rel = 'noopener noreferrer';
           drawerContent.append(link);
         }
+      } else {
+        // difficulty.json にエントリがない科目（＝投票なし）はプレースホルダーを
+        // 出して「データがない」ことを明示する。
+        drawerContent.append(element('h4', '履修難易度'), element('p', '―（投票なし）'));
       }
       for (const [title, field, relatedField] of [
         ['前提科目', 'successorId', 'prerequisiteId'],
