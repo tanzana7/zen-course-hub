@@ -251,7 +251,7 @@
         <p class="graduation-analysis-legend"><strong>${context.escapeHTML(completedLabel)}</strong>は${context.escapeHTML(completedDescription)}、<strong>${context.escapeHTML(plannedLabel)}</strong>は${context.escapeHTML(plannedDescription)}です。</p>
         <p class="graduation-analysis-legend" id="graduation-analysis-note">修得済みは「今までに取得済みの科目だけでの判定」。予定込みは「このまま履修予定を取れば卒業できそうか」の見込み判定です。算入＝卒業要件に数えられる単位のことで、社会接続は上限までしか数えられません。</p>
         <div class="graduation-overall-status" aria-live="polite">
-          ${context.escapeHTML(completedLabel)}：<strong>${completedAnalysis.satisfied ? '達成' : '未達'}</strong> ／
+          総単位の判定：${context.escapeHTML(completedLabel)}：<strong>${completedAnalysis.satisfied ? '達成' : '未達'}</strong> ／
           ${context.escapeHTML(plannedLabel)}：<strong>${plannedAnalysis.satisfied ? '達成見込み' : '不足'}</strong>
         </div>
         ${categoryBreakdown('必修')}

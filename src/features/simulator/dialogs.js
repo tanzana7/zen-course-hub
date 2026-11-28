@@ -188,12 +188,16 @@
         </section>`
       : '';
     title.textContent = course.subject;
+    // 分野＝タグ（必修・卒業プロジェクトは分野ではないためマップ詳細と同じく「―」）。
+    // 区分＝category をマップ詳細と同様に別行で出す。
+    const isFieldTag = (tag) => Boolean(tag) && tag !== '必修' && tag !== '卒業プロジェクト';
     content.innerHTML = `
       <dl class="simulator-course-detail-list">
         <div><dt>開講Q</dt><dd>${context.escapeHTML(course.quarter || 'Q未定')}</dd></div>
         ${placement ? `<div><dt>選択Q</dt><dd>${context.escapeHTML(context.formatSimulatorPlacement(course, placement))}</dd></div>` : ''}
         <div><dt>単位</dt><dd>${context.escapeHTML(String(course.credits || 0))}単位</dd></div>
-        ${course.tag ? `<div><dt>分野</dt><dd>${context.escapeHTML(course.tag)}</dd></div>` : ''}
+        <div><dt>分野</dt><dd>${context.escapeHTML(isFieldTag(course.tag) ? course.tag : '―')}</dd></div>
+        <div><dt>区分</dt><dd>${context.escapeHTML(course.category || '―')}</dd></div>
         ${course.method ? `<div><dt>授業方法</dt><dd>${context.escapeHTML(course.method)}</dd></div>` : ''}
         ${
           course.teacher

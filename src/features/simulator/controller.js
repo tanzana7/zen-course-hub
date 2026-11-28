@@ -119,10 +119,20 @@
         .map((issue) => ({ course, placement, ...issue }));
     });
 
+  // 科目データの読み込みが終わるまでは、未読込を「データがない／読めない」と
+  // 見せない。読み込み中の表示はホーム側（app-loading）と同じ扱い。
+  const isCourseDataLoading = () => document.body.classList.contains('app-loading');
+
   const renderSimulatorPlanCheck = () => {
     const summary = document.getElementById('simulator-plan-check-summary');
     const details = document.getElementById('simulator-plan-check-details');
     if (!summary || !details) return;
+    if (isCourseDataLoading()) {
+      summary.textContent = '計画チェック（読み込み中…）';
+      details.innerHTML =
+        '<p class="simulator-plan-check-empty">科目データを読み込み中です。読み込みが終わると計画の確認結果が表示されます。</p>';
+      return;
+    }
 
     const prerequisiteWarnings = getSimulatorPlanWarnings();
     const placementIssues = getSimulatorPlacementIssues();
@@ -212,15 +222,28 @@
             <span>${context.escapeHTML(warning.message)}${warning.course ? `（${context.escapeHTML(warning.strengthText)}）` : ''}</span>
           </li>
         `;
-    // 判定対象（要修正・前提）と、単位・年次・未配置などの参考情報を区別して並べる。
-    const issueItems = [
-      ...placementIssues.map((issue) => ({ ...issue, strengthText: '要修正' })),
-      ...prerequisiteWarnings.map((warning) => ({ ...warning, strengthText: warning.strengthLabel })),
+    // 説明文（要修正＝開講Q不適合のみ。前提・未配置は参考情報）に合わせて振り分ける。
+    // 「判定対象」には要修正だけを置き、前提は参考情報側に並べる。見出しの
+    // 件数の数え方（要修正 N・前提 N強/N推奨）は変えない。
+    const issueItems = placementIssues.map((issue) => ({ ...issue, strengthText: '要修正' }));
+    const prerequisiteInfo = prerequisiteWarnings.map((warning) => ({
+      ...warning,
+      strengthText: warning.strengthLabel,
+    }));
+    const referenceItems = [
+      ...prerequisiteInfo,
+      ...creditInfo,
+      ...emptyYearInfo,
+      ...unplacedCourseInfo,
+      ...orphanPlacementInfo,
     ];
-    const referenceItems = [...creditInfo, ...emptyYearInfo, ...unplacedCourseInfo, ...orphanPlacementInfo];
     details.innerHTML =
       issueItems.length || referenceItems.length
-        ? `${issueItems.length ? `<p class="simulator-plan-check-group-label">判定対象</p><ul>${issueItems.map(renderItem).join('')}</ul>` : ''}${
+        ? `<p class="simulator-plan-check-group-label">判定対象</p>${
+            issueItems.length
+              ? `<ul>${issueItems.map(renderItem).join('')}</ul>`
+              : '<p class="simulator-plan-check-empty">要修正はありません</p>'
+          }${
             referenceItems.length
               ? `<p class="simulator-plan-check-reference-label">参考情報</p><ul>${referenceItems.map(renderItem).join('')}</ul>`
               : ''
@@ -454,6 +477,16 @@
     const yearGrid = document.getElementById('simulator-year-grid');
     const unknownHost = document.getElementById('simulator-unknown-courses');
     if (!summary || !totalSummary || !yearGrid) return;
+    if (isCourseDataLoading()) {
+      // 未読込の配置データを「確認が必要な科目」と誤表示しない。
+      totalSummary.innerHTML = '<span>総予定単位</span><strong>読み込み中…</strong>';
+      summary.innerHTML = '<div><strong>4年間の計画</strong><span>科目データを読み込み中です</span></div>';
+      unknownHost.hidden = true;
+      unknownHost.replaceChildren();
+      yearGrid.replaceChildren();
+      renderSimulatorCourseResults();
+      return;
+    }
 
     const years = [1, 2, 3, 4];
     const getCourse = (id) => context.state.coursesMap.get(id);

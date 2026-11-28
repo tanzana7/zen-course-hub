@@ -166,6 +166,9 @@ async function initializeHub() {
     // マイ履修は通常の履修予定（myClasses）を表示するだけで、4年計画とは分離する。
     simulatorPlacementFilter: 'all',
     graduationDefinition: null,
+    // 卒業要件データの読み込みが完了するまで「判定不能」ではなく「読み込み中」
+    // を見せるためのフラグ。読み込みが完了（または失敗して null 確定）したら false。
+    graduationDefinitionLoading: true,
     courseValidationError: null,
     curriculumLayoutDefinition: null,
     coursesReady: false,
@@ -406,6 +409,7 @@ async function initializeHub() {
       refreshOptionalData({ relations: true });
     });
     graduationPromise.then((graduationDefinition) => {
+      state.graduationDefinitionLoading = false;
       applyGraduationDefinition(graduationDefinition, data);
       refreshOptionalData({ graduation: true });
     });

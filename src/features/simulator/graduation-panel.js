@@ -83,6 +83,15 @@
     const details = document.getElementById('simulator-graduation-details-content');
     const unknownNotice = document.getElementById('simulator-graduation-unknown');
     if (!summary || !details || !context.simulatorAvailable) return;
+    // 読み込み中は「判定不能」ではなく「読み込み中」を見せる。
+    // 判定不能（卒業要件データが本当に読めない場合）は読み込み完了後も出す。
+    if (context.state.graduationDefinitionLoading || document.body.classList.contains('app-loading')) {
+      summary.innerHTML =
+        '<div class="simulator-graduation-unavailable"><strong>卒業見込み：読み込み中…</strong><span>卒業要件データを読み込んでいます。</span></div>';
+      details.innerHTML = '';
+      if (unknownNotice) unknownNotice.hidden = true;
+      return;
+    }
 
     const knownCourseIds = new Set(context.state.coursesMap.keys());
     const placements = context.state.simulatorPlan.placements;
