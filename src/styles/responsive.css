@@ -369,6 +369,20 @@ body.curriculum-tree-explorer-mode #curriculum-tree-close {
   overflow-wrap: anywhere;
 }
 
+/* 各セルの先頭に常時見える小ラベル（修得済み／予定込み）。列見出しに頼らず
+   行の時点で列の意味が追えるようにする。 */
+.graduation-cell-label {
+  display: inline-block;
+  padding: 1px 6px;
+  margin-right: 4px;
+  border-radius: 999px;
+  background: #e8f0fe;
+  color: #1e3a8a;
+  font-size: 0.78em;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .graduation-requirement-row[data-sim-graduation-detail] {
   width: 100%;
   border: 0;

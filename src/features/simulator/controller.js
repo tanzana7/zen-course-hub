@@ -129,10 +129,13 @@
     const quarterIssues = placementIssues.filter((issue) => issue.type === 'quarter').length;
     const strongCount = prerequisiteWarnings.filter((warning) => warning.strengthClass === 'strong').length;
     const recommendedCount = prerequisiteWarnings.length - strongCount;
-    const issueCount = placementIssues.length + prerequisiteWarnings.length;
-    summary.textContent = issueCount
+    // ⚠は要修正（開講Q不適合）があるときだけ。前提の参考情報だけでは警告にしない。
+    // 数え方自体は従来どおり（前提の強/推奨もそのまま併記する）。
+    summary.textContent = quarterIssues
       ? `⚠ 計画チェック：要修正 ${quarterIssues}・前提 ${strongCount}強/${recommendedCount}推奨`
-      : '✓ 計画チェック';
+      : strongCount || recommendedCount
+        ? `✓ 計画チェック：要修正 0・前提 ${strongCount}強/${recommendedCount}推奨`
+        : '✓ 計画チェック';
     // 総単位の不足と空き年次は既存データの数値だけを使った情報表示。捏造した
     // 年次上限などの警告は追加しない。
     const targetCredits = context.state.graduationDefinition?.requirements?.totalCredits?.targetCredits;
@@ -203,26 +206,26 @@
           },
         ]
       : [];
-    const checkItems = [
-      ...creditInfo,
-      ...emptyYearInfo,
-      ...unplacedCourseInfo,
-      ...orphanPlacementInfo,
-      ...placementIssues.map((issue) => ({ ...issue, strengthText: '要修正' })),
-      ...prerequisiteWarnings.map((warning) => ({ ...warning, strengthText: warning.strengthLabel })),
-    ];
-    details.innerHTML = checkItems.length
-      ? `<ul>${checkItems
-          .map(
-            (warning) => `
+    const renderItem = (warning) => `
           <li class="simulator-check-${context.escapeHTML(warning.type)}"${warning.course ? ` data-sim-warning-course="${context.escapeHTML(warning.course.id)}"` : ''}>
             <strong>${context.escapeHTML(warning.course ? warning.course.subject : warning.label)}</strong>
             <span>${context.escapeHTML(warning.message)}${warning.course ? `（${context.escapeHTML(warning.strengthText)}）` : ''}</span>
           </li>
-        `,
-          )
-          .join('')}</ul>`
-      : '<p>計画上の注意はありません</p>';
+        `;
+    // 判定対象（要修正・前提）と、単位・年次・未配置などの参考情報を区別して並べる。
+    const issueItems = [
+      ...placementIssues.map((issue) => ({ ...issue, strengthText: '要修正' })),
+      ...prerequisiteWarnings.map((warning) => ({ ...warning, strengthText: warning.strengthLabel })),
+    ];
+    const referenceItems = [...creditInfo, ...emptyYearInfo, ...unplacedCourseInfo, ...orphanPlacementInfo];
+    details.innerHTML =
+      issueItems.length || referenceItems.length
+        ? `${issueItems.length ? `<ul>${issueItems.map(renderItem).join('')}</ul>` : ''}${
+            referenceItems.length
+              ? `<p class="simulator-plan-check-reference-label">参考情報</p><ul>${referenceItems.map(renderItem).join('')}</ul>`
+              : ''
+          }`
+        : '<p>計画上の注意はありません</p>';
   };
 
   const { renderSimulatorGraduationCourseDetail, renderSimulatorGraduationProjection } =
@@ -517,6 +520,44 @@
       .filter(Boolean)
       .reduce((sum, course) => sum + Number(course.credits || 0), 0);
     totalSummary.innerHTML = `<span>総予定単位</span><strong>${totalCredits}単位</strong>`;
+    // マイ履修（履修予定＋履修済み）の合計と計画の合計に差があるときだけ、その
+    // 差の内訳を出す。集計方法は既存の単位合計そのまま（表示のみの追加）。
+    const diffElement = document.getElementById('simulator-total-diff');
+    if (diffElement) {
+      const myCourseIds = new Set([...context.state.registeredClasses, ...context.state.completedClasses]);
+      const myCredits = [...myCourseIds]
+        .map(getCourse)
+        .filter(Boolean)
+        .reduce((sum, course) => sum + Number(course.credits || 0), 0);
+      if (myCredits === totalCredits) {
+        diffElement.hidden = true;
+        diffElement.textContent = '';
+      } else {
+        const placedIds = new Set(
+          context.state.simulatorPlan.placements.map((placement) => placement.courseId),
+        );
+        const orphanCourses = [...new Set([...placedIds].filter((id) => !myCourseIds.has(id)))]
+          .map(getCourse)
+          .filter(Boolean);
+        const unplacedCourses = [...myCourseIds]
+          .filter((id) => !placedIds.has(id))
+          .map(getCourse)
+          .filter(Boolean);
+        const parts = [];
+        if (orphanCourses.length)
+          parts.push(
+            `マイ履修にない配置済み科目 ${orphanCourses.length}科目・${orphanCourses.reduce((sum, course) => sum + Number(course.credits || 0), 0)}単位分`,
+          );
+        if (unplacedCourses.length)
+          parts.push(
+            `マイ履修の未配置科目 ${unplacedCourses.length}科目・${unplacedCourses.reduce((sum, course) => sum + Number(course.credits || 0), 0)}単位分`,
+          );
+        diffElement.textContent = parts.length
+          ? `マイ履修の合計 ${myCredits}単位との差は、${parts.join('と')}です。`
+          : `マイ履修の合計は ${myCredits}単位です。`;
+        diffElement.hidden = false;
+      }
+    }
     summary.innerHTML = `
       <div><strong>4年間の総予定単位</strong><span>${totalCredits}単位</span></div>
       ${years.map((year) => `<div><strong>${year}年</strong><span>${yearPlacements.get(year).reduce((sum, placement) => sum + Number(getCourse(placement.courseId)?.credits || 0), 0)}単位</span></div>`).join('')}
@@ -575,9 +616,11 @@
         card.dataset.simCardQuarter = String(assignment.start);
         card.style.gridColumn = `${assignment.start} / span ${assignment.span}`;
         card.style.gridRow = String(assignment.lane + 2);
-        card.title = warningTooltip || `${course.subject}（${course.credits}単位）`;
+        card.title = warningTooltip
+          ? `${course.subject}（${course.credits}単位） / ${warningTooltip}`
+          : `${course.subject}（${course.credits}単位）`;
         card.innerHTML = `
-          <button type="button" class="sim-course-card-title" data-sim-detail-course="${context.escapeHTML(course.id)}">${context.escapeHTML(course.subject)}</button>
+          <button type="button" class="sim-course-card-title" data-sim-detail-course="${context.escapeHTML(course.id)}" title="${context.escapeHTML(course.subject)}">${context.escapeHTML(course.subject)}</button>
           <span class="sim-course-credits">${context.escapeHTML(String(course.credits || 0))}単位</span>
           ${quarterIssue ? `<span class="sim-course-quarter-warning" title="${context.escapeHTML(quarterIssue.message)}">要修正 · ${context.escapeHTML(quarterIssue.message)}</span>` : ''}
           <div class="sim-course-card-actions">

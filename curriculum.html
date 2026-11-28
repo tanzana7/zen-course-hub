@@ -66,8 +66,17 @@
             <option value="4">4年次</option>
           </select>
         </label>
-        <button id="map-enrollment-toggle" type="button" aria-controls="map-drawer" aria-expanded="false">
-          履修予定 <span id="map-enrollment-count">0</span>
+        <button
+          id="map-enrollment-toggle"
+          type="button"
+          aria-controls="map-drawer"
+          aria-expanded="false"
+          title="マイ履修ドロワーを開く"
+        >
+          マイ履修<span class="map-enrollment-detail"
+            >（履修予定 <span id="map-enrollment-count">0</span>）</span
+          >
+          <span class="map-enrollment-caret" aria-hidden="true"> ▼</span>
         </button>
         <div id="map-search-results" hidden role="region" aria-label="検索結果"></div>
       </header>

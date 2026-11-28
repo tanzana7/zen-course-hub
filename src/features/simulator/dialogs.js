@@ -7,6 +7,37 @@
   'use strict';
   let simulatorTriggerElement = null;
 
+  // 教員が多い科目（6名以上）は先頭5名＋他N名に折りたたみ、「すべて表示」で
+  // 展開する。ホーム詳細・マップ詳細と同じ挙動。データ自体は変えない。
+  const TEACHER_COLLAPSE_LIMIT = 6;
+  const TEACHER_PREVIEW_COUNT = 5;
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('.teacher-expand-btn');
+    if (!button) return;
+    const line = button.closest('.teacher-line');
+    if (!line) return;
+    line.querySelector('.teacher-preview')?.setAttribute('hidden', '');
+    button.setAttribute('hidden', '');
+    const full = line.querySelector('.teacher-full');
+    if (full) full.hidden = false;
+  });
+  const renderSimulatorTeacherCell = (teacher) => {
+    const parts = String(teacher || '')
+      .split(', ')
+      .filter(Boolean);
+    if (parts.length === 0) return '';
+    if (parts.length < TEACHER_COLLAPSE_LIMIT) {
+      return context.escapeHTML(parts.length > 1 ? `${parts[0]} 他${parts.length - 1}名` : parts[0]);
+    }
+    return [
+      '<span class="teacher-line">',
+      `<span class="teacher-preview">${context.escapeHTML(parts.slice(0, TEACHER_PREVIEW_COUNT).join('、'))}… 他${parts.length - TEACHER_PREVIEW_COUNT}名</span>`,
+      '<button type="button" class="teacher-expand-btn">すべて表示</button>',
+      `<span class="teacher-full" hidden>${context.escapeHTML(parts.join('、'))}</span>`,
+      '</span>',
+    ].join('');
+  };
+
   let simulatorDetailTriggerElement = null;
 
   let simulatorPlacementTriggerElement = null;
@@ -163,7 +194,11 @@
         <div><dt>単位</dt><dd>${context.escapeHTML(String(course.credits || 0))}単位</dd></div>
         ${course.tag ? `<div><dt>分野</dt><dd>${context.escapeHTML(course.tag)}</dd></div>` : ''}
         ${course.method ? `<div><dt>授業方法</dt><dd>${context.escapeHTML(course.method)}</dd></div>` : ''}
-        ${course.teacher ? `<div><dt>担当</dt><dd>${context.escapeHTML(course.teacher)}</dd></div>` : ''}
+        ${
+          course.teacher
+            ? `<div><dt>担当</dt><dd>${renderSimulatorTeacherCell(course.teacher)}</dd></div>`
+            : ''
+        }
         ${
           difficulty
             ? `<div><dt>難易度</dt><dd>${difficulty.average.toFixed(1)} / 10.0（${difficulty.votes}票）<br><a href="${context.escapeHTML(difficulty.sourceUrl)}" target="_blank" rel="noopener noreferrer">${context.escapeHTML(difficulty.sourceLabel)}</a></dd></div>`

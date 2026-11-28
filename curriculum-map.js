@@ -82,6 +82,38 @@
       if (className) node.className = className;
       return node;
     };
+    // 教員が多い科目（6名以上）は先頭5名＋他N名に折りたたみ、「すべて表示」で
+    // 展開する。ホーム詳細と同じ挙動。データ自体は変えない。
+    const TEACHER_COLLAPSE_LIMIT = 6;
+    const TEACHER_PREVIEW_COUNT = 5;
+    const renderTeacherCell = (teacherText) => {
+      const parts = String(teacherText || '')
+        .split(', ')
+        .filter(Boolean);
+      if (parts.length === 0) return element('dd', '―');
+      if (parts.length < TEACHER_COLLAPSE_LIMIT) {
+        return element('dd', parts.length > 1 ? `${parts[0]} 他${parts.length - 1}名` : parts[0]);
+      }
+      const cell = element('dd');
+      const line = element('span', undefined, 'teacher-line');
+      const preview = element(
+        'span',
+        `${parts.slice(0, TEACHER_PREVIEW_COUNT).join('、')}… 他${parts.length - TEACHER_PREVIEW_COUNT}名`,
+        'teacher-preview',
+      );
+      const expand = element('button', 'すべて表示', 'teacher-expand-btn');
+      expand.type = 'button';
+      const full = element('span', parts.join('、'), 'teacher-full');
+      full.hidden = true;
+      expand.addEventListener('click', () => {
+        preview.hidden = true;
+        expand.hidden = true;
+        full.hidden = false;
+      });
+      line.append(preview, expand, full);
+      cell.append(line);
+      return cell;
+    };
     const status = (text, persistent = false) => {
       clearTimeout(statusTimer);
       const node = doc.getElementById('map-status');
@@ -496,17 +528,21 @@
       //  カード側の表記と同じもの）。値がない場合は行を消さず「―」で示す。
       const isFieldTag = (tag) => Boolean(tag) && tag !== '必修' && tag !== '卒業プロジェクト';
       const stageRow = definition.coursePlacements.find((placement) => placement.courseId === id)?.category;
-      for (const [label, value] of [
+      const metadataRows = [
         ['学年', course.year],
         ['開講Q', course.quarter],
         ['単位', course.credits != null ? `${course.credits}単位` : '―'],
         ['分野', isFieldTag(course.tag) ? course.tag : '―'],
         ['区分', course.category || '―'],
         ['レベル', stageRow || '―'],
-        ['教員', course.teacher],
+        ['教員', null],
         ['形式', course.method],
-      ]) {
-        metadata.append(element('dt', label), element('dd', value || '―'));
+      ];
+      for (const [label, value] of metadataRows) {
+        metadata.append(
+          element('dt', label),
+          label === '教員' ? renderTeacherCell(course.teacher) : element('dd', value || '―'),
+        );
       }
       drawerContent.append(metadata);
       // ホームの科目詳細と同じ評価方法（レポート・試験の配分）を表示する。

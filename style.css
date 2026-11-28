@@ -287,6 +287,28 @@ body {
   transition: width 0.25s ease;
 }
 
+/* 教員が多い科目の詳細表示（ホーム・シミュレーター・マップ詳細共通）。
+   先頭5名＋他N名に折りたたみ、「すべて表示」で展開する。 */
+.teacher-line .teacher-expand-btn {
+  margin-left: 6px;
+  padding: 1px 8px;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #fff;
+  color: #1d4ed8;
+  font-size: 0.85em;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.teacher-line .teacher-expand-btn:hover {
+  background: #eff6ff;
+}
+
+.teacher-line .teacher-full {
+  overflow-wrap: anywhere;
+}
+
 /* モーダル基本設定 */
 .modal-overlay {
   display: none;
@@ -415,6 +437,13 @@ body.simulator-view-active > #analysis-modal {
 
 .simulator-total-summary strong {
   font-size: 1.1em;
+}
+
+/* 総予定単位とマイ履修合計の差の内訳。差があるときだけ表示する。 */
+.simulator-total-diff {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 0.82em;
 }
 
 .simulator-layout {
@@ -672,10 +701,32 @@ body.simulator-view-active > #analysis-modal {
   border-bottom: 1px solid #dbe3ef;
 }
 
+.simulator-plan-check-note {
+  margin: 0;
+  padding: 7px 12px;
+  color: #64748b;
+  font-size: 0.82em;
+  border-bottom: 1px dashed #dbe3ef;
+}
+
 #simulator-plan-check-details {
   padding: 9px 12px 10px;
   font-size: 0.86em;
   line-height: 1.45;
+}
+
+/* 要修正・前提の行と、単位・年次などの参考情報行を分ける小見出し。 */
+.simulator-plan-check-reference-label {
+  margin: 8px 0 2px;
+  color: #64748b;
+  font-size: 0.92em;
+  font-weight: 700;
+  border-top: 1px dashed #dbe3ef;
+  padding-top: 6px;
+}
+
+#simulator-plan-check-details ul + .simulator-plan-check-reference-label {
+  margin-top: 10px;
 }
 
 #simulator-plan-check-details p {
@@ -2531,6 +2582,20 @@ body.curriculum-tree-explorer-mode #curriculum-tree-close {
 .graduation-requirement-row > * {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+/* 各セルの先頭に常時見える小ラベル（修得済み／予定込み）。列見出しに頼らず
+   行の時点で列の意味が追えるようにする。 */
+.graduation-cell-label {
+  display: inline-block;
+  padding: 1px 6px;
+  margin-right: 4px;
+  border-radius: 999px;
+  background: #e8f0fe;
+  color: #1e3a8a;
+  font-size: 0.78em;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .graduation-requirement-row[data-sim-graduation-detail] {
@@ -4867,6 +4932,16 @@ body[data-page='feedback'] h2 {
   color: #5f6b7a;
   font-size: 0.85rem;
   line-height: 1.6;
+}
+/* 科目指定なしで直接開いたときの案内。パラメータ付きのときは表示しない。 */
+.feedback-course-hint {
+  color: #5f6b7a;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  background: #f0f7ff;
+  border: 1px solid #dbeafe;
+  border-radius: 6px;
+  padding: 8px 10px;
 }
 #exam-schedule {
   margin: 16px 0;

@@ -53,6 +53,16 @@ body[data-page='feedback'] h2 {
   font-size: 0.85rem;
   line-height: 1.6;
 }
+/* 科目指定なしで直接開いたときの案内。パラメータ付きのときは表示しない。 */
+.feedback-course-hint {
+  color: #5f6b7a;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  background: #f0f7ff;
+  border: 1px solid #dbeafe;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
 #exam-schedule {
   margin: 16px 0;
 }

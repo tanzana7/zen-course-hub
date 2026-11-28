@@ -632,6 +632,10 @@ a {
     padding: 8px;
     white-space: nowrap;
   }
+  /* 狭い画面では「マイ履修 ▼」に短縮（内訳はドロワー内で確認できる）。 */
+  .map-enrollment-detail {
+    display: none;
+  }
   .map-year-jump-label {
     display: none;
   }

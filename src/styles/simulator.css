@@ -99,6 +99,13 @@ body.simulator-view-active > #analysis-modal {
   font-size: 1.1em;
 }
 
+/* 総予定単位とマイ履修合計の差の内訳。差があるときだけ表示する。 */
+.simulator-total-diff {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 0.82em;
+}
+
 .simulator-layout {
   display: grid;
   grid-template-columns: minmax(0, 2.1fr) minmax(280px, 1fr);
@@ -354,10 +361,32 @@ body.simulator-view-active > #analysis-modal {
   border-bottom: 1px solid #dbe3ef;
 }
 
+.simulator-plan-check-note {
+  margin: 0;
+  padding: 7px 12px;
+  color: #64748b;
+  font-size: 0.82em;
+  border-bottom: 1px dashed #dbe3ef;
+}
+
 #simulator-plan-check-details {
   padding: 9px 12px 10px;
   font-size: 0.86em;
   line-height: 1.45;
+}
+
+/* 要修正・前提の行と、単位・年次などの参考情報行を分ける小見出し。 */
+.simulator-plan-check-reference-label {
+  margin: 8px 0 2px;
+  color: #64748b;
+  font-size: 0.92em;
+  font-weight: 700;
+  border-top: 1px dashed #dbe3ef;
+  padding-top: 6px;
+}
+
+#simulator-plan-check-details ul + .simulator-plan-check-reference-label {
+  margin-top: 10px;
 }
 
 #simulator-plan-check-details p {
