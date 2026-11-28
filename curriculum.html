@@ -98,6 +98,49 @@
         >
         <p>非公式ツール。正式な履修登録は大学のシステムで行ってください。</p>
         <p>参考関係線は公式の履修前提条件ではありません。</p>
+        <dl class="map-relation-legend">
+          <dt>
+            <svg viewBox="0 0 60 10" aria-hidden="true">
+              <path
+                d="M2 5 L46 5"
+                stroke="#427e85"
+                stroke-width="3"
+                stroke-dasharray="8 6"
+                fill="none"
+                marker-end="url(#map-relation-arrow-normal)"
+              />
+            </svg>
+          </dt>
+          <dd>
+            科目間の参考関係（前提→後継の向き）。どちらが前提かは科目詳細パネルの「前提科目／後継科目」で確認できます。
+          </dd>
+        </dl>
+        <svg width="0" height="0" aria-hidden="true" focusable="false" style="position: absolute">
+          <defs>
+            <marker
+              id="map-relation-arrow-normal"
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto-start-reverse"
+            >
+              <path d="M0 0 L10 5 L0 10 Z" fill="#427e85"></path>
+            </marker>
+            <marker
+              id="map-relation-arrow-strong"
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              orient="auto-start-reverse"
+            >
+              <path d="M0 0 L10 5 L0 10 Z" fill="#b17b21"></path>
+            </marker>
+          </defs>
+        </svg>
         <p>
           列上部の「AP1〜AP4」の帯は、公式カリキュラム図（PDF）に描かれた区分帯の色と位置を再現したものです。APの各番号の意味は本サイトでは定義していません。
         </p>

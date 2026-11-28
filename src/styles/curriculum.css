@@ -344,8 +344,9 @@
 }
 .curriculum-course-detail {
   position: sticky;
-  top: 150px;
-  max-height: calc(100vh - 285px);
+  /* 固定ヘッダーの実高さ（JSが測定）より下に貼り付ける。 */
+  top: calc(var(--sticky-controls-height, 330px) + 20px);
+  max-height: calc(100vh - var(--sticky-controls-height, 330px) - 40px);
   overflow: auto;
   border: 1px solid #d7dee8;
   border-radius: 10px;

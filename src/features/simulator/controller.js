@@ -220,7 +220,7 @@
     const referenceItems = [...creditInfo, ...emptyYearInfo, ...unplacedCourseInfo, ...orphanPlacementInfo];
     details.innerHTML =
       issueItems.length || referenceItems.length
-        ? `${issueItems.length ? `<ul>${issueItems.map(renderItem).join('')}</ul>` : ''}${
+        ? `${issueItems.length ? `<p class="simulator-plan-check-group-label">判定対象</p><ul>${issueItems.map(renderItem).join('')}</ul>` : ''}${
             referenceItems.length
               ? `<p class="simulator-plan-check-reference-label">参考情報</p><ul>${referenceItems.map(renderItem).join('')}</ul>`
               : ''
@@ -601,11 +601,6 @@
           ...placementIssues.map((issue) => issue.message),
           ...warnings.map((warning) => `${warning.message}（${warning.strengthLabel}）`),
         ].join(' / ');
-        const warningClass =
-          placementIssues.some((issue) => issue.type === 'quarter') ||
-          warnings.some((warning) => warning.strengthClass === 'strong')
-            ? ' is-strong'
-            : '';
         const quarterIssue = placementIssues.find((issue) => issue.type === 'quarter');
         const card = document.createElement('article');
         const hasWarning = warnings.length > 0 || placementIssues.length > 0;
@@ -624,7 +619,13 @@
           <span class="sim-course-credits">${context.escapeHTML(String(course.credits || 0))}単位</span>
           ${quarterIssue ? `<span class="sim-course-quarter-warning" title="${context.escapeHTML(quarterIssue.message)}">要修正 · ${context.escapeHTML(quarterIssue.message)}</span>` : ''}
           <div class="sim-course-card-actions">
-            ${warnings.length || placementIssues.length ? `<button type="button" class="sim-warning-badge${warningClass}" data-sim-warning-course="${context.escapeHTML(course.id)}" aria-label="配置・前提の注意を確認">⚠</button>` : ''}
+            ${
+              quarterIssue
+                ? `<button type="button" class="sim-warning-badge is-strong" data-sim-warning-course="${context.escapeHTML(course.id)}" aria-label="配置の要修正を確認" title="要修正：${context.escapeHTML(placementIssues.map((issue) => issue.message).join(' / '))}">⚠</button>`
+                : warnings.length
+                  ? `<button type="button" class="sim-warning-badge is-recommendation" data-sim-warning-course="${context.escapeHTML(course.id)}" aria-label="前提科目の参考情報を確認" title="参考情報（要修正ではありません）：${context.escapeHTML(warningTooltip)}">ℹ</button>`
+                  : ''
+            }
             <button type="button" class="sim-course-detail-view" data-sim-detail-course="${context.escapeHTML(course.id)}" aria-label="${context.escapeHTML(course.subject)}の詳細を見る" title="科目詳細を見る">👁</button>
             <button type="button" class="sim-course-remove" data-sim-remove-course="${context.escapeHTML(course.id)}" aria-label="${context.escapeHTML(course.subject)}を削除">×</button>
           </div>

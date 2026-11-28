@@ -29,8 +29,12 @@ body {
 .right-column {
   width: 440px; /* 履修管理状況を全体の約1/3の幅に調整 */
   position: sticky;
-  top: 150px; /* 固定ヘッダーの高さに合わせて調整 */
-  max-height: calc(100vh - 170px); /* 画面からはみ出さないよう高さを制限 */
+  /* 固定ヘッダー（sticky-controls）の実高さはJSが測ってCSS変数に入れる。
+     その高さより下に貼り付けることで、マイ履修の上部がヘッダーに隠れない。 */
+  top: calc(var(--sticky-controls-height, 330px) + 20px);
+  max-height: calc(
+    100vh - var(--sticky-controls-height, 330px) - 40px
+  ); /* 画面からはみ出さないよう高さを制限 */
   overflow-y: auto; /* 科目が増えた場合にリスト内スクロールを可能にする */
   /* 枠のような見た目にする */
   background-color: #fff;
@@ -300,6 +304,22 @@ body {
 }
 
 .teacher-line .teacher-expand-btn:hover {
+  background: #eff6ff;
+}
+
+.teacher-line .teacher-collapse-btn {
+  margin-left: 6px;
+  padding: 1px 8px;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #fff;
+  color: #1d4ed8;
+  font-size: 0.85em;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.teacher-line .teacher-collapse-btn:hover {
   background: #eff6ff;
 }
 

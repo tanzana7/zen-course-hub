@@ -80,5 +80,18 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   };
-  return { setupTutorialModal, setupBackToTopButton };
+  // 固定ヘッダー（sticky-controls）の実高さをCSS変数に反映し、マイ履修列の
+  // sticky位置（top）と高さ上限がヘッダーに隠れないようにする。幅や改行に
+  // よって変わるため、実測値を使い、リサイズのたびに更新する。
+  const setupStickyControlsOffset = () => {
+    const header = document.getElementById('sticky-controls');
+    if (!header) return;
+    const update = () => {
+      const height = Math.ceil(header.getBoundingClientRect().height);
+      document.documentElement.style.setProperty('--sticky-controls-height', `${height}px`);
+    };
+    update();
+    window.addEventListener('resize', update);
+  };
+  return { setupTutorialModal, setupBackToTopButton, setupStickyControlsOffset };
 });

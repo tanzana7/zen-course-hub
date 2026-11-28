@@ -97,7 +97,7 @@
         `<span class="teacher-line">`,
         `<span class="teacher-preview">${context.escapeHTML(teacherParts.slice(0, TEACHER_PREVIEW_COUNT).join('、'))}… 他${teacherParts.length - TEACHER_PREVIEW_COUNT}名</span>`,
         '<button type="button" class="teacher-expand-btn">すべて表示</button>',
-        `<span class="teacher-full" hidden>${context.escapeHTML(teacherParts.join('、'))}</span>`,
+        `<span class="teacher-full" hidden>${context.escapeHTML(teacherParts.join('、'))}<button type="button" class="teacher-collapse-btn">折りたたむ</button></span>`,
         '</span>',
       ].join('');
     };

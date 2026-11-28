@@ -103,12 +103,21 @@
       );
       const expand = element('button', 'すべて表示', 'teacher-expand-btn');
       expand.type = 'button';
-      const full = element('span', parts.join('、'), 'teacher-full');
+      const full = element('span', undefined, 'teacher-full');
       full.hidden = true;
+      full.append(element('span', parts.join('、')));
+      const collapse = element('button', '折りたたむ', 'teacher-collapse-btn');
+      collapse.type = 'button';
+      full.append(collapse);
       expand.addEventListener('click', () => {
         preview.hidden = true;
         expand.hidden = true;
         full.hidden = false;
+      });
+      collapse.addEventListener('click', () => {
+        preview.hidden = false;
+        expand.hidden = false;
+        full.hidden = true;
       });
       line.append(preview, expand, full);
       cell.append(line);
@@ -385,6 +394,11 @@
         line.setAttribute('stroke-width', '3');
         line.setAttribute('stroke-dasharray', '8 6');
         line.setAttribute('fill', 'none');
+        // 方向はデータの prerequisiteId→successorId で確定。後継側（終点）に矢印。
+        line.setAttribute(
+          'marker-end',
+          `url(#${relation.strength === 'strongly_recommended' ? 'map-relation-arrow-strong' : 'map-relation-arrow-normal'})`,
+        );
         svg.append(line);
       }
     };

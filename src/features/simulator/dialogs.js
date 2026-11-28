@@ -12,14 +12,15 @@
   const TEACHER_COLLAPSE_LIMIT = 6;
   const TEACHER_PREVIEW_COUNT = 5;
   document.addEventListener('click', (event) => {
-    const button = event.target.closest('.teacher-expand-btn');
-    if (!button) return;
-    const line = button.closest('.teacher-line');
+    const expand = event.target.closest('.teacher-expand-btn');
+    const collapse = event.target.closest('.teacher-collapse-btn');
+    if (!expand && !collapse) return;
+    const line = (expand || collapse).closest('.teacher-line');
     if (!line) return;
-    line.querySelector('.teacher-preview')?.setAttribute('hidden', '');
-    button.setAttribute('hidden', '');
+    line.querySelector('.teacher-preview')?.toggleAttribute('hidden', Boolean(expand));
+    line.querySelector('.teacher-expand-btn')?.toggleAttribute('hidden', Boolean(expand));
     const full = line.querySelector('.teacher-full');
-    if (full) full.hidden = false;
+    if (full) full.hidden = Boolean(collapse);
   });
   const renderSimulatorTeacherCell = (teacher) => {
     const parts = String(teacher || '')
@@ -33,7 +34,7 @@
       '<span class="teacher-line">',
       `<span class="teacher-preview">${context.escapeHTML(parts.slice(0, TEACHER_PREVIEW_COUNT).join('、'))}… 他${parts.length - TEACHER_PREVIEW_COUNT}名</span>`,
       '<button type="button" class="teacher-expand-btn">すべて表示</button>',
-      `<span class="teacher-full" hidden>${context.escapeHTML(parts.join('、'))}</span>`,
+      `<span class="teacher-full" hidden>${context.escapeHTML(parts.join('、'))}<button type="button" class="teacher-collapse-btn">折りたたむ</button></span>`,
       '</span>',
     ].join('');
   };
@@ -268,19 +269,35 @@
       return;
     }
 
+    // 開いた状態は sessionStorage のみに記録し、リロード後に自動で開き直す。
+    // ブラウザ／タブを閉じると消える（localStorageには新しいキーを作らない）。
+    const SIMULATOR_OPEN_SESSION_KEY = 'zenSimulatorOpen';
+    const isSimulatorOpenState = () => {
+      try {
+        return sessionStorage.getItem(SIMULATOR_OPEN_SESSION_KEY) === '1';
+      } catch {
+        return false;
+      }
+    };
+
     const closeSimulator = () => {
       closeSimulatorPlacementPicker({ restoreFocus: false });
       closeSimulatorCourseDetail({ restoreFocus: false });
       modal.classList.remove('is-active');
       modal.hidden = true;
       document.body.classList.remove('simulator-view-active');
+      try {
+        sessionStorage.removeItem(SIMULATOR_OPEN_SESSION_KEY);
+      } catch {
+        // 記録できない環境では復元もしない（既存動作のまま）。
+      }
       context.syncPrimaryViewNavigation('list');
       focusElement(simulatorTriggerElement || button);
       simulatorTriggerElement = null;
     };
 
-    button.onclick = () => {
-      simulatorTriggerElement = button;
+    const openSimulator = ({ restoreFocus = true } = {}) => {
+      if (restoreFocus) simulatorTriggerElement = button;
       // The three entries are peers, so opening the simulator always leaves
       // the tree mode before the fullscreen view is shown.
       document.body.classList.remove('curriculum-tree-mode');
@@ -291,8 +308,21 @@
       document.body.classList.add('simulator-view-active');
       context.syncPrimaryViewNavigation('simulator');
       context.renderSimulator();
-      title?.focus();
+      try {
+        sessionStorage.setItem(SIMULATOR_OPEN_SESSION_KEY, '1');
+      } catch {
+        // 記録できない環境では次回の復元も行わない（既存動作のまま）。
+      }
+      if (restoreFocus) title?.focus();
     };
+
+    button.onclick = () => {
+      openSimulator();
+    };
+
+    // リロード前にシミュレーターを開いていた場合は開いた状態で復帰する。
+    // タブを閉じると sessionStorage も消えるため、次回は復帰しない。
+    if (isSimulatorOpenState()) openSimulator({ restoreFocus: false });
     if (closeButton) {
       closeButton.onclick = closeSimulator;
     }

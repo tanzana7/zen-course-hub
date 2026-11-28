@@ -315,7 +315,7 @@ async function initializeHub() {
     if (document.body.classList.contains('curriculum-tree-mode')) renderCurriculumGraph();
   };
 
-  const { setupTutorialModal, setupBackToTopButton } = window.ZenHubHelp.create();
+  const { setupTutorialModal, setupBackToTopButton, setupStickyControlsOffset } = window.ZenHubHelp.create();
 
   // Factories above only define behavior. Late-bound callbacks are safe after all controllers exist.
   examReady?.then(() => {
@@ -331,6 +331,7 @@ async function initializeHub() {
   setupTutorialModal();
   setupBackToTopButton();
   setupCurriculumTree();
+  setupStickyControlsOffset();
   renderGraduationGauge({ valid: false }, '—');
 
   const refreshOptionalData = ({ difficulty = false, relations = false, graduation = false } = {}) => {

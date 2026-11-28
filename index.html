@@ -32,7 +32,7 @@
     <script defer src="curriculum-config.js"></script>
   </head>
   <body class="app-loading">
-    <div class="sticky-controls">
+    <div class="sticky-controls" id="sticky-controls">
       <header class="app-title-row">
         <h1>ZEN履修登録Hub</h1>
         <a class="feedback-pill" href="feedback.html">ご意見・不具合報告</a>
@@ -117,62 +117,63 @@
           </div>
           <button id="analysis-btn" type="button">卒業要件分析</button>
         </div>
-        <section id="filter-options-panel" class="filter-options-panel" hidden aria-label="絞り込み">
-          <div class="filter-options-section">
-            <h2>絞り込み</h2>
-            <div class="filter-options-grid">
-              <label for="year-filter"
-                >学年
-                <select id="year-filter">
-                  <option value="すべて表示">すべて表示</option>
-                  <option value="1年次">1年次</option>
-                  <option value="2年次">2年次</option>
-                  <option value="3年次">3年次</option>
-                  <option value="4年次">4年次</option>
-                </select>
-              </label>
-              <label for="quarter-filter"
-                >開講Q
-                <select id="quarter-filter">
-                  <option value="すべて表示">すべて表示</option>
-                  <option value="1Q">1Q</option>
-                  <option value="2Q">2Q</option>
-                  <option value="3Q">3Q</option>
-                  <option value="4Q">4Q</option>
-                </select>
-              </label>
-              <label for="category-filter"
-                >分野
-                <select id="category-filter">
-                  <option value="分野">すべて表示</option>
-                </select>
-              </label>
-              <label for="requirement-filter"
-                >必修区分
-                <select id="requirement-filter">
-                  <option value="すべて表示">すべて表示</option>
-                  <option value="必修">必修</option>
-                  <option value="選択必修">選択必修</option>
-                </select>
-              </label>
-            </div>
-            <p class="filter-note">
-              開講Qは、選んだQを開講期間に含む科目を表示します（「1Q〜2Q」のように複数Qにまたがる科目も含まれます）。
-            </p>
-            <label class="filter-checkbox" for="exclude-pixiv-filter">
-              <input id="exclude-pixiv-filter" type="checkbox" />
-              <span>pixiv関連科目を除外</span>
-            </label>
-            <p class="filter-note" id="pixiv-filter-note">
-              pixiv提供のイラスト添付科目（20科目）を一覧から隠します。卒業要件の対象には影響しません。
-            </p>
-          </div>
-          <button id="clear-course-filters" class="clear-filter-btn" type="button" hidden>
-            条件をすべて解除
-          </button>
-        </section>
       </div>
     </div>
+
+    <section id="filter-options-panel" class="filter-options-panel" hidden aria-label="絞り込み">
+      <div class="filter-options-section">
+        <h2>絞り込み</h2>
+        <div class="filter-options-grid">
+          <label for="year-filter"
+            >学年
+            <select id="year-filter">
+              <option value="すべて表示">すべて表示</option>
+              <option value="1年次">1年次</option>
+              <option value="2年次">2年次</option>
+              <option value="3年次">3年次</option>
+              <option value="4年次">4年次</option>
+            </select>
+          </label>
+          <label for="quarter-filter"
+            >開講Q
+            <select id="quarter-filter">
+              <option value="すべて表示">すべて表示</option>
+              <option value="1Q">1Q</option>
+              <option value="2Q">2Q</option>
+              <option value="3Q">3Q</option>
+              <option value="4Q">4Q</option>
+            </select>
+          </label>
+          <label for="category-filter"
+            >分野
+            <select id="category-filter">
+              <option value="分野">すべて表示</option>
+            </select>
+          </label>
+          <label for="requirement-filter"
+            >必修区分
+            <select id="requirement-filter">
+              <option value="すべて表示">すべて表示</option>
+              <option value="必修">必修</option>
+              <option value="選択必修">選択必修</option>
+            </select>
+          </label>
+        </div>
+        <p class="filter-note">
+          開講Qは、選んだQを開講期間に含む科目を表示します（「1Q〜2Q」のように複数Qにまたがる科目も含まれます）。
+        </p>
+        <label class="filter-checkbox" for="exclude-pixiv-filter">
+          <input id="exclude-pixiv-filter" type="checkbox" />
+          <span>pixiv関連科目を除外</span>
+        </label>
+        <p class="filter-note" id="pixiv-filter-note">
+          pixiv提供のイラスト添付科目（20科目）を一覧から隠します。卒業要件の対象には影響しません。
+        </p>
+      </div>
+      <button id="clear-course-filters" class="clear-filter-btn" type="button" hidden>
+        条件をすべて解除
+      </button>
+    </section>
 
     <!--
   メインコンテナ: 画面全体を左右に分けるための親要素
@@ -399,7 +400,7 @@
 
           <details id="exam-schedule">
             <summary>試験日程</summary>
-            <p>2027年2月（4Q）。日程は変更される可能性があります。</p>
+            <p>1科目につき複数の日程が表示されます。2027年2月（4Q）。日程は変更される可能性があります。</p>
             <label>科目名検索 <input id="exam-search" type="search" /></label>
             <div id="exam-list" aria-live="polite"></div>
           </details>
