@@ -375,7 +375,8 @@ body.simulator-view-active > #analysis-modal {
   line-height: 1.45;
 }
 
-/* 要修正・前提の行と、単位・年次などの参考情報行を分ける小見出し。 */
+/* 判定対象（要修正・前提）と、単位・年次などの参考情報行を分ける小見出し。 */
+.simulator-plan-check-group-label,
 .simulator-plan-check-reference-label {
   margin: 8px 0 2px;
   color: #64748b;
@@ -385,7 +386,15 @@ body.simulator-view-active > #analysis-modal {
   padding-top: 6px;
 }
 
-#simulator-plan-check-details ul + .simulator-plan-check-reference-label {
+/* 判定対象は最初の区切りなので上の線を付けない。 */
+.simulator-plan-check-group-label {
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+#simulator-plan-check-details ul + .simulator-plan-check-reference-label,
+#simulator-plan-check-details ul + .simulator-plan-check-group-label {
   margin-top: 10px;
 }
 
@@ -1134,6 +1143,11 @@ body.simulator-view-active > #analysis-modal {
 
 .sim-warning-badge.is-strong {
   color: #b91c1c;
+}
+
+/* 前提（推奨）レベルの参考情報は⚠ではなくℹで表示（計画チェックの分類と揃える）。 */
+.sim-warning-badge.is-recommendation {
+  color: #2563eb;
 }
 
 .sim-warning-badge:focus-visible {

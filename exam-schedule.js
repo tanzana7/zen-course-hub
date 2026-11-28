@@ -6,7 +6,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, () => {
   const MESSAGES = Object.freeze({
     title: '試験日程（2027年2月・4Q）',
-    notice: '日程は変更される可能性があります。',
+    notice: '1科目につき複数の日程が表示されます。日程は変更される可能性があります。',
     error: '試験日程を読み込めません。再読み込みしてください。',
     empty: '該当する試験日程はありません。',
     collision: ' ⚠ 重なっている科目があります',

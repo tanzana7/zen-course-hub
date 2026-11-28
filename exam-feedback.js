@@ -71,17 +71,17 @@
     }
   }
 
-  function updateSummaryCount({ planned, completed }) {
+  function updateSummaryCount({ plannedCourses, plannedSlots, completedCourses, completedSlots }) {
     const summary = root.document.querySelector('#exam-schedule > summary');
     if (!summary) return;
-    // 閉じた状態でも中身の件数が分かるように、対象の日程件数を見出しに添える。
-    // 一覧は履修予定・履修済み両方を列挙するため、内訳も添える。履修済みが
-    // なければ従来どおりの合計表示。
+    // 閉じた状態でも中身の規模が分かるように、科目数と試験枠数を両方添える。
+    // 「件」は枠数で、1科目あたり複数枠あるため科目数だけだと誤解を招く。
+    // 列挙・重なり判定は従来どおり。
     summary.textContent =
-      completed > 0
-        ? `試験日程（予定 ${planned}件・履修済み ${completed}件）`
-        : planned > 0
-          ? `試験日程（${planned}件）`
+      completedSlots > 0
+        ? `試験日程（予定 ${plannedCourses}科目・${plannedSlots}枠／履修済み ${completedCourses}科目・${completedSlots}枠）`
+        : plannedSlots > 0
+          ? `試験日程（予定 ${plannedCourses}科目・${plannedSlots}枠）`
           : '試験日程';
   }
 
@@ -99,9 +99,13 @@
     // 一覧は履修予定・履修済み両方（重複排除）。見出しの件数は検索で絞る前の実件数。
     const listIds = [...new Set([...enrolledIds, ...completedIds])];
     const allRows = getEnrollmentRows(catalog, listIds, '', completedIds);
+    const plannedRows = allRows.filter((row) => !row.completed);
+    const completedRows = allRows.filter((row) => row.completed);
     updateSummaryCount({
-      planned: allRows.filter((row) => !row.completed).length,
-      completed: allRows.filter((row) => row.completed).length,
+      plannedCourses: new Set(plannedRows.map((row) => row.courseId)).size,
+      plannedSlots: plannedRows.length,
+      completedCourses: new Set(completedRows.map((row) => row.courseId)).size,
+      completedSlots: completedRows.length,
     });
     // 重なり警告は履修予定同士のみ。履修済みの行はバッジで区別して列挙は残す。
     const rows = getEnrollmentRows(catalog, listIds, query, completedIds);

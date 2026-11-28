@@ -7,8 +7,14 @@
   html,
   body {
     max-width: 100%;
-    overflow-x: hidden;
     box-sizing: border-box;
+  }
+
+  /* 横方向のはみ出し防止は html 側だけに掛ける。body にも overflow を
+     設定すると body がスクロールコンテナになり、sticky（固定ヘッダー・
+     マイ履修列）が効かなくなる。 */
+  html {
+    overflow-x: hidden;
   }
 
   .input-area {
@@ -69,6 +75,11 @@
   body {
     width: 100%;
     max-width: 100%;
+  }
+
+  /* 769px 未満と同様、sticky が効くのは body 側に overflow を置かない場合。
+     （この幅では sticky-controls 自体は static だが、挙動を揃えておく。） */
+  html {
     overflow-x: hidden;
   }
 

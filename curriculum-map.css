@@ -416,6 +416,25 @@ a {
   line-height: 1.7;
   color: #54676e;
 }
+
+/* 参考関係線の凡例（破線＋前提→後継の矢印）。 */
+.map-relation-legend {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #54676e;
+}
+
+.map-relation-legend dt svg {
+  width: 60px;
+  height: 10px;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.map-relation-legend dd {
+  margin: 0;
+}
 .map-zoom {
   position: fixed;
   right: max(16px, env(safe-area-inset-right));

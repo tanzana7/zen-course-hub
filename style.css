@@ -31,8 +31,12 @@ body {
 .right-column {
   width: 440px; /* 履修管理状況を全体の約1/3の幅に調整 */
   position: sticky;
-  top: 150px; /* 固定ヘッダーの高さに合わせて調整 */
-  max-height: calc(100vh - 170px); /* 画面からはみ出さないよう高さを制限 */
+  /* 固定ヘッダー（sticky-controls）の実高さはJSが測ってCSS変数に入れる。
+     その高さより下に貼り付けることで、マイ履修の上部がヘッダーに隠れない。 */
+  top: calc(var(--sticky-controls-height, 330px) + 20px);
+  max-height: calc(
+    100vh - var(--sticky-controls-height, 330px) - 40px
+  ); /* 画面からはみ出さないよう高さを制限 */
   overflow-y: auto; /* 科目が増えた場合にリスト内スクロールを可能にする */
   /* 枠のような見た目にする */
   background-color: #fff;
@@ -302,6 +306,22 @@ body {
 }
 
 .teacher-line .teacher-expand-btn:hover {
+  background: #eff6ff;
+}
+
+.teacher-line .teacher-collapse-btn {
+  margin-left: 6px;
+  padding: 1px 8px;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #fff;
+  color: #1d4ed8;
+  font-size: 0.85em;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.teacher-line .teacher-collapse-btn:hover {
   background: #eff6ff;
 }
 
@@ -715,7 +735,8 @@ body.simulator-view-active > #analysis-modal {
   line-height: 1.45;
 }
 
-/* 要修正・前提の行と、単位・年次などの参考情報行を分ける小見出し。 */
+/* 判定対象（要修正・前提）と、単位・年次などの参考情報行を分ける小見出し。 */
+.simulator-plan-check-group-label,
 .simulator-plan-check-reference-label {
   margin: 8px 0 2px;
   color: #64748b;
@@ -725,7 +746,15 @@ body.simulator-view-active > #analysis-modal {
   padding-top: 6px;
 }
 
-#simulator-plan-check-details ul + .simulator-plan-check-reference-label {
+/* 判定対象は最初の区切りなので上の線を付けない。 */
+.simulator-plan-check-group-label {
+  border-top: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+#simulator-plan-check-details ul + .simulator-plan-check-reference-label,
+#simulator-plan-check-details ul + .simulator-plan-check-group-label {
   margin-top: 10px;
 }
 
@@ -1476,6 +1505,11 @@ body.simulator-view-active > #analysis-modal {
   color: #b91c1c;
 }
 
+/* 前提（推奨）レベルの参考情報は⚠ではなくℹで表示（計画チェックの分類と揃える）。 */
+.sim-warning-badge.is-recommendation {
+  color: #2563eb;
+}
+
 .sim-warning-badge:focus-visible {
   outline: 2px solid #2563eb;
   outline-offset: 1px;
@@ -2222,8 +2256,14 @@ body.app-loading .top-credit-gauge .gauge-fill {
   html,
   body {
     max-width: 100%;
-    overflow-x: hidden;
     box-sizing: border-box;
+  }
+
+  /* 横方向のはみ出し防止は html 側だけに掛ける。body にも overflow を
+     設定すると body がスクロールコンテナになり、sticky（固定ヘッダー・
+     マイ履修列）が効かなくなる。 */
+  html {
+    overflow-x: hidden;
   }
 
   .input-area {
@@ -2284,6 +2324,11 @@ body.app-loading .top-credit-gauge .gauge-fill {
   body {
     width: 100%;
     max-width: 100%;
+  }
+
+  /* 769px 未満と同様、sticky が効くのは body 側に overflow を置かない場合。
+     （この幅では sticky-controls 自体は static だが、挙動を揃えておく。） */
+  html {
     overflow-x: hidden;
   }
 
@@ -3914,8 +3959,9 @@ body.curriculum-tree-mode .curriculum-mobile-enrollment-toggle {
 }
 .curriculum-course-detail {
   position: sticky;
-  top: 150px;
-  max-height: calc(100vh - 285px);
+  /* 固定ヘッダーの実高さ（JSが測定）より下に貼り付ける。 */
+  top: calc(var(--sticky-controls-height, 330px) + 20px);
+  max-height: calc(100vh - var(--sticky-controls-height, 330px) - 40px);
   overflow: auto;
   border: 1px solid #d7dee8;
   border-radius: 10px;
