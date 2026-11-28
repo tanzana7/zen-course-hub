@@ -182,10 +182,32 @@
           },
         ]
       : [];
+    // マイ履修（履修予定・履修済みのどちらにも）に含まれない配置済み科目。
+    // マイ履修から削除しても配置は保持される仕様のため、その実態を見せる。
+    const myCourses = new Set([...context.state.registeredClasses, ...context.state.completedClasses]);
+    const orphanPlacements = [
+      ...new Set(
+        context.state.simulatorPlan.placements
+          .map((placement) => placement.courseId)
+          .filter((courseId) => !myCourses.has(courseId)),
+      ),
+    ]
+      .map((courseId) => context.state.coursesMap.get(courseId))
+      .filter(Boolean);
+    const orphanPlacementInfo = orphanPlacements.length
+      ? [
+          {
+            type: 'info',
+            label: 'マイ履修にない配置済み科目',
+            message: orphanPlacements.map((course) => course.subject).join('、'),
+          },
+        ]
+      : [];
     const checkItems = [
       ...creditInfo,
       ...emptyYearInfo,
       ...unplacedCourseInfo,
+      ...orphanPlacementInfo,
       ...placementIssues.map((issue) => ({ ...issue, strengthText: '要修正' })),
       ...prerequisiteWarnings.map((warning) => ({ ...warning, strengthText: warning.strengthLabel })),
     ];
@@ -363,7 +385,7 @@
           : '未配置';
         const difficultyText = difficulty
           ? `難易度 ${difficulty.average.toFixed(1)} / 10.0${Number.isFinite(difficulty.votes) ? `（${difficulty.votes}票）` : ''}`
-          : '難易度 未登録';
+          : '難易度 ―（投票なし）';
         const placedClass = placement ? ' is-placed' : '';
         const isRegistered = context.state.registeredClasses.has(course.id);
         const isCompleted = context.state.completedClasses.has(course.id);

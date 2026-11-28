@@ -13,10 +13,10 @@
     year: 'すべて表示',
     field: 'すべて表示',
     selectedId: '',
-    // Reference relations are intentionally opt-in: the official PDF does not
-    // define these prerequisite/successor edges, so hiding them by default
-    // keeps the map legible and prevents an advisory graph from looking official.
-    relationMode: 'off',
+    // 参考関係線の初期値は「選択科目のみ」表示。科目を選んだときにその前提・
+    // 後継だけが現れる（全体表示は opt-in）。公式の前提条件ではないため
+    // 全体表示は既定にしない。
+    relationMode: 'selected',
     didDrag: false,
     layout: null,
     zoom: 1,

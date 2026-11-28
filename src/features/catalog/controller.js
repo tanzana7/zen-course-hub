@@ -12,13 +12,17 @@
   // 数える。復元された除外設定（pixiv除外など）は初期状態に含めるため、初期表示
   // ではカウントされない。絞り込み自体の挙動は変えない。基準は起動時に1回だけ
   // 取る（renderPredefinedList の中で取ると毎回更新されて常に0になる）。
+  // バッジは「現在有効な条件の数」。基準は保存データがない新規ユーザーが最初に
+  // 見る既定値で、復元された条件が既定値と異なればそのままカウントする。
+  // （filterSearch は対象外。filterIntro も条件としてカウントする。）
   const filterBaseline = {
-    filterYear: context.state.filterYear,
-    filterQuarter: context.state.filterQuarter,
-    filterCategory: context.state.filterCategory,
-    filterRequirement: context.state.filterRequirement,
-    excludePixiv: context.state.excludePixiv,
-    difficultySort: context.state.difficultySort,
+    filterYear: 'すべて表示',
+    filterQuarter: 'すべて表示',
+    filterCategory: '分野',
+    filterRequirement: 'すべて表示',
+    filterIntro: 'すべて表示',
+    excludePixiv: false,
+    difficultySort: 'default',
   };
 
   const clearCourseFilters = () => {
@@ -81,6 +85,8 @@
     const teacherParts = teacher.split(', ');
     const displayTeacher =
       teacherParts.length > 1 ? `${teacherParts[0]} 他${teacherParts.length - 1}名` : teacher;
+    // 難易度データのない科目（difficulty.json にエントリがない＝投票なし）でも
+    // 「データがない」ことが分かるプレースホルダーを出す。
     const difficultyHtml = difficulty
       ? `
       <section class="difficulty-section" aria-label="授業難易度">
@@ -91,7 +97,12 @@
         </p>
       </section>
     `
-      : '';
+      : `
+      <section class="difficulty-section" aria-label="授業難易度">
+        <h5 class="difficulty-title">📊 授業難易度</h5>
+        <p><strong>難易度目安：</strong>―（投票なし）</p>
+      </section>
+    `;
 
     const relations = context.state.relationsMap.get(data.id);
     const prerequisiteLinks = renderRelationLinks(relations?.prerequisites);
@@ -312,6 +323,7 @@
       context.state.filterQuarter !== filterBaseline.filterQuarter,
       context.state.filterCategory !== filterBaseline.filterCategory,
       context.state.filterRequirement !== filterBaseline.filterRequirement,
+      context.state.filterIntro !== filterBaseline.filterIntro,
       context.state.excludePixiv !== filterBaseline.excludePixiv,
       context.state.difficultySort !== filterBaseline.difficultySort,
     ].filter(Boolean).length;
@@ -385,7 +397,11 @@
                       .join('')
                   : ''
               }
-              ${difficulty ? `<span class="badge difficulty-badge">難易度 ${difficulty.average.toFixed(1)}${Number.isFinite(difficulty.votes) ? `（${difficulty.votes}票）` : ''}</span>` : ''}
+              ${
+                difficulty
+                  ? `<span class="badge difficulty-badge">難易度 ${difficulty.average.toFixed(1)} / 10.0${Number.isFinite(difficulty.votes) ? `（${difficulty.votes}票）` : ''}</span>`
+                  : '<span class="badge difficulty-badge">難易度 ―（投票なし）</span>'
+              }
             </div>
           </div>
           <div class="actions">

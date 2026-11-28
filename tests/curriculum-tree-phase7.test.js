@@ -37,11 +37,12 @@ test('phase 7 preserves the 335 advisory relations and valid IDs', () => {
 
 test('phase 7 relation line modes default to OFF and support selected/all', () => {
   assert.match(index, /id="curriculum-relation-mode"/);
-  assert.match(index, /<option value="off" selected>OFF<\/option>/);
-  assert.match(index, /<option value="selected">SELECTED<\/option>/);
+  assert.match(index, /<option value="off">OFF<\/option>/);
+  assert.match(index, /<option value="selected" selected>SELECTED<\/option>/);
   assert.match(index, /<option value="all">ALL<\/option>/);
   assert.match(index, /公式の前提条件ではありません/);
-  assert.match(app, /relationMode: 'off'/);
+  // 参考関係線の初期値は「選択科目のみ」（科目選択時に前提・後継を表示）。
+  assert.match(app, /relationMode: 'selected'/);
   assert.match(app, /relationMode === 'selected'/);
   assert.match(app, /relationMode === 'all'/);
   assert.match(app, /if \(!showAllRelations && !showSelectedRelations\) return/);
