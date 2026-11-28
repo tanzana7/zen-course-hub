@@ -285,6 +285,28 @@ body {
   transition: width 0.25s ease;
 }
 
+/* 教員が多い科目の詳細表示（ホーム・シミュレーター・マップ詳細共通）。
+   先頭5名＋他N名に折りたたみ、「すべて表示」で展開する。 */
+.teacher-line .teacher-expand-btn {
+  margin-left: 6px;
+  padding: 1px 8px;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #fff;
+  color: #1d4ed8;
+  font-size: 0.85em;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.teacher-line .teacher-expand-btn:hover {
+  background: #eff6ff;
+}
+
+.teacher-line .teacher-full {
+  overflow-wrap: anywhere;
+}
+
 /* モーダル基本設定 */
 .modal-overlay {
   display: none;

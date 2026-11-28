@@ -454,6 +454,7 @@
           <button id="close-simulator" class="simulator-back" type="button">← 履修管理に戻る</button>
           <h1 id="simulator-modal-title" tabindex="-1">4年間履修シミュレーター β</h1>
           <div id="simulator-total-summary" class="simulator-total-summary" aria-live="polite"></div>
+          <p id="simulator-total-diff" class="simulator-total-diff" hidden></p>
         </header>
 
         <div class="simulator-layout">
@@ -491,6 +492,9 @@
             </section>
             <details class="simulator-plan-check" id="simulator-plan-check">
               <summary id="simulator-plan-check-summary" aria-live="polite">✓ 計画チェック</summary>
+              <p class="simulator-plan-check-note">
+                要修正＝配置した科目の開講Q不適合のみ。前提（推奨）・未配置は参考情報です。
+              </p>
               <div id="simulator-plan-check-details"></div>
             </details>
 

@@ -82,9 +82,26 @@
     const difficulty = context.state.difficultyMap.get(data.id);
     const safeSyllabusUrl = context.sanitizeExternalUrl(data.url);
     const teacher = String(data.teacher || '');
-    const teacherParts = teacher.split(', ');
-    const displayTeacher =
-      teacherParts.length > 1 ? `${teacherParts[0]} 他${teacherParts.length - 1}名` : teacher;
+    const teacherParts = teacher.split(', ').filter(Boolean);
+    // 教員が多い科目（6名以上）は先頭5名＋他N名に折りたたみ、「すべて表示」で
+    // 展開する。データ自体は変えない（表示のみの折りたたみ）。
+    const TEACHER_COLLAPSE_LIMIT = 6;
+    const TEACHER_PREVIEW_COUNT = 5;
+    const renderTeacherMarkup = () => {
+      if (teacherParts.length === 0) return '';
+      if (teacherParts.length < TEACHER_COLLAPSE_LIMIT)
+        return context.escapeHTML(
+          teacherParts.length > 1 ? `${teacherParts[0]} 他${teacherParts.length - 1}名` : teacherParts[0],
+        );
+      return [
+        `<span class="teacher-line">`,
+        `<span class="teacher-preview">${context.escapeHTML(teacherParts.slice(0, TEACHER_PREVIEW_COUNT).join('、'))}… 他${teacherParts.length - TEACHER_PREVIEW_COUNT}名</span>`,
+        '<button type="button" class="teacher-expand-btn">すべて表示</button>',
+        `<span class="teacher-full" hidden>${context.escapeHTML(teacherParts.join('、'))}</span>`,
+        '</span>',
+      ].join('');
+    };
+    const displayTeacher = renderTeacherMarkup();
     // 難易度データのない科目（difficulty.json にエントリがない＝投票なし）でも
     // 「データがない」ことが分かるプレースホルダーを出す。
     const difficultyHtml = difficulty
@@ -129,7 +146,7 @@
       <div class="detail-sections">
         <p><strong>科目区分:</strong> ${context.escapeHTML(data.method || '-')} ${data.remarks ? `(${context.escapeHTML(data.remarks)})` : ''}</p>
         <p><strong>タグ:</strong> ${data.tag ? `#${context.escapeHTML(data.tag)}` : '-'}</p>
-        <p><strong>教員情報:</strong> ${context.escapeHTML(displayTeacher)}</p>
+        <p><strong>教員情報:</strong> ${displayTeacher}</p>
         <p class="evaluation"><strong>評価方法:</strong> ${context.escapeHTML(data.evaluation)}</p>
         ${safeSyllabusUrl ? `<p><a href="${context.escapeHTML(safeSyllabusUrl)}" target="_blank" rel="noopener noreferrer" class="syllabus-link" title="ZEN大学シラバスサイトの該当ページを開きます">ZEN大学シラバスで詳細を確認</a></p>` : ''}
         <p class="description"><strong>授業概要:</strong> ${context.escapeHTML(data.description)}</p>

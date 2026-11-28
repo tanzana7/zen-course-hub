@@ -39,9 +39,18 @@
     }
   }
 
+  // 科目指定なしで直接開いたときだけ、埋め方の案内を出す。
+  // （フォームの構造・送信仕様は変更しない。表示のみ。）
+  function showCourseHintWhenDirect() {
+    const hint = root.document.getElementById('feedback-course-hint');
+    if (!hint) return;
+    hint.hidden = Boolean(params.get('courseId') || params.get('courseName'));
+  }
+
   prefillCategory();
   prefillCourseFromQuery();
   confirmCourseWithCatalog();
+  showCourseHintWhenDirect();
   // Native POST delegates acceptance and the result page to Netlify.
   // A local preview must never claim that the service accepted a submission.
   form.addEventListener('submit', (event) => {

@@ -87,7 +87,9 @@
     if (canShowProgress) {
       const pct = Math.max(0, Math.min(100, (stats.totalCredits / targetCredits) * 100));
       fillElement.style.width = `${pct}%`;
-      fillElement.style.background = pct >= 100 ? '#22c55e' : pct >= 60 ? '#3b82f6' : '#ef4444';
+      // 進捗バーは進捗率によらず基調色（青）に統一。低進捗を赤（警告色）で
+      // 見せる表現はやめる（赤は警告表示専用）。
+      fillElement.style.background = '#3b82f6';
     }
   };
 
@@ -209,11 +211,14 @@
       options.interactive
         ? ` data-sim-graduation-detail="${context.escapeHTML(key)}" role="button" tabindex="0" aria-label="${context.escapeHTML(label)}の詳細を表示"`
         : '';
+    // 各セルに小さいラベルを常に見せて、列見出しが追えないときも修得済み／
+    // 予定込みの区別が行の時点で分かるようにする（判定文言・数値は不変）。
+    const cellLabel = (text) => `<small class="graduation-cell-label">${context.escapeHTML(text)}</small>`;
     const dual = (label, completedRequirement, plannedRequirement, key) => `
       <div class="graduation-requirement-row"${interactiveRow(label, key)}>
         <strong>${context.escapeHTML(label)}</strong>
-        <span>${context.escapeHTML(completedLabel)} ${ratio(completedRequirement, false)}</span>
-        <span>${context.escapeHTML(plannedLabel)} ${ratio(plannedRequirement, true)}</span>
+        <span>${cellLabel(completedLabel)} ${ratio(completedRequirement, false)}</span>
+        <span>${cellLabel(plannedLabel)} ${ratio(plannedRequirement, true)}</span>
       </div>${breakdown(key, label, completedRequirement, plannedRequirement)}`;
     const foundationGroups = completedAnalysis.foundation.groups
       .map((group, index) => {
@@ -225,8 +230,8 @@
     const socialRow = `
       <div class="graduation-requirement-row graduation-social-row"${interactiveRow('社会接続', 'socialConnection')}>
         <strong>社会接続</strong>
-        <span>${context.escapeHTML(completedLabel)} <span class="requirement-progress"><span class="requirement-ratio">${completedAnalysis.socialConnection.countedCredits} / ${completedAnalysis.socialConnection.capCredits}単位</span><small class="social-actual-note">（取得 ${completedAnalysis.socialConnection.actualCredits}単位）</small><span class="requirement-remaining" title="社会接続は単独の達成判定を持たず、総卒業算入単位に算入されます">―</span></span></span>
-        <span>${context.escapeHTML(plannedLabel)} <span class="requirement-progress"><span class="requirement-ratio">${plannedAnalysis.socialConnection.countedCredits} / ${plannedAnalysis.socialConnection.capCredits}単位</span><small class="social-actual-note">（取得 ${plannedAnalysis.socialConnection.actualCredits}単位）</small><span class="requirement-remaining" title="社会接続は単独の達成判定を持たず、総卒業算入単位に算入されます">―</span></span></span>
+        <span>${cellLabel(completedLabel)} <span class="requirement-progress"><span class="requirement-ratio">${completedAnalysis.socialConnection.countedCredits} / ${completedAnalysis.socialConnection.capCredits}単位</span><small class="social-actual-note">（取得 ${completedAnalysis.socialConnection.actualCredits}単位）</small><span class="requirement-remaining" title="社会接続は単独の達成判定を持たず、総卒業算入単位に算入されます">―</span></span></span>
+        <span>${cellLabel(plannedLabel)} <span class="requirement-progress"><span class="requirement-ratio">${plannedAnalysis.socialConnection.countedCredits} / ${plannedAnalysis.socialConnection.capCredits}単位</span><small class="social-actual-note">（取得 ${plannedAnalysis.socialConnection.actualCredits}単位）</small><span class="requirement-remaining" title="社会接続は単独の達成判定を持たず、総卒業算入単位に算入されます">―</span></span></span>
       </div>${
         !targetElement && homeGraduationDetailState
           ? `<details class="graduation-course-breakdown" data-home-graduation-key="socialConnection">
@@ -264,8 +269,8 @@
         ${dual('世界理解（基礎科目を含む）', completedAnalysis.worldUnderstanding, plannedAnalysis.worldUnderstanding, 'worldUnderstanding')}
         <div class="graduation-requirement-row graduation-subrequirement-row"${interactiveRow('世界理解内：産業史系', 'worldUnderstanding.industryHistory')}>
           <strong>世界理解内：産業史系</strong>
-          <span>${context.escapeHTML(completedLabel)} ${ratio(industryCompleted, false)}</span>
-          <span>${context.escapeHTML(plannedLabel)} ${ratio(industryPlanned, true)}</span>
+          <span>${cellLabel(completedLabel)} ${ratio(industryCompleted, false)}</span>
+          <span>${cellLabel(plannedLabel)} ${ratio(industryPlanned, true)}</span>
         </div>
         ${breakdown('worldUnderstanding.industryHistory', '世界理解内：産業史系', industryCompleted, industryPlanned)}
         ${socialRow}
